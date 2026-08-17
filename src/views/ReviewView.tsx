@@ -95,7 +95,7 @@ export function ReviewView() {
     <section className="space-y-6 px-4 py-8 print:block">
       <div>
         <p className="text-sm text-[var(--muted)]">Review</p>
-        <h1 className="mt-1 text-2xl font-medium">Evening sheet</h1>
+        <h1 className="mt-1 text-2xl font-medium">Evening review</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
           Agent runs here — not at capture.
         </p>

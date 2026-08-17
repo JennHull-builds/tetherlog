@@ -6,9 +6,9 @@ ND capture log — dumb-fast park, agent-powered evening review, pattern detecti
 
 See `PRODUCT.md` for full spec.
 
-## Zero-cost rule
+## Privacy
 
-No server API keys. No surprise bills. AI features use **your** key (BYOK), stored on your device only. Capture and patterns work without a key.
+Captures stay on your device. Optional AI uses **your** API key (BYOK), stored in the browser only. Capture and patterns work without a key.
 
 ## Dev
 

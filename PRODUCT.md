@@ -3,9 +3,7 @@
 **Name:** TetherLog  
 **Tagline:** Log what's pulling you. Review later. See the pattern.
 
-**Build in public.** MIT. Separate from Chappie — inspired by `capture` + `evening-review` skills, no private file imports.
-
-Locked 2026-08-17.
+MIT. Inspired by capture + evening-review workflows.
 
 ---
 
@@ -17,7 +15,7 @@ ADHD/ND brains get hijacked mid-task. A capture log works — park the thought, 
 1. **Capture is dumb and fast** — no AI, no analysis, no questions. &lt;5 seconds.
 2. **Review is the agent** — triage, wins, patterns happen here, not mid-task.
 3. **Hands export the outcome** — `do` items leave the app (calendar, clipboard, share, email).
-4. **$0 to run** — no server bills, no API keys on our side. See [Zero-cost architecture](#zero-cost-architecture).
+4. **Client-side only** — no server-held API keys or user data. See [Client-side architecture](#client-side-architecture).
 
 ---
 
@@ -44,7 +42,7 @@ Open review → wins (optional) → triage each capture → summary → hands
 
 **Steps:**
 1. **Wins** — "What moved today?" (optional, manual bullets — antidote to success amnesia)
-2. **Sheet triage** — agent walks today's captures (and untriaged backlog if user wants)
+2. **Capture triage** — agent walks today's captures (and untriaged backlog if user wants)
 3. Each item → structured suggestion: `do` | `later` | `drop` | `wonder` + one-line reason
 4. User confirms or overrides (one tap per item, swipe on mobile)
 5. **Review summary** card — counts + one carry-forward max for tomorrow
@@ -54,7 +52,7 @@ Open review → wins (optional) → triage each capture → summary → hands
 
 ### 3. Patterns (deterministic + AI flex)
 
-**Always free (no key):**
+**Without a key:**
 - Captures per day / week chart
 - Time-of-day heatmap (when do hijacks happen?)
 - Repeat detection — same or similar thoughts (fuzzy match)
@@ -86,7 +84,7 @@ Every review suggestion must return this shape (Zod):
   bucket: "do" | "later" | "drop" | "wonder"
   reason: string        // one line, warm, literal
   carryForward: boolean // max one per review session
-  suggestedAction?: string  // only for "do" — e.g. "email landlord", "15 min block"
+  suggestedAction?: string  // only for "do" — e.g. "15 min block"
 }
 ```
 
@@ -94,9 +92,9 @@ Batch review returns `{ items: [...], summary: { do: n, later: n, drop: n, wonde
 
 ---
 
-## Hands (browser-native — $0)
+## Hands (browser-native)
 
-These are **outputs**, not integrations we pay for.
+These are **outputs**, not hosted integrations.
 
 | Hand | What | API |
 |------|------|-----|
@@ -111,31 +109,31 @@ These are **outputs**, not integrations we pay for.
 | **Print review** | Print-friendly CSS | window.print() |
 | **Evening reminder** | "Time for review?" at user-set hour | Web Notifications + PWA service worker |
 
-**Not v1 (needs paid service or OAuth we won't do):**
+**Not v1 (needs third-party accounts or OAuth):**
 - Google Calendar API sync
-- Slack/Discord webhooks on our server
-- Server-sent SMS/email (SendGrid, Twilio)
-- Accounts + cloud sync on our dime
+- Slack/Discord webhooks
+- Server-sent SMS/email
+- Accounts + cloud sync
 
-**Future $0 option:** optional Supabase sync with **user's own** Supabase project (BYO database) — out of v1.
+**Later:** optional sync with the user's own database (BYO) — out of v1.
 
 ---
 
-## Zero-cost architecture
+## Client-side architecture
 
-**Hard rule:** Jen never gets a surprise bill from this product.
+Data and AI stay on the device. There is no product backend for user data or model calls.
 
-| Layer | Choice | Cost |
-|-------|--------|------|
-| Hosting | Vercel hobby / static | $0 |
-| Database | IndexedDB via Dexie | $0 |
-| Auth | None v1 — device-local data | $0 |
-| LLM | **BYOK only** — key in browser localStorage, calls from client | User's free tier or $0 |
-| AI fallback | Deterministic patterns + rule-based triage hints | $0 |
-| Analytics | Optional Vercel Analytics (free tier) or none | $0 |
-| Notifications | Browser + service worker | $0 |
+| Layer | Choice |
+|-------|--------|
+| Hosting | Static site |
+| Database | IndexedDB via Dexie |
+| Auth | None v1 — device-local data |
+| LLM | **BYOK only** — key in browser localStorage, calls from client |
+| AI fallback | Deterministic patterns + rule-based triage hints |
+| Analytics | None, or optional host analytics |
+| Notifications | Browser + service worker |
 
-**Never on our server:**
+**Not collected or proxied:**
 - API keys
 - LLM proxy calls
 - User data storage
@@ -152,20 +150,6 @@ These are **outputs**, not integrations we pay for.
 - Default untagged → suggest `later`
 
 Product is **never empty** without a key. AI is enhancement, not gate.
-
----
-
-## Agent demo checklist
-
-| Box | Where |
-|-----|--------|
-| Workflow | Capture ≠ review hard split |
-| Structured output | Zod triage schema |
-| Memory over time | IndexedDB + pattern engine |
-| Hands | Clipboard, .ics, share, mailto, export/import |
-| Domain | ND capture-log rules baked in |
-| When not to use AI | Capture has zero AI |
-| Deploy | Vercel link |
 
 ---
 
@@ -214,15 +198,6 @@ Untriaged captures aren't failure. Parked thoughts, not homework.
 
 ---
 
-## Chappie boundary
-
-- Skills live in Chappie repo — reference only
-- TetherLog repo has its own soul, copy, code
-- No imports from private Chappie files
-
----
-
 ## Log
 
-- 2026-08-17: Full spec. Zero-cost BYOK architecture. Hands via browser APIs. Flex scope locked.
-- 2026-08-17: Named **TetherLog** (was working title Drop Sheet).
+- 2026-08-17: Spec locked. Client-side BYOK architecture. Hands via browser APIs.
