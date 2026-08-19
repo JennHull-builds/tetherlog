@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { Button, Card, Chip, Field, FileCard } from "../components/ui";
 import {
   applyTriage,
   getCapturesForDay,
@@ -94,60 +95,58 @@ export function ReviewView() {
   return (
     <section className="space-y-6 px-4 py-8 print:block">
       <div>
-        <p className="text-sm text-[var(--muted)]">Review</p>
-        <h1 className="mt-1 text-2xl font-medium">Evening review</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">
+        <p className="text-sm text-muted">Review</p>
+        <h1 className="mt-1 text-2xl font-medium text-ink">Evening review</h1>
+        <p className="mt-2 text-sm text-muted">
           Agent runs here — not at capture.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
-        <h2 className="font-medium">Wins</h2>
-        <p className="mt-1 text-sm text-[var(--muted)]">What moved today?</p>
+      <Card>
+        <h2 className="font-medium text-ink">Wins</h2>
+        <p className="mt-1 text-sm text-muted">What moved today?</p>
         <div className="mt-3 flex gap-2">
-          <input
-            value={winDraft}
-            onChange={(event) => setWinDraft(event.target.value)}
-            placeholder="Even tiny counts"
-            className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 outline-none"
-          />
-          <button
-            type="button"
-            onClick={addWin}
-            className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
-          >
+          <div className="min-w-0 flex-1">
+            <Field
+              value={winDraft}
+              onChange={setWinDraft}
+              placeholder="Even tiny counts"
+            />
+          </div>
+          <Button variant="ghost" onClick={addWin}>
             Add
-          </button>
+          </Button>
         </div>
         {wins.length > 0 && (
-          <ul className="mt-3 space-y-1 text-sm">
+          <ul className="mt-3 space-y-1 text-sm text-ink">
             {wins.map((win) => (
               <li key={win}>• {win}</li>
             ))}
           </ul>
         )}
-      </div>
+      </Card>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-medium">Today's captures ({untriagedToday.length} open)</h2>
-          <button
-            type="button"
+          <h2 className="font-medium text-ink">
+            Today's captures ({untriagedToday.length} open)
+          </h2>
+          <Button
             onClick={runReview}
             disabled={loading || untriagedToday.length === 0}
-            className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[#0f0f14] disabled:opacity-40"
+            className="shrink-0 py-2"
           >
             {loading ? "Reviewing…" : settings?.geminiApiKey ? "AI triage" : "Rule triage"}
-          </button>
+          </Button>
         </div>
 
         {!settings?.geminiApiKey && (
-          <p className="text-sm text-[var(--muted)]">
+          <p className="text-sm text-muted">
             No API key — using rule-based triage. Add your Gemini key in Settings for AI.
           </p>
         )}
 
-        {error && <p className="text-sm text-red-300">{error}</p>}
+        {error && <p className="text-sm text-ink">{error}</p>}
 
         {suggestions.map((suggestion) => {
           const capture = untriagedToday.find(
@@ -156,54 +155,56 @@ export function ReviewView() {
           if (!capture) return null;
 
           return (
-            <article
-              key={suggestion.captureId}
-              className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4"
-            >
-              <p className="font-medium">{capture.text}</p>
-              <p className="mt-2 text-sm text-[var(--muted)]">{suggestion.reason}</p>
+            <FileCard key={suggestion.captureId} tone={suggestion.bucket}>
+              <p className="font-medium text-ink">{capture.text}</p>
+              <p className="mt-2 text-sm text-muted">{suggestion.reason}</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
+                <Chip
+                  selected
+                  tone={suggestion.bucket}
                   onClick={() => confirmSuggestion(suggestion)}
-                  className="rounded-full bg-[var(--accent)] px-3 py-1 text-sm text-[#0f0f14]"
                 >
                   {BUCKET_LABELS[suggestion.bucket]}
-                </button>
+                </Chip>
                 {(["do", "later", "drop", "wonder"] as TriageBucket[]).map(
                   (bucket) => (
-                    <button
+                    <Chip
                       key={bucket}
-                      type="button"
+                      tone={bucket}
                       onClick={() => overrideBucket(capture.id, bucket)}
-                      className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted)]"
                     >
                       {BUCKET_LABELS[bucket]}
-                    </button>
+                    </Chip>
                   ),
                 )}
               </div>
-            </article>
+            </FileCard>
           );
         })}
       </div>
 
       {triagedToday.length > 0 && (
-        <div className="no-print rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
-          <h2 className="font-medium">Hands</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">
+        <Card className="no-print">
+          <h2 className="font-medium text-ink">Hands</h2>
+          <p className="mt-1 text-sm text-muted">
             Export your do items — no paid integrations.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <HandButton label="Copy do list" onClick={copyDoList} />
-            <HandButton
-              label="Copy review"
+            <Button variant="ghost" className="py-2" onClick={() => void copyDoList()}>
+              Copy do list
+            </Button>
+            <Button
+              variant="ghost"
+              className="py-2"
               onClick={() =>
-                copyText(formatReviewMarkdown(dayKey, triagedToday, wins))
+                void copyText(formatReviewMarkdown(dayKey, triagedToday, wins))
               }
-            />
-            <HandButton
-              label="Download .ics"
+            >
+              Copy review
+            </Button>
+            <Button
+              variant="ghost"
+              className="py-2"
               onClick={() =>
                 downloadFile(
                   `tetherlog-${dayKey}.ics`,
@@ -211,43 +212,38 @@ export function ReviewView() {
                   "text/calendar",
                 )
               }
-            />
-            <HandButton label="Email do list" onClick={() => mailtoDoList(triagedToday)} />
-            <HandButton
-              label="Share"
-              onClick={async () => {
-                await shareText("TetherLog review", formatDoList(triagedToday));
-              }}
-            />
-            <HandButton label="Print" onClick={() => window.print()} />
+            >
+              Download .ics
+            </Button>
+            <Button
+              variant="ghost"
+              className="py-2"
+              onClick={() => mailtoDoList(triagedToday)}
+            >
+              Email do list
+            </Button>
+            <Button
+              variant="ghost"
+              className="py-2"
+              onClick={() =>
+                void shareText("TetherLog review", formatDoList(triagedToday))
+              }
+            >
+              Share
+            </Button>
+            <Button variant="ghost" className="py-2" onClick={() => window.print()}>
+              Print
+            </Button>
           </div>
           {doCaptures.length > 0 && (
-            <ul className="mt-4 space-y-1 text-sm">
+            <ul className="mt-4 space-y-1 text-sm text-ink">
               {doCaptures.map((item) => (
                 <li key={item.id}>• {item.text}</li>
               ))}
             </ul>
           )}
-        </div>
+        </Card>
       )}
     </section>
-  );
-}
-
-function HandButton({
-  label,
-  onClick,
-}: {
-  label: string;
-  onClick: () => void | Promise<void>;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => void onClick()}
-      className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
-    >
-      {label}
-    </button>
   );
 }

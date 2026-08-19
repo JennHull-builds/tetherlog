@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { Button, Card } from "../components/ui";
 import { db, getSettings } from "../db";
 import { aiWeeklyDigest, buildWeeklyStats } from "../lib/agent";
 import { copyText, downloadFile, shareText } from "../lib/hands";
@@ -11,7 +12,7 @@ export function PatternsView() {
   const [loading, setLoading] = useState(false);
 
   if (!captures) {
-    return <p className="px-4 py-8 text-[var(--muted)]">Loading patterns…</p>;
+    return <p className="px-4 py-8 text-muted">Loading patterns…</p>;
   }
 
   const stats = buildWeeklyStats(captures);
@@ -33,8 +34,8 @@ export function PatternsView() {
   return (
     <section className="space-y-6 px-4 py-8">
       <div>
-        <p className="text-sm text-[var(--muted)]">Patterns</p>
-        <h1 className="mt-1 text-2xl font-medium">What keeps showing up</h1>
+        <p className="text-sm text-muted">Patterns</p>
+        <h1 className="mt-1 text-2xl font-medium text-ink">What keeps showing up</h1>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -44,86 +45,81 @@ export function PatternsView() {
         <StatCard label="Stuck items" value={String(stats.stuckCount)} />
       </div>
 
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
-        <h2 className="font-medium">Time of day</h2>
+      <Card>
+        <h2 className="font-medium text-ink">Time of day</h2>
         <div className="mt-4 flex h-24 items-end gap-1">
           {stats.heatmap.map((count, hour) => (
             <div
               key={hour}
               title={`${hour}:00 — ${count}`}
-              className="flex-1 rounded-t bg-[var(--accent)]"
+              className="flex-1 rounded-t bg-do"
               style={{ height: `${(count / maxHeat) * 100}%`, opacity: count ? 1 : 0.15 }}
             />
           ))}
         </div>
-      </div>
+      </Card>
 
       {stats.topRepeats.length > 0 && (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
-          <h2 className="font-medium">Repeats</h2>
-          <ul className="mt-3 space-y-2 text-sm">
+        <Card>
+          <h2 className="font-medium text-ink">Repeats</h2>
+          <ul className="mt-3 space-y-2 text-sm text-ink">
             {stats.topRepeats.map((item) => (
               <li key={item.text}>
-                {item.text} <span className="text-[var(--muted)]">×{item.count}</span>
+                {item.text} <span className="text-muted">×{item.count}</span>
               </li>
             ))}
           </ul>
-        </div>
+        </Card>
       )}
 
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
+      <Card>
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-medium">Weekly digest</h2>
-          <button
-            type="button"
-            onClick={runDigest}
+          <h2 className="font-medium text-ink">Weekly digest</h2>
+          <Button
+            onClick={() => void runDigest()}
             disabled={!settings?.geminiApiKey || loading}
-            className="rounded-xl bg-[var(--accent)] px-3 py-2 text-sm text-[#0f0f14] disabled:opacity-40"
+            className="py-2"
           >
             {loading ? "Writing…" : "Generate"}
-          </button>
+          </Button>
         </div>
         {!settings?.geminiApiKey && (
-          <p className="mt-2 text-sm text-[var(--muted)]">
+          <p className="mt-2 text-sm text-muted">
             Add Gemini key in Settings for narrative digest. Stats above always work.
           </p>
         )}
-        {digest && <p className="mt-4 text-sm leading-relaxed">{digest}</p>}
+        {digest && <p className="mt-4 text-sm leading-relaxed text-ink">{digest}</p>}
         <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => copyText(digestMarkdown)}
-            className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
-          >
+          <Button variant="ghost" className="py-2" onClick={() => void copyText(digestMarkdown)}>
             Copy digest
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            className="py-2"
             onClick={() =>
               downloadFile("weekly-digest.md", digestMarkdown, "text/markdown")
             }
-            className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
           >
             Download markdown
-          </button>
-          <button
-            type="button"
-            onClick={() => shareText("Weekly digest", digest ?? digestMarkdown)}
-            className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+          </Button>
+          <Button
+            variant="ghost"
+            className="py-2"
+            onClick={() => void shareText("Weekly digest", digest ?? digestMarkdown)}
           >
             Share
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
     </section>
   );
 }
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-4">
-      <p className="text-sm text-[var(--muted)]">{label}</p>
-      <p className="mt-1 text-2xl font-medium">{value}</p>
-    </div>
+    <Card>
+      <p className="text-sm text-muted">{label}</p>
+      <p className="mt-1 text-2xl font-medium text-ink">{value}</p>
+    </Card>
   );
 }

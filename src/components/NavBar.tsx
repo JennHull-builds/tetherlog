@@ -14,7 +14,7 @@ interface NavBarProps {
 
 export function NavBar({ screen, onNavigate }: NavBarProps) {
   return (
-    <nav className="no-print sticky bottom-0 border-t border-[var(--border)] bg-[var(--surface-raised)]/95 backdrop-blur">
+    <nav className="no-print sticky bottom-0 border-t border-line bg-raised/95 backdrop-blur">
       <div className="mx-auto grid max-w-lg grid-cols-4 gap-1 px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {NAV.map((item) => (
           <button
@@ -22,9 +22,7 @@ export function NavBar({ screen, onNavigate }: NavBarProps) {
             type="button"
             onClick={() => onNavigate(item.id)}
             className={`rounded-xl px-2 py-2 text-xs sm:text-sm ${
-              screen === item.id
-                ? "bg-[var(--accent)]/20 text-[var(--text)]"
-                : "text-[var(--muted)]"
+              screen === item.id ? "bg-paper text-ink" : "text-muted"
             }`}
           >
             {item.label}

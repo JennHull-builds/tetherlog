@@ -1,31 +1,68 @@
 @import "tailwindcss";
 
-:root {
-  color-scheme: dark;
-  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@theme {
+  --color-paper: #f5f0eb;
+  --color-raised: #ece6df;
+  --color-line: #d4cdc4;
+  --color-ink: #2c2824;
+  --color-muted: #8a8278;
+  --color-mark: #2c2824;
+  --color-mark-text: #f5f0eb;
+  --color-tag-now: #d4764e;
+  --color-tag-later: #d4a574;
+  --color-tag-wonder: #9b8fb8;
+  --color-do: #6a9e6a;
+  --color-later: #d4a574;
+  --color-drop: #8a8378;
+  --color-wonder: #9b8fb8;
 
-  --surface: #12121a;
-  --surface-raised: #1a1a24;
-  --border: #2a2a38;
-  --text: #e2e8f0;
-  --muted: #94a3b8;
-  --accent: #a78bfa;
-  --accent-dim: #7c6bb8;
-  --do: #86efac;
-  --later: #fcd34d;
-  --drop: #94a3b8;
-  --wonder: #c4b5fd;
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+
+  --radius-xl: 1rem;
+  --radius-card: 1rem;
+
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+
+  --ease-file: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-file: 700ms;
+  --animate-file-into-stack: file-into-stack 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes file-into-stack {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(5.5rem) scale(0.88);
+    opacity: 0.2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-file-into-stack {
+    animation: none;
+  }
+}
+
+html {
+  color-scheme: light;
 }
 
 body {
   margin: 0;
   min-height: 100svh;
-  background: var(--surface);
-  color: var(--text);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {

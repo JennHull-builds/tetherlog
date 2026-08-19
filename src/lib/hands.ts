@@ -107,10 +107,10 @@ export function mailtoDoList(captures: Capture[]): void {
 
 export function bucketColour(bucket: TriageBucket): string {
   const map: Record<TriageBucket, string> = {
-    do: "var(--do)",
-    later: "var(--later)",
-    drop: "var(--drop)",
-    wonder: "var(--wonder)",
+    do: "#6a9e6a",
+    later: "#d4a574",
+    drop: "#8a8378",
+    wonder: "#9b8fb8",
   };
   return map[bucket];
 }
