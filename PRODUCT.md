@@ -186,18 +186,20 @@ Untriaged captures aren't failure. Parked thoughts, not homework.
 
 ## v1 scope (full product — not a stub)
 
-- [x spec] All flows above
-- Capture + IndexedDB persistence
-- Evening review with BYOK triage + rule fallback
-- Pattern dashboard (deterministic)
-- Weekly digest (BYOK narrative + deterministic stats)
-- All hands listed
-- PWA + offline capture
-- Review reminder notification
-- Settings + backup import/export
+- [x] Spec locked (all flows above)
+- [x] Capture + IndexedDB persistence
+- [x] Evening review agentic loop — BYOK triage + rule fallback, wins, summary, Hands
+- [x] Pattern dashboard (deterministic core)
+- [x] Weekly digest (BYOK narrative + deterministic stats)
+- [x] Core Hands (clipboard, .ics, share, mailto, print, JSON backup)
+- [ ] PWA + offline capture
+- [ ] Review reminder via service worker
+- [x] Settings + backup import/export + BYOK honesty
+- [ ] Obsidian export; Patterns chart extras (flex)
 
 ---
 
 ## Log
 
 - 2026-08-17: Spec locked. Client-side BYOK architecture. Hands via browser APIs.
+- 2026-08-21: Agentic Review loop marked done — see `ROADMAP.md` "Done means".

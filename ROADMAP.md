@@ -2,7 +2,7 @@
 
 **Refer here.** Spec is `PRODUCT.md`. Look is `DESIGN.md`. Agent rules to copy into the app repo: `CURSORRULES.md`.
 
-Updated 2026-08-19. Visual: **light filed** (paper off-white, charcoal ink, abstract filing tabs, category colour on tags/buckets).
+Updated 2026-08-21. Visual: **light filed** (paper off-white, charcoal ink, abstract filing tabs, category colour on tags/buckets).
 
 Work **in the tetherlog repo**. New chat per phase. `@` the files, paste the prompt, one phase, commit.
 
@@ -14,9 +14,9 @@ Work **in the tetherlog repo**. New chat per phase. `@` the files, paste the pro
 
 ## Honest status
 
-**Working (scaffold):** four screens, Dexie, rule + Gemini triage, deterministic patterns, most Hands (clipboard, .ics, share, mailto, print, JSON backup).
+**Agentic Review loop — done** (see [Done means](#done-means--agentic-review-loop) below). Capture → rule or Gemini triage (Zod) → confirm/override → summary + carry-forward → Hands. Wins persist. BYOK honest; no key still works.
 
-**Not done:** Tailwind `@theme` (still `:root` + `bg-[var(--muted)]`), no primitives, no FileCard/LogStack, no `.cursorrules`. Wins not persisted. No review summary card. Reminder is `setTimeout` (dies on refresh). Missing: `/` focus, 2–3 line expand, haptic, Obsidian export, tag/velocity charts, swipe.
+**UI craft — parked.** Tokens/primitives and Capture craft largely shipped; Review/Patterns/Settings visual polish and remaining Phase 5 gaps (PWA reminder, Obsidian, chart extras) are not this slice. Do not restyle until priorities say so.
 
 **Do not:** salvage Clearpath UI. Do not borrow Mothership lime. Do not install shadcn — four screens need 5 primitives, not a kit.
 
@@ -113,12 +113,12 @@ GitHub `JennHull-builds/tetherlog` if not already public. Vercel from `main`. Sc
 - [x] Rule triage (no key)
 - [x] Gemini BYOK triage + Zod schema
 - [x] Confirm / override buckets
-- [ ] Wins persist (Dexie `wins` table exists, UI is memory-only)
-- [ ] Summary card (counts + one carry-forward)
-- [ ] Untriaged backlog toggle
-- [ ] Hands confirm ("Copied." / "Downloaded.")
-- [ ] Swipe (only if cheap)
-- [ ] FileCard for triage items
+- [x] Wins persist (Dexie `wins` table)
+- [x] Summary card (counts + one carry-forward)
+- [x] Untriaged backlog toggle
+- [ ] Hands confirm ("Copied." / "Downloaded.") — UI polish, parked
+- [ ] Swipe (only if cheap) — parked
+- [x] FileCard for triage items
 
 ### Hands
 - [x] Copy do list / full review
@@ -139,13 +139,25 @@ GitHub `JennHull-builds/tetherlog` if not already public. Vercel from `main`. Sc
 - [ ] Theme clustering (BYOK, flex)
 
 ### Ship
-- [ ] Tokens via `@theme` + primitives (light filed)
-- [ ] FileCard + LogStack
-- [ ] Capture / Review / Patterns craft
-- [ ] `.cursorrules` in app repo
+- [x] Tokens via `@theme` + primitives (light filed)
+- [x] FileCard + LogStack
+- [ ] Capture / Review / Patterns craft (Capture largely done; Review/Patterns parked)
+- [x] `.cursorrules` in app repo
 - [ ] Public GitHub + Vercel
 - [ ] README screenshot
-- [ ] Agent demo checklist ticked
+- [x] Agentic Review loop mark-done (see below)
+
+---
+
+## Done means — agentic Review loop
+
+For Jen. The learning-lane agentic loop is shippable when:
+
+- Parked captures reach Review; rule triage runs with no key; Gemini runs with BYOK and falls back to rules on failure.
+- Suggestions match the Zod triage schema; at most one carry-forward; decisions persist in Dexie.
+- Wins persist for the day; summary shows bucket counts + carry-forward; Hands can export the confirmed `do` list.
+- Settings copy is honest: key on device, never seen by us; product is never empty without a key.
+- Not claimed: UI polish, swipe, Obsidian, PWA reminder, Patterns chart extras.
 
 ---
 
@@ -153,3 +165,4 @@ GitHub `JennHull-builds/tetherlog` if not already public. Vercel from `main`. Sc
 
 - 2026-08-17: Roadmap locked. Warm-tether UI. Phase prompts copied from DX Grid Phase 2 pattern.
 - 2026-08-19: Pivoted to light filed look. Updated all phase prompts. FileCard + LogStack added. Park/Logged. copy.
+- 2026-08-21: Agentic Review loop marked done (wins persist, summary, backlog toggle, batch normalise, BYOK honesty). UI craft stays parked.

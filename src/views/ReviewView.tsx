@@ -2,9 +2,12 @@ import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Button, Card, Chip, Field, FileCard } from "../components/ui";
 import {
+  addWin,
   applyTriage,
   getCapturesForDay,
   getSettings,
+  getUntriagedCaptures,
+  getWinsForDay,
 } from "../db";
 import { aiTriageWithGemini, ruleBasedTriage } from "../lib/agent";
 import {
@@ -16,40 +19,74 @@ import {
   mailtoDoList,
   shareText,
 } from "../lib/hands";
-import type { TriageBucket, TriageSuggestion } from "../types";
+import type { Capture, TriageBucket, TriageSuggestion } from "../types";
 import { BUCKET_LABELS, todayKey } from "../types";
 
 export function ReviewView() {
   const dayKey = todayKey();
-  const captures = useLiveQuery(() => getCapturesForDay(dayKey), [dayKey], []);
+  const captures =
+    useLiveQuery(() => getCapturesForDay(dayKey), [dayKey], []) ?? [];
+  const backlog =
+    useLiveQuery(() => getUntriagedCaptures(), [], []) ?? [];
+  const wins = useLiveQuery(() => getWinsForDay(dayKey), [dayKey], []) ?? [];
   const settings = useLiveQuery(getSettings, [], null);
 
-  const [wins, setWins] = useState<string[]>([]);
   const [winDraft, setWinDraft] = useState("");
+  const [includeBacklog, setIncludeBacklog] = useState(false);
   const [suggestions, setSuggestions] = useState<TriageSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [usedAi, setUsedAi] = useState(false);
 
   const untriagedToday = useMemo(
     () => captures.filter((capture) => !capture.triagedAt),
     [captures],
   );
 
+  const olderBacklog = useMemo(() => {
+    const todayIds = new Set(untriagedToday.map((c) => c.id));
+    return backlog.filter((c) => !todayIds.has(c.id));
+  }, [backlog, untriagedToday]);
+
+  const queue: Capture[] = useMemo(() => {
+    if (!includeBacklog) return untriagedToday;
+    // Today first, then older untriaged.
+    return [...untriagedToday, ...olderBacklog];
+  }, [includeBacklog, untriagedToday, olderBacklog]);
+
+  const suggestionCaptures = useMemo(() => {
+    const byId = new Map(queue.map((c) => [c.id, c]));
+    // Keep text for suggestions even if live query refreshes mid-confirm.
+    for (const c of backlog) byId.set(c.id, c);
+    for (const c of captures) byId.set(c.id, c);
+    return byId;
+  }, [queue, backlog, captures]);
+
   async function runReview() {
-    if (untriagedToday.length === 0) return;
+    if (queue.length === 0) return;
 
     setLoading(true);
     setError(null);
+    setUsedAi(false);
+
+    const hasKey = Boolean(settings?.geminiApiKey);
 
     try {
-      const batch = settings?.geminiApiKey
-        ? await aiTriageWithGemini(settings.geminiApiKey, untriagedToday)
-        : ruleBasedTriage(untriagedToday);
-
-      setSuggestions(batch.items);
+      if (hasKey) {
+        const batch = await aiTriageWithGemini(settings!.geminiApiKey!, queue);
+        setSuggestions(batch.items);
+        setUsedAi(true);
+      } else {
+        setSuggestions(ruleBasedTriage(queue).items);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Review failed");
-      setSuggestions(ruleBasedTriage(untriagedToday).items);
+      setError(
+        err instanceof Error
+          ? `${err.message} — fell back to rule triage.`
+          : "AI triage failed — fell back to rule triage.",
+      );
+      setSuggestions(ruleBasedTriage(queue).items);
+      setUsedAi(false);
     } finally {
       setLoading(false);
     }
@@ -74,23 +111,36 @@ export function ReviewView() {
     setSuggestions((prev) => prev.filter((item) => item.captureId !== captureId));
   }
 
-  const triagedToday = useLiveQuery(async () => {
-    const all = await getCapturesForDay(dayKey);
-    return all.filter((capture) => capture.triagedAt);
-  }, [dayKey], []);
+  const triagedToday =
+    useLiveQuery(async () => {
+      const all = await getCapturesForDay(dayKey);
+      return all.filter((capture) => capture.triagedAt);
+    }, [dayKey], []) ?? [];
 
   const doCaptures = triagedToday.filter((c) => c.bucket === "do");
 
-  function addWin() {
+  const summaryCounts = useMemo(() => {
+    const counts = { do: 0, later: 0, drop: 0, wonder: 0 };
+    for (const capture of triagedToday) {
+      if (capture.bucket) counts[capture.bucket] += 1;
+    }
+    return counts;
+  }, [triagedToday]);
+
+  const carryForward = triagedToday.find((c) => c.carryForward);
+
+  async function handleAddWin() {
     const trimmed = winDraft.trim();
     if (!trimmed) return;
-    setWins((prev) => [...prev, trimmed]);
+    await addWin(trimmed, dayKey);
     setWinDraft("");
   }
 
   async function copyDoList() {
     await copyText(formatDoList(triagedToday));
   }
+
+  const winTexts = wins.map((w) => w.text);
 
   return (
     <section className="space-y-6 px-4 py-8 print:block">
@@ -113,65 +163,93 @@ export function ReviewView() {
               placeholder="Even tiny counts"
             />
           </div>
-          <Button variant="ghost" onClick={addWin}>
+          <Button variant="ghost" onClick={() => void handleAddWin()}>
             Add
           </Button>
         </div>
         {wins.length > 0 && (
           <ul className="mt-3 space-y-1 text-sm text-ink">
             {wins.map((win) => (
-              <li key={win}>• {win}</li>
+              <li key={win.id}>• {win.text}</li>
             ))}
           </ul>
         )}
       </Card>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-medium text-ink">
-            Today's captures ({untriagedToday.length} open)
+            Captures ({queue.length} open
+            {includeBacklog && olderBacklog.length > 0
+              ? ` · ${olderBacklog.length} backlog`
+              : ""}
+            )
           </h2>
           <Button
-            onClick={runReview}
-            disabled={loading || untriagedToday.length === 0}
+            onClick={() => void runReview()}
+            disabled={loading || queue.length === 0}
             className="shrink-0 py-2"
           >
-            {loading ? "Reviewing…" : settings?.geminiApiKey ? "AI triage" : "Rule triage"}
+            {loading
+              ? "Reviewing…"
+              : settings?.geminiApiKey
+                ? "AI triage"
+                : "Rule triage"}
           </Button>
         </div>
 
+        <label className="flex items-center gap-2 text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={includeBacklog}
+            onChange={(event) => setIncludeBacklog(event.target.checked)}
+          />
+          Include untriaged backlog
+          {olderBacklog.length > 0 && (
+            <span className="text-muted">({olderBacklog.length})</span>
+          )}
+        </label>
+
         {!settings?.geminiApiKey && (
           <p className="text-sm text-muted">
-            No API key — using rule-based triage. Add your Gemini key in Settings for AI.
+            No API key — using rule-based triage. Add your Gemini key in Settings
+            for AI. Capture and review still work without it.
           </p>
         )}
 
         {error && <p className="text-sm text-ink">{error}</p>}
+        {usedAi && !error && suggestions.length > 0 && (
+          <p className="text-sm text-muted">Suggestions from your Gemini key (on this device).</p>
+        )}
 
         {suggestions.map((suggestion) => {
-          const capture = untriagedToday.find(
-            (item) => item.id === suggestion.captureId,
-          );
+          const capture = suggestionCaptures.get(suggestion.captureId);
           if (!capture) return null;
 
           return (
             <FileCard key={suggestion.captureId} tone={suggestion.bucket}>
               <p className="font-medium text-ink">{capture.text}</p>
               <p className="mt-2 text-sm text-muted">{suggestion.reason}</p>
+              {suggestion.suggestedAction && (
+                <p className="mt-1 text-sm text-muted">{suggestion.suggestedAction}</p>
+              )}
+              {suggestion.carryForward && (
+                <p className="mt-1 text-sm text-do">Carry forward (max one)</p>
+              )}
               <div className="mt-3 flex flex-wrap gap-2">
                 <Chip
                   selected
                   tone={suggestion.bucket}
-                  onClick={() => confirmSuggestion(suggestion)}
+                  onClick={() => void confirmSuggestion(suggestion)}
                 >
-                  {BUCKET_LABELS[suggestion.bucket]}
+                  Confirm {BUCKET_LABELS[suggestion.bucket]}
                 </Chip>
                 {(["do", "later", "drop", "wonder"] as TriageBucket[]).map(
                   (bucket) => (
                     <Chip
                       key={bucket}
                       tone={bucket}
-                      onClick={() => overrideBucket(capture.id, bucket)}
+                      onClick={() => void overrideBucket(capture.id, bucket)}
                     >
                       {BUCKET_LABELS[bucket]}
                     </Chip>
@@ -182,6 +260,25 @@ export function ReviewView() {
           );
         })}
       </div>
+
+      {triagedToday.length > 0 && (
+        <Card>
+          <h2 className="font-medium text-ink">Review summary</h2>
+          <p className="mt-3 flex flex-wrap gap-3 text-sm text-ink">
+            <span>Do {summaryCounts.do}</span>
+            <span>Later {summaryCounts.later}</span>
+            <span>Drop {summaryCounts.drop}</span>
+            <span>Wonder {summaryCounts.wonder}</span>
+          </p>
+          {carryForward ? (
+            <p className="mt-3 text-sm text-ink">
+              Carry forward: {carryForward.text}
+            </p>
+          ) : (
+            <p className="mt-3 text-sm text-muted">No carry-forward chosen tonight.</p>
+          )}
+        </Card>
+      )}
 
       {triagedToday.length > 0 && (
         <Card className="no-print">
@@ -197,7 +294,7 @@ export function ReviewView() {
               variant="ghost"
               className="py-2"
               onClick={() =>
-                void copyText(formatReviewMarkdown(dayKey, triagedToday, wins))
+                void copyText(formatReviewMarkdown(dayKey, triagedToday, winTexts))
               }
             >
               Copy review

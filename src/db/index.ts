@@ -60,27 +60,52 @@ export async function applyTriage(
   suggestedAction?: string,
   carryForward = false,
 ): Promise<void> {
-  await db.captures.update(captureId, {
-    triagedAt: Date.now(),
-    bucket,
-    reason,
-    suggestedAction,
-    carryForward,
+  await db.transaction("rw", db.captures, async () => {
+    // Max one carry-forward per session — clear any previous flag first.
+    if (carryForward) {
+      const previous = await db.captures.filter((c) => c.carryForward === true).toArray();
+      await Promise.all(
+        previous.map((c) => db.captures.update(c.id, { carryForward: false })),
+      );
+    }
+
+    await db.captures.update(captureId, {
+      triagedAt: Date.now(),
+      bucket,
+      reason,
+      suggestedAction,
+      carryForward,
+    });
   });
 }
+
+export async function getWinsForDay(reviewDate: string): Promise<Win[]> {
+  return db.wins.where("reviewDate").equals(reviewDate).sortBy("createdAt");
+}
+
+export async function addWin(text: string, reviewDate: string): Promise<Win> {
+  const win: Win = {
+    id: createCaptureId(),
+    text: text.trim(),
+    createdAt: Date.now(),
+    reviewDate,
+  };
+  await db.wins.add(win);
+  return win;
+}
+
+const DEFAULT_SETTINGS: AppSettings = {
+  id: "settings",
+  reviewReminderEnabled: false,
+  reviewReminderHour: 20,
+};
 
 export async function getSettings(): Promise<AppSettings> {
   const existing = await db.settings.get("settings");
   if (existing) return existing;
 
-  const defaults: AppSettings = {
-    id: "settings",
-    reviewReminderEnabled: false,
-    reviewReminderHour: 20,
-  };
-
-  await db.settings.put(defaults);
-  return defaults;
+  // Keep this read-only — useLiveQuery forbids writes in the querier.
+  return DEFAULT_SETTINGS;
 }
 
 export async function saveSettings(

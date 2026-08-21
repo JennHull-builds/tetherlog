@@ -53,6 +53,54 @@ export function getStuckItems(captures: Capture[]): Capture[] {
   });
 }
 
+function emptySummary() {
+  return { do: 0, later: 0, drop: 0, wonder: 0 };
+}
+
+function summariseItems(items: TriageSuggestion[]): ReviewBatch["summary"] {
+  return items.reduce((acc, item) => {
+    acc[item.bucket] += 1;
+    return acc;
+  }, emptySummary());
+}
+
+/** Enforce schema honesty: known IDs only, max one carryForward, summary from items. */
+export function normaliseReviewBatch(
+  captures: Capture[],
+  items: TriageSuggestion[],
+): ReviewBatch {
+  const knownIds = new Set(captures.map((c) => c.id));
+  const byId = new Map(
+    items.filter((item) => knownIds.has(item.captureId)).map((item) => [item.captureId, item]),
+  );
+
+  // Fill any missing captures with rule hints so the batch is never partial.
+  const rules = ruleBasedTriage(captures);
+  for (const rule of rules.items) {
+    if (!byId.has(rule.captureId)) byId.set(rule.captureId, rule);
+  }
+
+  let carryUsed = false;
+  const normalised: TriageSuggestion[] = captures.map((capture) => {
+    const item = byId.get(capture.id)!;
+    let carryForward = item.carryForward;
+    if (carryForward && carryUsed) carryForward = false;
+    if (carryForward) carryUsed = true;
+    return { ...item, carryForward };
+  });
+
+  // If the model never marked a carry-forward, keep the first do (if any).
+  if (!carryUsed) {
+    const firstDo = normalised.find((item) => item.bucket === "do");
+    if (firstDo) firstDo.carryForward = true;
+  }
+
+  return reviewBatchSchema.parse({
+    items: normalised,
+    summary: summariseItems(normalised),
+  });
+}
+
 export function ruleBasedTriage(captures: Capture[]): ReviewBatch {
   const allCaptures = captures;
   let carryUsed = false;
@@ -71,6 +119,9 @@ export function ruleBasedTriage(captures: Capture[]): ReviewBatch {
     } else if (capture.tag === "?") {
       bucket = "wonder";
       reason = "A question, not a task — no action needed tonight.";
+    } else if (capture.tag === "later") {
+      bucket = "later";
+      reason = "You tagged this later — leave it until you have space.";
     } else if (repeats >= 3) {
       bucket = "drop";
       reason = `You've parked this ${repeats} times — maybe it isn't homework.`;
@@ -90,15 +141,7 @@ export function ruleBasedTriage(captures: Capture[]): ReviewBatch {
     };
   });
 
-  const summary = items.reduce(
-    (acc, item) => {
-      acc[item.bucket] += 1;
-      return acc;
-    },
-    { do: 0, later: 0, drop: 0, wonder: 0 },
-  );
-
-  return reviewBatchSchema.parse({ items, summary });
+  return reviewBatchSchema.parse({ items, summary: summariseItems(items) });
 }
 
 export function buildWeeklyStats(captures: Capture[]) {
@@ -173,7 +216,8 @@ ${prompt}`,
   const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!raw) throw new Error("Gemini returned no content");
 
-  return reviewBatchSchema.parse(JSON.parse(raw));
+  const parsed = reviewBatchSchema.parse(JSON.parse(raw));
+  return normaliseReviewBatch(captures, parsed.items);
 }
 
 export async function aiWeeklyDigest(

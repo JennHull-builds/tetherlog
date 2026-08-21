@@ -63,7 +63,8 @@ export function SettingsView() {
       <Card className="space-y-3">
         <h2 className="font-medium text-ink">Gemini API key (BYOK)</h2>
         <p className="text-sm text-muted">
-          Your key stays in this browser. We never store it on a server. Uses your free tier.
+          Your key stays on this device. We never see it. Without a key, capture,
+          patterns, and rule-based review still work — AI triage and digest stay off.
         </p>
         <Field
           type="password"
