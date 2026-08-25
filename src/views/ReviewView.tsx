@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Button, Card, Chip, Field, FileCard } from "../components/ui";
 import {
@@ -19,8 +19,31 @@ import {
   mailtoDoList,
   shareText,
 } from "../lib/hands";
+import { formatDuration } from "../lib/voice";
 import type { Capture, TriageBucket, TriageSuggestion } from "../types";
-import { BUCKET_LABELS, todayKey } from "../types";
+import { BUCKET_LABELS, VOICE_TEXT_PLACEHOLDER, todayKey } from "../types";
+
+interface CaptureAudioProps {
+  blob: Blob;
+  durationMs?: number;
+}
+
+function CaptureAudio({ blob, durationMs }: CaptureAudioProps) {
+  const url = useMemo(() => URL.createObjectURL(blob), [blob]);
+
+  useEffect(() => {
+    return () => URL.revokeObjectURL(url);
+  }, [url]);
+
+  return (
+    <div className="mt-3 space-y-1">
+      <audio controls src={url} preload="metadata" className="w-full" />
+      {typeof durationMs === "number" && durationMs > 0 && (
+        <p className="text-xs text-muted">{formatDuration(durationMs)}</p>
+      )}
+    </div>
+  );
+}
 
 export function ReviewView() {
   const dayKey = todayKey();
@@ -229,6 +252,16 @@ export function ReviewView() {
           return (
             <FileCard key={suggestion.captureId} tone={suggestion.bucket}>
               <p className="font-medium text-ink">{capture.text}</p>
+              {capture.audioBlob &&
+                capture.text === VOICE_TEXT_PLACEHOLDER && (
+                  <p className="mt-1 text-sm text-muted">No transcript yet</p>
+                )}
+              {capture.audioBlob && (
+                <CaptureAudio
+                  blob={capture.audioBlob}
+                  durationMs={capture.durationMs}
+                />
+              )}
               <p className="mt-2 text-sm text-muted">{suggestion.reason}</p>
               {suggestion.suggestedAction && (
                 <p className="mt-1 text-sm text-muted">{suggestion.suggestedAction}</p>
@@ -276,6 +309,12 @@ export function ReviewView() {
             </p>
           ) : (
             <p className="mt-3 text-sm text-muted">No carry-forward chosen tonight.</p>
+          )}
+          {carryForward?.audioBlob && (
+            <CaptureAudio
+              blob={carryForward.audioBlob}
+              durationMs={carryForward.durationMs}
+            />
           )}
         </Card>
       )}

@@ -28,8 +28,15 @@ export const reviewBatchSchema = z.object({
 
 export type ReviewBatch = z.infer<typeof reviewBatchSchema>;
 
+/** Voice transcript state — never blocks park. */
+export type TranscriptStatus = "pending" | "ready" | "unavailable";
+
+/** Placeholder when audio parks with no transcript yet. */
+export const VOICE_TEXT_PLACEHOLDER = "[voice]";
+
 export interface Capture {
   id: string;
+  /** Always required. Use `[voice]` when audio parks without a transcript. */
   text: string;
   tag?: CaptureTag;
   createdAt: number;
@@ -38,6 +45,11 @@ export interface Capture {
   reason?: string;
   suggestedAction?: string;
   carryForward?: boolean;
+  /** Optional local audio from voice park (Dexie Blob). */
+  audioBlob?: Blob;
+  audioMimeType?: string;
+  durationMs?: number;
+  transcriptStatus?: TranscriptStatus;
 }
 
 export interface Win {

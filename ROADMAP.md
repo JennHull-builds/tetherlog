@@ -249,8 +249,8 @@ Do not restyle screens. No App Store. UK English. Commit. Document Install + HTT
 - [x] File-into-stack motion on Park
 - [x] LogStack behind capture hero
 - [ ] Offline PWA shell → **Phase 9**
-- [ ] **Voice** quick park (mic → stop → audio + transcript when ready) → **7B**
-- [ ] **Voice** long dump (10+ min safe; audio local first) → **7B**
+- [x] **Voice** quick park (mic → stop → audio + transcript when ready) → **7B**
+- [x] **Voice** long dump (10+ min safe; audio local first) → **7B**
 - [ ] Optional `write` tag on capture → **Phase 8**
 - [ ] Android Chrome Install / Add to Home Screen → **Phase 9**
 
@@ -264,7 +264,7 @@ Do not restyle screens. No App Store. UK English. Commit. Document Install + HTT
 - [ ] Hands confirm ("Copied." / "Downloaded.") — UI polish, parked
 - [ ] Swipe (only if cheap) — parked
 - [x] FileCard for triage items
-- [ ] Voice: replay audio + show transcript → **7B**
+- [x] Voice: replay audio + show transcript → **7B**
 - [ ] `write` bucket / filter → **Phase 8**
 
 ### Hands
@@ -294,7 +294,7 @@ Do not restyle screens. No App Store. UK English. Commit. Document Install + HTT
 - [ ] Public GitHub + Vercel (HTTPS — needed for Android mic + Install)
 - [ ] README screenshot
 - [x] Agentic Review loop mark-done (see below)
-- [ ] Voice MVP on Android Chrome → **7B**
+- [x] Voice MVP on Android Chrome → **7B**
 - [ ] Android PWA Install path → **Phase 9**
 
 ---
@@ -313,6 +313,7 @@ For Jen. The learning-lane agentic loop is shippable when:
 
 ## Log
 
+- 2026-08-25: Phase 7B Voice MVP landed — Dexie v2 audio fields, chunked MediaRecorder, best-effort Web Speech, Review replay. HTTPS required for mic (Vercel preview or localhost). 7C still owns BYOK STT spike.
 - 2026-08-25: Phase 7A landed — Voice → Writing → Android PWA track. 7B = skinny audio MVP (Dexie v2 fields, Web Speech best-effort, HTTPS → Android Chrome). 7C = STT spike then BYOK (API TBD). Phase 9 owns all PWA/SW/Install; Phase 5 PWA bullets parked.
 - 2026-08-25: Phase 7A/7B prompts first sketched — Voice unparked ahead of UI polish. Android-first; writing lane second.
 - 2026-08-17: Roadmap locked. Warm-tether UI. Phase prompts copied from DX Grid Phase 2 pattern.

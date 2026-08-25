@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { AppSettings, Capture, Win } from "../types";
+import type { AppSettings, Capture, TranscriptStatus, Win } from "../types";
 
 export class TetherLogDB extends Dexie {
   captures!: EntityTable<Capture, "id">;
@@ -14,6 +14,14 @@ export class TetherLogDB extends Dexie {
       wins: "id, reviewDate, createdAt",
       settings: "id",
     });
+
+    // v2: optional voice fields on Capture (audioBlob, audioMimeType,
+    // durationMs, transcriptStatus). Same indexes — Blobs are not keyed.
+    this.version(2).stores({
+      captures: "id, createdAt, triagedAt, bucket",
+      wins: "id, reviewDate, createdAt",
+      settings: "id",
+    });
   }
 }
 
@@ -23,16 +31,37 @@ export function createCaptureId(): string {
   return crypto.randomUUID();
 }
 
+export interface ParkCaptureOptions {
+  text: string;
+  tag?: Capture["tag"];
+  audioBlob?: Blob;
+  audioMimeType?: string;
+  durationMs?: number;
+  transcriptStatus?: TranscriptStatus;
+}
+
 export async function parkCapture(
-  text: string,
+  textOrOptions: string | ParkCaptureOptions,
   tag?: Capture["tag"],
 ): Promise<Capture> {
+  const options: ParkCaptureOptions =
+    typeof textOrOptions === "string"
+      ? { text: textOrOptions, tag }
+      : textOrOptions;
+
   const capture: Capture = {
     id: createCaptureId(),
-    text: text.trim(),
-    tag,
+    text: options.text.trim(),
+    tag: options.tag,
     createdAt: Date.now(),
   };
+
+  if (options.audioBlob) {
+    capture.audioBlob = options.audioBlob;
+    capture.audioMimeType = options.audioMimeType;
+    capture.durationMs = options.durationMs;
+    capture.transcriptStatus = options.transcriptStatus;
+  }
 
   await db.captures.add(capture);
   return capture;
@@ -124,10 +153,19 @@ export async function exportAllData() {
     db.settings.toArray(),
   ]);
 
+  // Strip Blobs — JSON backup stays text-safe; audio remains on-device in Dexie.
+  const capturesForExport = captures.map((capture) => {
+    const copy: Omit<Capture, "audioBlob"> & { audioBlob?: Blob } = {
+      ...capture,
+    };
+    delete copy.audioBlob;
+    return copy;
+  });
+
   return {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
-    captures,
+    captures: capturesForExport,
     wins,
     settings,
   };

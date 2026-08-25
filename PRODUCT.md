@@ -9,30 +9,85 @@ MIT. Inspired by capture + evening-review workflows.
 
 ## The point
 
-ADHD/ND brains get hijacked mid-task. A capture log works — park the thought, go back. Most apps get this wrong: they "help" at capture time and become another distraction.
+Same job as an ADHD distraction sheet: a thought hijacks you mid-task → park it → return to what you were doing. TetherLog exists to **remove all friction** from that park. If capture is hard, the product failed.
+
+Most apps get this wrong: they "help" at capture time and become another distraction.
 
 **Rules:**
-1. **Capture is dumb and fast** — no AI, no analysis, no questions. &lt;5 seconds.
-2. **Review is the agent** — triage, wins, patterns happen here, not mid-task.
-3. **Hands export the outcome** — `do` items leave the app (calendar, clipboard, share, email).
-4. **Client-side only** — no server-held API keys or user data. See [Client-side architecture](#client-side-architecture).
+1. **Capture is dumb and fast** — no AI analysis, no questions, no triage. Park and leave.
+2. **Always within reach** — phone-first. One tap from home/lock/widget → choose capture mode → go.
+3. **Voice is fundamental** — not a nice-to-have. Text alone will not make this useful for Jen. See [Voice capture](#voice-capture).
+4. **Writing is a first-class capture lane** — blog seeds, essay rants, half-formed posts. Park fast; organise in Review. See [Writing lane](#writing-lane).
+5. **Review is the agent** — triage, wins, patterns happen here, not mid-task.
+6. **Hands export the outcome** — `do` items leave the app (calendar, clipboard, share, email).
+7. **Client-side only** — no server-held API keys or user data. See [Client-side architecture](#client-side-architecture).
 
 ---
 
 ## User flows
 
-### 1. Capture (no AI)
+### 1. Capture (no AI analysis)
 
 ```
-Any screen → one input → Park → gone
+Phone (always) → one tap → pick mode → Park → gone
 ```
 
-- Single line (optional expand to 2–3 lines max — not an essay box)
+**Availability:** Must live on the phone. Installable PWA (or native shell later). Goal: one click from wherever she is, then decide *what* to capture. Details and labels are optional — only when she has time.
+
+**Jen's device:** **Android-first.** Chrome → Install / Add to Home Screen is the daily path. iOS is secondary compatibility, not the design target.
+
+**Two capture modes (same product, different duration):**
+
+| Mode | When | Input | Depth |
+|------|------|--------|--------|
+| **Quick** | Mid-task hijack | Text *or* short voice | One tap park. Optional tag/label if she has a second. |
+| **Long** | Idea dump / blog babble | Voice primary (10+ min ok) | Record freely; transcript lands with the capture. Labels later or at end. |
+
+**Quick (text):**
+- Single line (optional expand a little — not an essay box)
 - Auto timestamp
 - Optional one-tap tag: `now` / `later` / `?` (never required)
 - Haptic/visual confirm: "Parked." — no echo of full thought unless user taps to see
-- Keyboard-first: `/` or tap to focus, Enter to park, immediately ready for next or dismiss
-- **Zero network.** Works offline (PWA).
+- Keyboard-first on desktop: `/` or tap to focus, Enter to park, immediately ready for next or dismiss
+- Works offline for text park (PWA)
+
+**Progressive detail:** Capture never requires labels. If she has time, she can add tags / a bit more text / finish the recording. If she doesn't, one tap is enough.
+
+### Voice capture
+
+**North star:** Voice + transcript is the single most important capability for usefulness. Without it, friction stays too high for real ADHD capture.
+
+**Must support:**
+1. **Short voice park** — tap mic → speak a thought → stop → parked (audio + transcript when ready).
+2. **Long voice dump** — start recording, babble for 10+ minutes (blog idea, rant, half-formed plan), stop when done. Audio saved. Transcript attached to the same capture.
+3. **Transcript quality that is decent enough to review later** — not live coaching, not summarising mid-record. Capture stays dumb; transcript is just the text form of what was said.
+4. **Audio kept with the capture** — replay in review if the transcript is messy.
+
+**Still true:** No triage, no "what did you mean," no AI questions during capture. Transcription is input plumbing, not the Review agent.
+
+**Open design (decide when unparking build):**
+- On-device / Web Speech vs BYOK STT (affects offline + client-only rules)
+- Prefer: audio always local first; transcript can catch up when network/key allows
+- Long recordings: chunk or stream carefully so a 15-min babble doesn't blow the tab
+
+**Not voice's job:** rewriting the idea into a blog post. That's Review / Hands later.
+
+### Writing lane
+
+Jen's blog side quest (~3h/week) needs TetherLog to **capture and organise writing stuff**, not only random distractions.
+
+**At capture (still dumb):**
+- Optional tag/label: `write` (or equivalent) — never required
+- Long voice dumps and quick text parks both eligible
+- No outline forced mid-task
+
+**At review / organise:**
+- Triage can bucket writing seeds as `write` (in addition to `do` | `later` | `drop` | `wonder`) — or map `write` as a specialised `later` with a clear label; pick one shape when building, don't invent two systems
+- Group / filter captures tagged writing
+- Hands: export a seed (or a cluster) as markdown suitable for a draft — clipboard or download
+- Optional BYOK: turn a transcript into a rough outline *only in Review*, never at park
+
+**Job split:** Capture parks the spark. Review organises the pile. Publish happens outside TetherLog.
 
 ### 2. Evening review (agent workflow)
 
@@ -81,14 +136,16 @@ Every review suggestion must return this shape (Zod):
 ```ts
 {
   captureId: string
-  bucket: "do" | "later" | "drop" | "wonder"
+  bucket: "do" | "later" | "drop" | "wonder" | "write"
   reason: string        // one line, warm, literal
   carryForward: boolean // max one per review session
   suggestedAction?: string  // only for "do" — e.g. "15 min block"
 }
 ```
 
-Batch review returns `{ items: [...], summary: { do: n, later: n, drop: n, wonder: n } }`.
+`write` = blog/essay seed — organise later, don't treat as a calendar `do` unless she promotes it.
+
+Batch review returns `{ items: [...], summary: { do: n, later: n, drop: n, wonder: n, write: n } }`.
 
 ---
 
@@ -106,6 +163,7 @@ These are **outputs**, not hosted integrations.
 | **Export backup** | Full IndexedDB → JSON download | File download |
 | **Import backup** | Restore from JSON | File input |
 | **Obsidian export** | Daily note markdown with frontmatter + captures | File download |
+| **Writing seed export** | One capture or writing-tagged cluster → draft-ready markdown | Clipboard / File download |
 | **Print review** | Print-friendly CSS | window.print() |
 | **Evening reminder** | "Time for review?" at user-set hour | Web Notifications + PWA service worker |
 
@@ -167,16 +225,16 @@ Product is **never empty** without a key. AI is enhancement, not gate.
 
 ## Screens
 
-1. **Capture** — default landing. Fast.
-2. **Review** — evening ritual. Agent + hands.
+1. **Capture** — default landing. Fast. Text + voice (quick and long).
+2. **Review** — evening ritual. Agent + hands. Audio replay + transcript on voice captures.
 3. **Patterns** — charts + repeats + weekly digest entry
-4. **Settings** — BYOK key, review reminder time, export/import, theme
+4. **Settings** — BYOK key (LLM + optional STT), review reminder time, export/import, theme
 
-Mobile-first. PWA installable.
+Phone-first (**Android**). PWA installable. One-tap path to capture is a product requirement, not polish.
 
 ---
 
-## Voice
+## Tone (UI copy)
 
 Warm, literal, spare. Anti-guilt. No streaks. No "you missed yesterday."
 
@@ -188,11 +246,14 @@ Untriaged captures aren't failure. Parked thoughts, not homework.
 
 - [x] Spec locked (all flows above)
 - [x] Capture + IndexedDB persistence
+- [x] **Voice capture (quick + long) + transcript + audio stored with capture** — fundamental, not deferred "nice" (MVP Slice 1 / 7B; BYOK STT polish → 7C)
+- [ ] Writing lane — `write` tag/bucket, filter/organise, markdown seed export
 - [x] Evening review agentic loop — BYOK triage + rule fallback, wins, summary, Hands
 - [x] Pattern dashboard (deterministic core)
 - [x] Weekly digest (BYOK narrative + deterministic stats)
 - [x] Core Hands (clipboard, .ics, share, mailto, print, JSON backup)
-- [ ] PWA + offline capture
+- [ ] PWA + offline text capture; voice transcript may need network/BYOK (audio still parks offline)
+- [ ] Phone one-tap / install path
 - [ ] Review reminder via service worker
 - [x] Settings + backup import/export + BYOK honesty
 - [ ] Obsidian export; Patterns chart extras (flex)
@@ -201,5 +262,10 @@ Untriaged captures aren't failure. Parked thoughts, not homework.
 
 ## Log
 
+- 2026-08-25: Phase 7B Voice MVP — audio parks in Dexie; Web Speech best-effort; Review replay. Capture still dumb; no key required.
+- 2026-08-25: Roadmap Phase 7A locked — Voice MVP next (Web Speech best-effort; BYOK STT API TBD in 7C spike). Capture stays usable with no key.
+- 2026-08-25: Jen locked **Android-first** PWA install path (Chrome home screen). iOS secondary.
+- 2026-08-25: Writing lane locked — capture + organise blog/essay seeds (`write` bucket/tag, seed export). Feeds Jen's blog side quest.
+- 2026-08-25: Jen locked product intent — distraction-sheet job, phone always-available, one-tap then optional depth, **voice + transcript as fundamental** (quick park + long babble). Spec updated; UI build still parked until she unparks it.
 - 2026-08-17: Spec locked. Client-side BYOK architecture. Hands via browser APIs.
 - 2026-08-21: Agentic Review loop marked done — see `ROADMAP.md` "Done means".
