@@ -24,8 +24,18 @@ export interface FieldProps {
   onKeyDown?: KeyboardEventHandler<HTMLInputElement | HTMLTextAreaElement>;
 }
 
-const FIELD_CLASS =
-  "w-full rounded-xl border border-line bg-paper px-4 py-3 text-ink outline-none placeholder:text-muted focus:border-ink";
+const FIELD_STYLE: React.CSSProperties = {
+  width: "100%",
+  padding: "var(--nil-spacing-sm) var(--nil-spacing-md)",
+  fontFamily: "var(--nil-font-body)",
+  fontSize: "var(--nil-type-scale-base)",
+  lineHeight: 1.5,
+  color: "var(--nil-color-text)",
+  background: "var(--nil-color-bg)",
+  border: "var(--nil-border-width) solid var(--nil-color-border)",
+  borderRadius: "var(--nil-radius-none)",
+  outline: "none",
+};
 
 export function Field({
   value,
@@ -88,7 +98,8 @@ export function Field({
         enterKeyHint={enterKeyHint}
         disabled={disabled}
         rows={1}
-        className={`${FIELD_CLASS} resize-none text-lg leading-relaxed ${className}`}
+        className={`resize-none text-lg leading-relaxed placeholder:text-muted ${className}`}
+        style={FIELD_STYLE}
       />
     );
   }
@@ -108,7 +119,8 @@ export function Field({
       min={min}
       max={max}
       disabled={disabled}
-      className={`${FIELD_CLASS} ${className}`}
+      className={`placeholder:text-muted ${className}`}
+      style={FIELD_STYLE}
     />
   );
 }

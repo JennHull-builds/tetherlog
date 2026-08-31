@@ -104,7 +104,10 @@ export function SettingsView() {
           <Button variant="ghost" className="py-2" onClick={() => void handleExport()}>
             Export JSON
           </Button>
-          <label className="cursor-pointer rounded-xl border border-line bg-raised px-4 py-2 text-sm font-medium text-ink">
+          <label
+            className="cursor-pointer border-2 border-line bg-raised px-4 py-2 text-sm font-medium text-ink"
+            style={{ borderRadius: "var(--nil-radius-none)" }}
+          >
             Import JSON
             <input type="file" accept="application/json" className="hidden" onChange={handleImport} />
           </label>
@@ -116,7 +119,7 @@ export function SettingsView() {
       </Button>
 
       {saved && (
-        <p className="text-center text-sm text-do" aria-live="polite">
+        <p className="text-center text-sm text-mark" aria-live="polite">
           Saved.
         </p>
       )}

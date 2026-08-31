@@ -1,157 +1,109 @@
 # TetherLog — design
 
-Soul for the public app. Not Chappie. Not Clearpath. Not Mothership lime.
+Soul for the public app. Not Chappie. Not Clearpath.
 
-Updated 2026-08-19. Light filed look — replaces warm-tether dark.
+Updated 2026-08-31. **Mothership light + NIL DS** — supersedes the 2026-08-19 light filed-tab / warm-paper spec.
 
 ---
 
 ## Feel
 
-Light, crisp, lots of air. Paper, not screen. A tether is rope, not neon — but the page is paper, not a dark terminal.
+Light, crisp, brutalist. Mothership warm off-white (`#EDECE8`), ink borders (`#0A0A0A`), hard edges — paper as structure, not soft filing cabinet.
 
-Capture should feel like a pocket: one field, Park, gone. The log exists behind — abstract filing tabs peeking, not a literal cabinet. Review is an evening table, not a dashboard. Patterns is data you glance at — no guilt charts.
+Capture should feel like a pocket: one field, Park, gone. The log exists behind — abstract **bracket stack** (offset hard-border cards), not filed tabs. Review is an evening table, not a dashboard. Patterns is data you glance at — no guilt charts.
 
 Voice in UI: warm, literal, spare. UK English. No streaks. No "you missed yesterday." Untriaged is parked, not failure.
 
-**Copy:** verb is **Park**. Confirm is **Logged.** Filing is visual (tabbed card, slide-into-stack motion), not in the copy.
+**Copy:** verb is **Park**. Confirm is **Logged.** Filing is visual (bracket card + slide-into-stack motion), not in the copy.
 
 ---
 
-## Hard rule
+## Hard rules
 
-Never use `#000000` or `#ffffff` unless Jen explicitly asks. Paper ≈ warm off-white. Ink ≈ deep charcoal.
-
----
-
-## v1 tokens (light filed)
-
-Map these through Tailwind v4 `@theme` so utilities are real (`bg-paper`, `text-ink`, `border-line`, `bg-do`) — never `bg-[var(--surface)]`.
-
-### Neutrals
-
-| Token | Hex | Use |
-|-------|-----|-----|
-| `paper` | `#f5f0eb` | page background (warm off-white) |
-| `raised` | `#ece6df` | cards, nav, fields |
-| `line` | `#d4cdc4` | borders, dividers |
-| `ink` | `#2c2824` | body text (deep charcoal) |
-| `muted` | `#8a8278` | labels, helper text |
-
-### Action
-
-| Token | Hex | Use |
-|-------|-----|-----|
-| `mark` | `#2c2824` | primary button fill (same as ink — charcoal Park button) |
-| `mark-text` | `#f5f0eb` | text on mark (same as paper) |
-
-### Tags (capture)
-
-| Token | Hex | Use |
-|-------|-----|-----|
-| `tag-now` | `#d4764e` | now tag — burnt orange |
-| `tag-later` | `#d4a574` | later tag — amber |
-| `tag-wonder` | `#9b8fb8` | ? tag — dusk |
-
-### Buckets (review)
-
-| Token | Hex | Use |
-|-------|-----|-----|
-| `do` | `#6a9e6a` | sage green |
-| `later` | `#d4a574` | amber (same as tag-later) |
-| `drop` | `#8a8378` | stone |
-| `wonder` | `#9b8fb8` | dusk (same as tag-wonder) |
+- **NIL DS is the component layer** — import `nil-ds/tokens/tokens.css` + `nil-ds/core/core.css`; wrap `Button`, `Card`, `Badge` from nil-ds under `src/components/ui/`.
+- **Mothership light base** — bg `#EDECE8`, text/border `#0A0A0A`, muted surface `#E2E1DC`.
+- **Accent locked `#0241e3`** (Jen) — primary actions, manifest theme, success confirm. Not Mothership orange.
+- **Brutalist shape** — `0px` radius, `2px` borders everywhere. No rounded-xl filed look.
+- Do not import Mothership or Clearpath CSS directly — consume via NIL.
 
 ---
 
-## Shape — FileCard
+## Token stack
 
-Abstract tabbed card. Not a literal folder — a silhouette with a protruding tab on one edge (top-left, via clip-path or extra element). Optional `tone` from tag/bucket tokens tints the tab.
+| Layer | Source | Role |
+|-------|--------|------|
+| Primitive + semantic | `nil-ds/src/tokens/tokens.css` | `--nil-color-*`, spacing, borders |
+| Core reset/layout | `nil-ds/src/core/core.css` | body reset, `.nil-container` etc. |
+| App aliases | `src/index.css` `@theme` | Tailwind utilities mapped to `--nil-*` |
 
-`LogStack` = 2–3 offset FileCards behind the hero capture form. Peek only — no thought text visible in the stack on Capture. Shows the log exists without competing.
+### NIL semantic (light)
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `--nil-color-bg` | `#EDECE8` | page (`bg-paper`) |
+| `--nil-color-surface` | `#E2E1DC` | cards, nav (`bg-raised`) |
+| `--nil-color-text` | `#0A0A0A` | body (`text-ink`) |
+| `--nil-color-text-muted` | `#4A4A4A` | labels (`text-muted`) |
+| `--nil-color-border` | `#0A0A0A` | borders (`border-line`) |
+| `--nil-color-accent` | `#0241e3` | Park, confirm (`bg-mark`) |
+| `--nil-color-accent-contrast` | `#ffffff` | on accent (`text-mark-text`) |
+
+### TetherLog bucket colours (unchanged semantics)
+
+Capture tags and review buckets keep their category hues — mapped in `@theme` as `--color-tag-*` / `--color-do` etc. Chips and FileCard left-bar use these; they are app tokens, not NIL primitives.
+
+---
+
+## Shape — FileCard (brutalist bracket)
+
+**Supersedes:** filed-tab clip-path silhouette, `rounded-xl`, warm `raised` paper.
+
+Hard rectangle, `2px` border, `0` radius. **Left accent bar** (6px) + bracket `[` glyph in tone colour. Peek cards get offset `box-shadow` for stack depth.
+
+`LogStack` = 2–3 offset FileCards behind the capture hero. Peek only — no thought text visible on Capture.
 
 ---
 
 ## Radius, type, spacing, motion
 
-**Radius:** cards `xl` (16 px); pills `full`; folder tab is a shape, not a round-rect.
+**Radius:** `0px` everywhere (`--nil-radius-none`).
 
-**Type:** system-ui / `ui-sans-serif`. Capture input ~`text-lg`. Body readable, not tiny.
+**Type:** `var(--nil-font-body)` / system stack. Capture input ~`text-lg`.
 
-**Spacing:** 4 / 8 / 16 / 24 / 32. Capture is vertically centred on mobile. Max content width ~`max-w-lg`.
+**Spacing:** NIL spacing scale via CSS vars. Capture vertically centred on mobile. Max content width ~`max-w-lg`.
 
 **Motion:**
-- `--duration-file`: 700ms (file-into-stack on Park)
-- `--ease-file`: `cubic-bezier(0.22, 1, 0.36, 1)`
-- Park confirm ~900ms total. No ambient pulse, no streak flames.
+- `--duration-file`: 700ms (card-into-stack on Park)
+- Park confirm ~900ms total. No ambient pulse.
 - Honour `prefers-reduced-motion` — skip slide, show Logged. immediately.
-
----
-
-## Tailwind v4 rules
-
-In `src/index.css`:
-
-```css
-@import "tailwindcss";
-
-@theme {
-  --color-paper: #f5f0eb;
-  --color-raised: #ece6df;
-  --color-line: #d4cdc4;
-  --color-ink: #2c2824;
-  --color-muted: #8a8278;
-  --color-mark: #2c2824;
-  --color-mark-text: #f5f0eb;
-  --color-tag-now: #d4764e;
-  --color-tag-later: #d4a574;
-  --color-tag-wonder: #9b8fb8;
-  --color-do: #6a9e6a;
-  --color-later: #d4a574;
-  --color-drop: #8a8378;
-  --color-wonder: #9b8fb8;
-}
-```
-
-Then: `bg-paper`, `bg-raised`, `text-ink`, `text-muted`, `border-line`, `bg-mark`, `text-mark-text`, `bg-do`.
-
-**Do not:**
-- Keep `:root` colour vars *and* `@theme` as two sources
-- Use `text-[var(--muted)]` after this phase
-- Add shadcn / a component kit
-- Import Mothership or Clearpath CSS
-- Invent a fifth screen
-- Use `#000` or `#fff`
 
 ---
 
 ## Primitives (`src/components/ui/`)
 
-Five. That's it.
+NIL-backed wrappers. Five surface components + LogStack.
 
-| Component | Job |
-|-----------|-----|
-| `Button` | primary (`mark`) / ghost / danger. Full-width Park is primary. |
-| `Field` | input + optional textarea (2–3 lines max) |
-| `Card` | raised panel |
-| `Chip` | tags + bucket overrides. Selected = category colour. |
-| `FileCard` | tabbed silhouette with optional `tone`. Used on Capture confirm, Review items, Patterns. |
+| Component | NIL source | Job |
+|-----------|------------|-----|
+| `Button` | `nil-ds/Button` | primary (accent) / ghost (secondary) / danger |
+| `Field` | custom, nil tokens | input + optional textarea |
+| `Card` | `nil-ds/Card` | bordered surface panel |
+| `Chip` | `nil-ds/Badge` + tone fills | tags + bucket overrides |
+| `FileCard` | custom brutalist bracket | capture confirm, review items, patterns |
 
-Plus `LogStack` — non-interactive composition of 2–3 offset FileCards behind the capture hero.
-
-Hands buttons = ghost `Button`. Bucket colours from tokens.
+Plus `LogStack` — offset peek stack behind capture.
 
 ---
 
 ## Screen craft notes
 
-**Capture** — default landing. One question. Optional chips never required. Park → file-into-stack motion → "Logged." then ready again. `/` focuses. LogStack in background = log is present without a fifth screen.
+**Capture** — default landing. One question. Optional chips never required. Park → bracket-into-stack → "Logged." then ready again. `/` focuses.
 
-**Review** — wins (optional) → triage FileCards → summary (counts + one carry-forward) → Hands with "Copied." feedback.
+**Review** — wins → triage FileCards → summary → Hands with export actions.
 
-**Patterns** — heatmap readable at a glance. Digest still useful with no key. Light UI, bucket-coloured chips.
+**Patterns** — heatmap at a glance. Digest optional with Gemini key.
 
-**Settings** — BYOK copy: "Your key stays on this device. We never see it." Reminder + backup. No theme toggle unless asked.
+**Settings** — BYOK copy unchanged. Light only unless asked.
 
 ---
 
@@ -160,11 +112,12 @@ Hands buttons = ghost `Button`. Bucket colours from tokens.
 - Capture: <5 seconds. Zero questions. Zero AI.
 - Low visual noise. No celebration confetti.
 - One thing at a time on Review.
-- Contrast: ink on paper must stay readable. Category colours on raised must pass WCAG AA for large text at minimum.
+- Contrast: ink on Mothership light must stay readable.
 
 ---
 
 ## Log
 
 - 2026-08-17: Warm-tether v0 locked. Dark look.
-- 2026-08-19: Pivoted to light filed look. Paper/ink neutrals. Abstract filing tabs. Park/Logged. copy. No pure black or white.
+- 2026-08-19: Pivoted to light filed look. **Superseded 2026-08-31.**
+- 2026-08-31: Mothership light + NIL DS consumer pass. Accent `#0241e3`. Brutalist bracket FileCard. First nil-ds consumer.

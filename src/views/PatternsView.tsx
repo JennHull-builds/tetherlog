@@ -52,7 +52,7 @@ export function PatternsView() {
             <div
               key={hour}
               title={`${hour}:00 — ${count}`}
-              className="flex-1 rounded-t bg-do"
+              className="flex-1 rounded-none bg-mark"
               style={{ height: `${(count / maxHeat) * 100}%`, opacity: count ? 1 : 0.15 }}
             />
           ))}

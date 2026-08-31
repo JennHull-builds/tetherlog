@@ -225,7 +225,7 @@ export function CaptureView({ onParked }: CaptureViewProps) {
             autoComplete="off"
             enterKeyHint="done"
             maxLines={3}
-            className="bg-raised py-4"
+            className="py-4"
             disabled={recording}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
@@ -304,7 +304,7 @@ export function CaptureView({ onParked }: CaptureViewProps) {
 
         <div className="flex flex-col gap-6 pt-2">
           <p
-            className="h-5 text-center text-sm text-do"
+            className="h-5 text-center text-sm text-mark"
             aria-live="polite"
             aria-atomic="true"
           >

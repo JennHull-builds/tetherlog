@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 
 export type ChipTone =
   | "now"
@@ -14,33 +14,62 @@ export interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
-const SELECTED_CLASS: Record<ChipTone, string> = {
-  now: "border-tag-now bg-tag-now text-ink",
-  later: "border-tag-later bg-tag-later text-ink",
-  wonder: "border-tag-wonder bg-tag-wonder text-ink",
-  do: "border-do bg-do text-ink",
-  drop: "border-drop bg-drop text-ink",
-  neutral: "border-mark bg-mark text-mark-text",
+const TONE_COLOR: Record<ChipTone, string> = {
+  now: "var(--color-tag-now)",
+  later: "var(--color-tag-later)",
+  wonder: "var(--color-tag-wonder)",
+  do: "var(--color-do)",
+  drop: "var(--color-drop)",
+  neutral: "var(--nil-color-accent)",
 };
 
+const badgeShell: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "var(--nil-spacing-xs)",
+  padding: "var(--nil-spacing-xs) var(--nil-spacing-sm)",
+  fontFamily: "var(--nil-font-mono)",
+  fontSize: "var(--nil-type-scale-xs)",
+  letterSpacing: "0.04em",
+  textTransform: "uppercase",
+  borderRadius: "var(--nil-radius-none)",
+};
+
+/** NIL DS Badge pattern + TetherLog bucket tones. */
 export function Chip({
   selected = false,
   tone = "neutral",
   className = "",
   type = "button",
+  style,
   children,
   ...rest
 }: ChipProps) {
-  const selectedClass = SELECTED_CLASS[tone];
-  const idleClass = "border-line bg-raised text-muted";
+  const color = TONE_COLOR[tone];
 
   return (
     <button
       type={type}
-      className={`rounded-full border px-3 py-1 text-sm ${selected ? selectedClass : idleClass} ${className}`}
+      className={className}
+      style={{
+        padding: 0,
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        ...style,
+      }}
       {...rest}
     >
-      {children}
+      <span
+        style={{
+          ...badgeShell,
+          border: `var(--nil-border-width) solid ${selected ? color : "var(--nil-color-text-muted)"}`,
+          color: selected ? "var(--nil-color-text)" : "var(--nil-color-text-muted)",
+          background: selected ? color : "transparent",
+        }}
+      >
+        {children}
+      </span>
     </button>
   );
 }

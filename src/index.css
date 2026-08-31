@@ -1,13 +1,15 @@
 @import "tailwindcss";
+@import "nil-ds/tokens/tokens.css";
+@import "nil-ds/core/core.css";
 
 @theme {
-  --color-paper: #f5f0eb;
-  --color-raised: #ece6df;
-  --color-line: #d4cdc4;
-  --color-ink: #2c2824;
-  --color-muted: #8a8278;
-  --color-mark: #2c2824;
-  --color-mark-text: #f5f0eb;
+  --color-paper: var(--nil-color-bg);
+  --color-raised: var(--nil-color-surface);
+  --color-line: var(--nil-color-border);
+  --color-ink: var(--nil-color-text);
+  --color-muted: var(--nil-color-text-muted);
+  --color-mark: var(--nil-color-accent);
+  --color-mark-text: var(--nil-color-accent-contrast);
   --color-tag-now: #d4764e;
   --color-tag-later: #d4a574;
   --color-tag-wonder: #9b8fb8;
@@ -16,10 +18,10 @@
   --color-drop: #8a8378;
   --color-wonder: #9b8fb8;
 
-  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--nil-font-body);
 
-  --radius-xl: 1rem;
-  --radius-card: 1rem;
+  --radius-xl: 0px;
+  --radius-card: 0px;
 
   --spacing-1: 0.25rem;
   --spacing-2: 0.5rem;
@@ -38,8 +40,8 @@
     opacity: 1;
   }
   100% {
-    transform: translateY(5.5rem) scale(0.88);
-    opacity: 0.2;
+    transform: translateY(16rem) scale(0.62);
+    opacity: 0.15;
   }
 }
 
@@ -56,9 +58,6 @@ html {
 body {
   margin: 0;
   min-height: 100svh;
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
