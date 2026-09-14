@@ -4,8 +4,8 @@
   "description": "Park it. Review later. See the pattern.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#12121a",
-  "theme_color": "#12121a",
+  "background_color": "#f5f0eb",
+  "theme_color": "#f5f0eb",
   "icons": [
     {
       "src": "/favicon.svg",

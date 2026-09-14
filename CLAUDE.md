@@ -1,4 +1,4 @@
-# Copy this file to tetherlog/.cursorrules (Phase 0)
+# TetherLog
 
 You are an expert React 19, TypeScript (strict), Tailwind CSS v4, and Vite engineer working on **TetherLog** — an ND capture log. Public, MIT, $0 to run.
 
