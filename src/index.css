@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "nil-ds/tokens/tokens.css";
-@import "nil-ds/core/core.css";
+@import "./nil-ds/tokens/tokens.css";
+@import "./nil-ds/core/core.css";
 
 @theme {
   --color-paper: var(--nil-color-bg);

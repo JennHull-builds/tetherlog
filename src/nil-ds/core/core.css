@@ -1,0 +1,663 @@
+/**
+ * Core CSS — future @nilds/core.
+ * Load after tokens.css. Classes are .nil-* so they do not collide with
+ * consumer utilities. All values read --nil-* only.
+ *
+ * Layout pattern (from mothership-stable/foundations/globals.css):
+ *   <section>                         full-bleed band
+ *     <div class="nil-container">     max-width + page inset
+ *       <div class="nil-grid">        12-col, gutters
+ *         …
+ *       </div>
+ *     </div>
+ *   </section>
+ */
+
+/* ─── Reset ───────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+body {
+  background-color: var(--nil-color-bg);
+  color: var(--nil-color-text);
+  font-family: var(--nil-font-body);
+  font-size: var(--nil-type-scale-base);
+  line-height: 1.5;
+  transition:
+    background-color var(--nil-motion-duration-fast) var(--nil-motion-easing-standard),
+    color var(--nil-motion-duration-fast) var(--nil-motion-easing-standard);
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+/*
+ * Theme root — any ancestor with data-theme paints with semantic roles so
+ * inheriting text and currentColor follow the active theme, not :root light.
+ */
+[data-theme='light'],
+[data-theme='dark'] {
+  color: var(--nil-color-text);
+  background-color: var(--nil-color-bg);
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+code,
+pre,
+.nil-mono {
+  font-family: var(--nil-font-mono);
+}
+
+/* ─── Layout ──────────────────────────────────────────────────────────────── */
+
+.nil-container {
+  width: 100%;
+  max-width: min(100%, var(--nil-layout-max-width));
+  margin-inline: auto;
+  padding-inline: var(--nil-layout-page-x);
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.nil-section-y {
+  padding-block: var(--nil-layout-section-y);
+}
+
+.nil-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--nil-layout-columns), minmax(0, 1fr));
+  gap: var(--nil-layout-gutter);
+}
+
+/* Escape .nil-container to the true page edge — never 100vw. */
+.nil-full-bleed {
+  width: 100%;
+  margin-inline: calc(-1 * var(--nil-layout-page-x));
+  max-width: none;
+}
+
+/*
+ * Responsive collapse. Literals match --nil-breakpoint-lg (1024px) and
+ * --nil-breakpoint-md (768px) — custom properties are not reliable in
+ * @media conditions across engines.
+ */
+@media (max-width: 1024px) {
+  .nil-container {
+    padding-inline: var(--nil-spacing-xl);
+  }
+
+  .nil-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .nil-full-bleed {
+    margin-inline: calc(-1 * var(--nil-spacing-xl));
+  }
+}
+
+@media (max-width: 767px) {
+  .nil-container {
+    padding-inline: var(--nil-spacing-md);
+  }
+
+  .nil-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nil-section-y {
+    padding-block: var(--nil-spacing-2xl);
+  }
+
+  .nil-full-bleed {
+    margin-inline: calc(-1 * var(--nil-spacing-md));
+  }
+}
+
+/* ─── CLI motion extras ───────────────────────────────────────────────────── */
+
+/* Bracket glyphs — slightly larger than the label shell. */
+.nil-bracket {
+  font-size: 1.12em;
+  line-height: 1;
+}
+
+/* Structural hatch — opt-in on surfaces (e.g. Card cells), not open layouts. */
+.nil-grid-bg {
+  background-image:
+    linear-gradient(to right, var(--nil-color-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--nil-color-grid-line) 1px, transparent 1px);
+  background-size: var(--nil-spacing-lg) var(--nil-spacing-lg);
+}
+
+@keyframes nil-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.nil-cursor-blink {
+  animation: nil-blink var(--nil-motion-duration-blink) var(--nil-motion-easing-step) infinite;
+  margin-left: 1px;
+}
+
+/*
+ * Entrance: start hidden; add .is-visible (IntersectionObserver or mount) to play.
+ * Optional stagger: style={{ ['--nil-anim-delay' as string]: '120ms' }}
+ */
+.nil-enter {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity var(--nil-motion-duration-enter) var(--nil-motion-easing-out-expo) var(--nil-anim-delay, 0ms),
+    transform var(--nil-motion-duration-enter) var(--nil-motion-easing-out-expo) var(--nil-anim-delay, 0ms);
+}
+
+.nil-enter.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.nil-enter-fade {
+  opacity: 0;
+  transition: opacity var(--nil-motion-duration-enter) var(--nil-motion-easing-standard) var(--nil-anim-delay, 0ms);
+}
+
+.nil-enter-fade.is-visible {
+  opacity: 1;
+}
+
+@keyframes nil-lightbox-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.nil-lightbox-backdrop {
+  animation: nil-lightbox-fade-in var(--nil-motion-duration-base) var(--nil-motion-easing-out-expo) both;
+}
+
+/* ─── Component grid (Grid.tsx) ───────────────────────────────────────────── */
+
+.nil-component-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--nil-grid-columns, 3), minmax(0, 1fr));
+  color: var(--nil-color-text);
+}
+
+@media (max-width: 767px) {
+  .nil-component-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Button ────────────────────────────────────────────────────────────────── */
+
+.nil-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35em;
+  line-height: 1.45;
+  border-style: solid;
+  border-radius: var(--nil-radius-default);
+  cursor: pointer;
+  font-family: var(--nil-font-mono);
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 4px;
+}
+
+.nil-btn__label {
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nil-btn__bracket {
+  color: var(--nil-color-border);
+  font-weight: 500;
+  font-size: 1.12em;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1;
+}
+
+.nil-btn--sm {
+  font-size: var(--nil-type-scale-xs);
+}
+
+.nil-btn--md {
+  font-size: var(--nil-type-scale-sm);
+}
+
+.nil-btn--primary {
+  background: var(--nil-color-accent);
+  color: var(--nil-color-accent-contrast);
+  border-width: var(--nil-border-width-thick);
+  border-color: var(--nil-color-accent);
+}
+
+.nil-btn--primary .nil-btn__bracket {
+  color: color-mix(in srgb, var(--nil-color-accent-contrast) 62%, transparent);
+}
+
+.nil-btn--secondary {
+  background: var(--nil-color-bg);
+  color: var(--nil-color-text);
+  border-width: var(--nil-border-width-thick);
+  border-color: var(--nil-color-border);
+}
+
+.nil-btn--ghost {
+  background: transparent;
+  color: var(--nil-color-text);
+  border-width: var(--nil-border-width);
+  border-color: transparent;
+}
+
+.nil-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--nil-color-surface);
+  color: var(--nil-color-text-muted);
+  border-width: var(--nil-border-width-thick);
+  border-color: var(--nil-color-border);
+}
+
+.nil-btn--primary:disabled {
+  filter: none;
+}
+
+.nil-btn:disabled .nil-btn__bracket {
+  color: var(--nil-color-text-muted);
+}
+
+/* ─── Interactive feedback ──────────────────────────────────────────────────── */
+
+.nil-btn:not(:disabled) {
+  transition:
+    background var(--nil-motion-duration-base) var(--nil-motion-easing-standard),
+    border-color var(--nil-motion-duration-base) var(--nil-motion-easing-standard),
+    color var(--nil-motion-duration-base) var(--nil-motion-easing-standard),
+    filter var(--nil-motion-duration-base) var(--nil-motion-easing-standard),
+    opacity var(--nil-motion-duration-base) var(--nil-motion-easing-standard);
+}
+
+.nil-btn--primary:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+
+.nil-btn--secondary:not(:disabled):hover {
+  background: var(--nil-color-surface);
+}
+
+.nil-btn--secondary:not(:disabled):active {
+  background: var(--nil-color-text);
+  color: var(--nil-color-bg);
+}
+
+.nil-btn--secondary:not(:disabled):active .nil-btn__bracket {
+  color: var(--nil-color-text-muted);
+}
+
+.nil-btn--ghost:not(:disabled):hover {
+  background: var(--nil-color-surface);
+  border-color: var(--nil-color-border);
+}
+
+.nil-btn--ghost:not(:disabled):active {
+  background: var(--nil-color-text);
+  color: var(--nil-color-bg);
+}
+
+.nil-btn--ghost:not(:disabled):active .nil-btn__bracket {
+  color: var(--nil-color-text-muted);
+}
+
+.nil-btn:focus-visible,
+.nil-input:focus-visible,
+.nil-theme-segment:focus-visible,
+.nil-lightbox-close:focus-visible,
+.nil-demo-nav a:focus-visible {
+  outline: 2px solid var(--nil-color-accent);
+  outline-offset: 2px;
+}
+
+.nil-input:not(:disabled):hover {
+  border-color: var(--nil-color-text-muted);
+}
+
+.nil-theme-toggle {
+  display: flex;
+  align-items: stretch;
+  height: 28px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: var(--nil-border-width) solid var(--nil-color-border);
+  border-radius: var(--nil-radius-default);
+}
+
+.nil-theme-segment {
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--nil-type-scale-xs);
+  line-height: 1;
+  background: transparent;
+  color: var(--nil-color-text);
+  opacity: 0.3;
+  border: none;
+  cursor: pointer;
+  transition:
+    background var(--nil-motion-duration-base) var(--nil-motion-easing-standard),
+    color var(--nil-motion-duration-base) var(--nil-motion-easing-standard),
+    opacity var(--nil-motion-duration-base) var(--nil-motion-easing-standard);
+}
+
+.nil-theme-segment[aria-pressed='true'] {
+  background: var(--nil-color-accent);
+  color: var(--nil-color-accent-contrast);
+  opacity: 1;
+}
+
+.nil-theme-segment:not([aria-pressed='true']):hover {
+  opacity: 0.55;
+}
+
+.nil-theme-divider {
+  width: var(--nil-border-width);
+  display: block;
+  background: var(--nil-color-border);
+  flex-shrink: 0;
+}
+
+.nil-lightbox-close:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ─── Demo shell ────────────────────────────────────────────────────────────── */
+
+.nil-demo-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nil-spacing-xs);
+  padding-block: var(--nil-spacing-sm);
+}
+
+.nil-demo-nav a {
+  font-family: var(--nil-font-mono);
+  font-size: var(--nil-type-scale-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--nil-color-text-muted);
+  padding: var(--nil-spacing-xs) var(--nil-spacing-sm);
+  border: var(--nil-border-width) solid transparent;
+  transition: color var(--nil-motion-duration-fast) var(--nil-motion-easing-standard);
+}
+
+.nil-demo-nav a:hover {
+  color: var(--nil-color-text);
+}
+
+.nil-demo-nav a.is-active {
+  color: var(--nil-color-text);
+  border-color: var(--nil-color-border);
+  background: var(--nil-color-surface);
+}
+
+/* ─── Toggle / TabStrip focus ─────────────────────────────────────────────── */
+
+.nil-toggle:focus-visible,
+.nil-tab-strip__tab:focus-visible {
+  outline: 2px solid var(--nil-color-accent);
+  outline-offset: 2px;
+}
+
+.nil-toggle:not(:disabled):hover {
+  opacity: 0.9;
+}
+
+/* ─── Typography utilities ─────────────────────────────────────────────────── */
+
+.nil-label {
+  font-family: var(--nil-font-mono);
+  font-size: var(--nil-type-scale-xs);
+  font-weight: var(--nil-type-weight-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nil-color-text-muted);
+}
+
+.nil-label--accent {
+  color: var(--nil-color-accent);
+  font-weight: var(--nil-type-weight-mono-emphasis);
+}
+
+.nil-stat {
+  font-family: var(--nil-font-display);
+  font-size: var(--nil-type-scale-3xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--nil-color-text);
+}
+
+/* ─── Demo canvas ──────────────────────────────────────────────────────────── */
+
+.nil-demo-canvas {
+  min-height: 100vh;
+  background-color: var(--nil-color-bg);
+  color: var(--nil-color-text);
+}
+
+.nil-demo-scene {
+  scroll-margin-top: 5rem;
+  padding-block: var(--nil-spacing-2xl);
+}
+
+.nil-demo-canvas > .nil-demo-scene:first-of-type {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+@media (max-width: 767px) {
+  .nil-demo-scene {
+    padding-block: var(--nil-spacing-xl);
+  }
+}
+
+/* ─── Badge ───────────────────────────────────────────────────────────────── */
+
+.nil-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nil-spacing-xs);
+  padding: var(--nil-spacing-xs) var(--nil-spacing-sm);
+  font-family: var(--nil-font-mono);
+  font-size: var(--nil-type-scale-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: var(--nil-radius-default);
+  border: var(--nil-border-width) solid currentColor;
+}
+
+.nil-badge--neutral {
+  color: var(--nil-color-text-muted);
+}
+
+.nil-badge--accent {
+  color: var(--nil-color-accent);
+}
+
+.nil-badge--danger {
+  color: var(--nil-color-danger);
+}
+
+.nil-badge--success {
+  color: var(--nil-color-success);
+}
+
+/* ─── Text ────────────────────────────────────────────────────────────────── */
+
+.nil-text {
+  font-family: var(--nil-font-body);
+  line-height: 1.6;
+  color: var(--nil-color-text);
+  margin: 0;
+}
+
+.nil-text--sm {
+  font-size: var(--nil-type-scale-sm);
+}
+
+.nil-text--base {
+  font-size: var(--nil-type-scale-base);
+}
+
+.nil-text--muted {
+  color: var(--nil-color-text-muted);
+}
+
+/* ─── Input ───────────────────────────────────────────────────────────────── */
+
+.nil-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nil-spacing-xs);
+}
+
+.nil-input-label {
+  font-family: var(--nil-font-body);
+  font-size: var(--nil-type-scale-sm);
+  color: var(--nil-color-text);
+}
+
+.nil-input {
+  font-family: var(--nil-font-body);
+  font-size: var(--nil-type-scale-base);
+  padding: var(--nil-spacing-sm);
+  border-radius: var(--nil-radius-default);
+  border: var(--nil-border-width) solid var(--nil-color-border);
+  background: var(--nil-color-surface);
+  color: var(--nil-color-text);
+}
+
+.nil-input::placeholder {
+  color: var(--nil-color-text-muted);
+}
+
+.nil-input[aria-invalid='true'] {
+  border-color: var(--nil-color-danger);
+}
+
+.nil-input-error {
+  font-family: var(--nil-font-body);
+  font-size: var(--nil-type-scale-xs);
+  color: var(--nil-color-danger);
+}
+
+/* ─── DataRow ─────────────────────────────────────────────────────────────── */
+
+.nil-data-row {
+  padding-block: var(--nil-spacing-sm);
+  padding-inline: 0;
+  border-bottom: var(--nil-border-width) solid var(--nil-color-border);
+}
+
+/* Single full-bleed rule between rows — hide inset divider above active row. */
+.nil-data-row:has(+ .nil-data-row--active) {
+  border-bottom: none;
+}
+
+.nil-data-row--active {
+  margin-inline: calc(-1 * var(--nil-spacing-md));
+  padding-inline: var(--nil-spacing-md);
+  border-top: var(--nil-border-width) solid var(--nil-color-border);
+  background: color-mix(in srgb, var(--nil-color-bg) 78%, var(--nil-color-accent-contrast));
+  color: var(--nil-color-text);
+}
+
+[data-theme='dark'] .nil-data-row--active {
+  background: color-mix(in srgb, var(--nil-color-surface) 88%, var(--nil-color-text));
+}
+
+/*
+ * Reduced motion: the part tokens cannot do.
+ *
+ * `tokens.css` already collapses every --nil-motion-duration-* to 1ms under this same
+ * media query, which handles every transition in the system at once because components
+ * read the token rather than a literal.
+ *
+ * It does the opposite of helping for a LOOPING animation. The cursor blink at 1100ms
+ * becomes a 1ms strobe, roughly a thousand flashes a second, aimed squarely at the people
+ * who asked for less motion. A shorter duration is not a kill switch, so the loop is
+ * stopped here explicitly.
+ *
+ * Kept visible rather than hidden: the cursor is a real affordance in a CLI-lineage kit,
+ * so it stays on screen at full opacity and simply stops moving.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .nil-cursor-blink {
+    animation: none;
+    opacity: 1;
+  }
+
+  /* Finite, so a 1ms duration would be harmless. Switched off anyway: an element that
+     fades in over 1ms is a flicker, and `both` holds the start frame until it runs. */
+  .nil-lightbox-backdrop {
+    animation: none;
+  }
+
+  /*
+   * The third leak, and the least obvious. `--nil-anim-delay` is a stagger applied as a
+   * transition-delay (core.css:181, :192), and it is NOT a duration token, so the
+   * generated block above never touches it. Without this, reduced motion still marches
+   * elements onto the screen one after another, each snapping in 1ms. The stagger IS the
+   * motion. Zero it.
+   */
+  .nil-enter,
+  .nil-enter-fade {
+    --nil-anim-delay: 0ms;
+  }
+
+  /* Arrive in place rather than sliding up. */
+  .nil-enter {
+    transform: none;
+  }
+}

@@ -1,0 +1,163 @@
+/**
+ * Generated from tokens.json — DO NOT EDIT BY HAND.
+ * Regenerate: npm run tokens:build
+ *
+ * Namespace: --nil-* (consumer) and --nil-primitive-* (raw).
+ * Components only read --nil-*.
+ */
+
+:root {
+  --nil-primitive-color-neutral-0: #0a0a0a;
+  --nil-primitive-color-neutral-100: #1c1c1c;
+  --nil-primitive-color-neutral-300: #4a4a4a;
+  --nil-primitive-color-neutral-500: #8a8a8a;
+  --nil-primitive-color-neutral-700: #eae9e5;
+  --nil-primitive-color-neutral-900: #f3f2ee;
+  --nil-primitive-color-accent: #3b6ef5;
+  --nil-primitive-color-accent-contrast: #ffffff;
+  --nil-primitive-color-danger: #c62832;
+  --nil-primitive-color-success: #22a06b;
+  --nil-primitive-color-overlay: rgba(10, 10, 10, 0.92);
+  --nil-primitive-color-overlay-fg: #f5f5f4;
+  --nil-primitive-color-overlay-border: rgba(245, 245, 244, 0.4);
+  --nil-primitive-color-grid-line: rgba(128, 128, 128, 0.12);
+  --nil-primitive-color-shadow-stack: #0a0a0a;
+  --nil-primitive-spacing-xs: 4px;
+  --nil-primitive-spacing-sm: 8px;
+  --nil-primitive-spacing-md: 16px;
+  --nil-primitive-spacing-lg: 24px;
+  --nil-primitive-spacing-xl: 32px;
+  --nil-primitive-spacing-2xl: 64px;
+  --nil-primitive-radius-none: 0px;
+  --nil-primitive-radius-sm: 4px;
+  --nil-primitive-radius-md: 8px;
+  --nil-primitive-radius-lg: 16px;
+  --nil-primitive-radius-xl: 32px;
+  --nil-primitive-radius-full: 999px;
+  --nil-primitive-border-width: 1.5px;
+  --nil-primitive-border-width-thick: 2px;
+  --nil-primitive-motion-duration-fast: 120ms;
+  --nil-primitive-motion-duration-base: 200ms;
+  --nil-primitive-motion-duration-slow: 360ms;
+  --nil-primitive-motion-duration-enter: 650ms;
+  --nil-primitive-motion-duration-blink: 1100ms;
+  --nil-primitive-motion-duration-instant: 1ms;
+  --nil-primitive-motion-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --nil-primitive-motion-easing-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --nil-primitive-motion-easing-step: step-end;
+  --nil-primitive-type-font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --nil-primitive-type-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --nil-primitive-type-font-display: 'IBM Plex Mono', ui-monospace, monospace;
+  --nil-primitive-type-scale-xs: 0.75rem;
+  --nil-primitive-type-scale-sm: 0.875rem;
+  --nil-primitive-type-scale-base: 1rem;
+  --nil-primitive-type-scale-lg: 1.25rem;
+  --nil-primitive-type-scale-xl: 1.75rem;
+  --nil-primitive-type-scale-2xl: 2.5rem;
+  --nil-primitive-type-scale-3xl: 3.5rem;
+  --nil-primitive-type-weight-mono: 400;
+  --nil-primitive-type-weight-mono-emphasis: 500;
+  --nil-primitive-size-dial-sm: 64px;
+  --nil-primitive-size-dial-md: 120px;
+  --nil-primitive-size-dial-lg: 180px;
+  --nil-primitive-size-dial-xl: 240px;
+  --nil-primitive-size-ring-sm: 48px;
+  --nil-primitive-size-ring-md: 72px;
+  --nil-primitive-layout-page-x: 80px;
+  --nil-primitive-layout-section-y: 120px;
+  --nil-primitive-layout-max-width: 1440px;
+  --nil-primitive-layout-columns: 12;
+  --nil-primitive-layout-gutter: 24px;
+  --nil-primitive-breakpoint-md: 768px;
+  --nil-primitive-breakpoint-lg: 1024px;
+}
+
+:root {
+  --nil-spacing-xs: var(--nil-primitive-spacing-xs);
+  --nil-spacing-sm: var(--nil-primitive-spacing-sm);
+  --nil-spacing-md: var(--nil-primitive-spacing-md);
+  --nil-spacing-lg: var(--nil-primitive-spacing-lg);
+  --nil-spacing-xl: var(--nil-primitive-spacing-xl);
+  --nil-spacing-2xl: var(--nil-primitive-spacing-2xl);
+  --nil-radius-none: var(--nil-primitive-radius-none);
+  --nil-radius-default: var(--nil-primitive-radius-sm);
+  --nil-radius-sm: var(--nil-primitive-radius-sm);
+  --nil-radius-md: var(--nil-primitive-radius-md);
+  --nil-radius-lg: var(--nil-primitive-radius-lg);
+  --nil-radius-xl: var(--nil-primitive-radius-xl);
+  --nil-radius-full: var(--nil-primitive-radius-full);
+  --nil-border-width: var(--nil-primitive-border-width);
+  --nil-border-width-thick: var(--nil-primitive-border-width-thick);
+  --nil-motion-duration-fast: var(--nil-primitive-motion-duration-fast);
+  --nil-motion-duration-base: var(--nil-primitive-motion-duration-base);
+  --nil-motion-duration-slow: var(--nil-primitive-motion-duration-slow);
+  --nil-motion-duration-enter: var(--nil-primitive-motion-duration-enter);
+  --nil-motion-duration-blink: var(--nil-primitive-motion-duration-blink);
+  --nil-motion-easing-standard: var(--nil-primitive-motion-easing-standard);
+  --nil-motion-easing-out-expo: var(--nil-primitive-motion-easing-out-expo);
+  --nil-motion-easing-step: var(--nil-primitive-motion-easing-step);
+  --nil-color-overlay: var(--nil-primitive-color-overlay);
+  --nil-color-overlay-fg: var(--nil-primitive-color-overlay-fg);
+  --nil-color-overlay-border: var(--nil-primitive-color-overlay-border);
+  --nil-color-grid-line: var(--nil-primitive-color-grid-line);
+  --nil-color-shadow-stack: var(--nil-primitive-color-shadow-stack);
+  --nil-font-body: var(--nil-primitive-type-font-body);
+  --nil-font-mono: var(--nil-primitive-type-font-mono);
+  --nil-font-display: var(--nil-primitive-type-font-display);
+  --nil-type-scale-xs: var(--nil-primitive-type-scale-xs);
+  --nil-type-scale-sm: var(--nil-primitive-type-scale-sm);
+  --nil-type-scale-base: var(--nil-primitive-type-scale-base);
+  --nil-type-scale-lg: var(--nil-primitive-type-scale-lg);
+  --nil-type-scale-xl: var(--nil-primitive-type-scale-xl);
+  --nil-type-scale-2xl: var(--nil-primitive-type-scale-2xl);
+  --nil-type-scale-3xl: var(--nil-primitive-type-scale-3xl);
+  --nil-type-weight-mono: var(--nil-primitive-type-weight-mono);
+  --nil-type-weight-mono-emphasis: var(--nil-primitive-type-weight-mono-emphasis);
+  --nil-size-dial-sm: var(--nil-primitive-size-dial-sm);
+  --nil-size-dial-md: var(--nil-primitive-size-dial-md);
+  --nil-size-dial-lg: var(--nil-primitive-size-dial-lg);
+  --nil-size-dial-xl: var(--nil-primitive-size-dial-xl);
+  --nil-size-ring-sm: var(--nil-primitive-size-ring-sm);
+  --nil-size-ring-md: var(--nil-primitive-size-ring-md);
+  --nil-layout-page-x: var(--nil-primitive-layout-page-x);
+  --nil-layout-section-y: var(--nil-primitive-layout-section-y);
+  --nil-layout-max-width: var(--nil-primitive-layout-max-width);
+  --nil-layout-columns: var(--nil-primitive-layout-columns);
+  --nil-layout-gutter: var(--nil-primitive-layout-gutter);
+  --nil-breakpoint-md: var(--nil-primitive-breakpoint-md);
+  --nil-breakpoint-lg: var(--nil-primitive-breakpoint-lg);
+}
+
+:root {
+  --nil-color-bg: #f3f2ee;
+  --nil-color-surface: #eae9e5;
+  --nil-color-text: #0a0a0a;
+  --nil-color-text-muted: #4a4a4a;
+  --nil-color-border: #0a0a0a;
+  --nil-color-accent: #3b6ef5;
+  --nil-color-accent-contrast: #ffffff;
+  --nil-color-danger: #c62832;
+  --nil-color-success: #22a06b;
+}
+
+[data-theme='dark'] {
+  --nil-color-bg: #0a0a0a;
+  --nil-color-surface: #1c1c1c;
+  --nil-color-text: #f3f2ee;
+  --nil-color-text-muted: #8a8a8a;
+  --nil-color-border: #eae9e5;
+  --nil-color-accent: #3b6ef5;
+  --nil-color-accent-contrast: #ffffff;
+  --nil-color-danger: #c62832;
+  --nil-color-success: #22a06b;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --nil-motion-duration-fast: var(--nil-primitive-motion-duration-instant);
+    --nil-motion-duration-base: var(--nil-primitive-motion-duration-instant);
+    --nil-motion-duration-slow: var(--nil-primitive-motion-duration-instant);
+    --nil-motion-duration-enter: var(--nil-primitive-motion-duration-instant);
+    --nil-motion-duration-blink: var(--nil-primitive-motion-duration-instant);
+  }
+}
