@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "tokens": "node scripts/build-tokens.mjs",
+    "tokens:check": "bash scripts/check-tokens.sh",
+    "build": "npm run tokens:check && tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "sync-nil-ds": "bash scripts/sync-nil-ds.sh"
+    "preview": "vite preview"
   },
   "dependencies": {
     "dexie": "^4.0.11",

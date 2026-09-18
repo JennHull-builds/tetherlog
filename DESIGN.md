@@ -2,7 +2,11 @@
 
 Soul for the public app. Not Chappie. Not Clearpath.
 
-Updated 2026-08-31. **Mothership light + NIL DS** — supersedes the 2026-08-19 light filed-tab / warm-paper spec.
+**Superseded 2026-09-18 by `docs/UI-OVERHAUL.md`.** Historical only; not binding.
+
+NIL DS was removed in Phase 1 of the overhaul, and with it this file's `## Hard rules`
+and `## Token stack` sections. The colours below are also wrong: they were copied from
+nil-ds when written and nil-ds moved afterwards. Read `src/index.css` for what renders.
 
 ---
 
@@ -15,42 +19,6 @@ Capture should feel like a pocket: one field, Park, gone. The log exists behind 
 Voice in UI: warm, literal, spare. UK English. No streaks. No "you missed yesterday." Untriaged is parked, not failure.
 
 **Copy:** verb is **Park**. Confirm is **Logged.** Filing is visual (bracket card + slide-into-stack motion), not in the copy.
-
----
-
-## Hard rules
-
-- **NIL DS is the component layer** — import `nil-ds/tokens/tokens.css` + `nil-ds/core/core.css`; wrap `Button`, `Card`, `Badge` from nil-ds under `src/components/ui/`.
-- **Mothership light base** — bg `#EDECE8`, text/border `#0A0A0A`, muted surface `#E2E1DC`.
-- **Accent locked `#0241e3`** (Jen) — primary actions, manifest theme, success confirm. Not Mothership orange.
-- **Brutalist shape** — `0px` radius, `2px` borders everywhere. No rounded-xl filed look.
-- Do not import Mothership or Clearpath CSS directly — consume via NIL.
-
----
-
-## Token stack
-
-| Layer | Source | Role |
-|-------|--------|------|
-| Primitive + semantic | `nil-ds/src/tokens/tokens.css` | `--nil-color-*`, spacing, borders |
-| Core reset/layout | `nil-ds/src/core/core.css` | body reset, `.nil-container` etc. |
-| App aliases | `src/index.css` `@theme` | Tailwind utilities mapped to `--nil-*` |
-
-### NIL semantic (light)
-
-| Token | Value | Use |
-|-------|-------|-----|
-| `--nil-color-bg` | `#EDECE8` | page (`bg-paper`) |
-| `--nil-color-surface` | `#E2E1DC` | cards, nav (`bg-raised`) |
-| `--nil-color-text` | `#0A0A0A` | body (`text-ink`) |
-| `--nil-color-text-muted` | `#4A4A4A` | labels (`text-muted`) |
-| `--nil-color-border` | `#0A0A0A` | borders (`border-line`) |
-| `--nil-color-accent` | `#0241e3` | Park, confirm (`bg-mark`) |
-| `--nil-color-accent-contrast` | `#ffffff` | on accent (`text-mark-text`) |
-
-### TetherLog bucket colours (unchanged semantics)
-
-Capture tags and review buckets keep their category hues — mapped in `@theme` as `--color-tag-*` / `--color-do` etc. Chips and FileCard left-bar use these; they are app tokens, not NIL primitives.
 
 ---
 
@@ -121,3 +89,4 @@ Plus `LogStack` — offset peek stack behind capture.
 - 2026-08-17: Warm-tether v0 locked. Dark look.
 - 2026-08-19: Pivoted to light filed look. **Superseded 2026-08-31.**
 - 2026-08-31: Mothership light + NIL DS consumer pass. Accent `#0241e3`. Brutalist bracket FileCard. First nil-ds consumer.
+- 2026-09-18: NIL DS removed. `## Hard rules` and `## Token stack` deleted with it. Superseded by `docs/UI-OVERHAUL.md`.

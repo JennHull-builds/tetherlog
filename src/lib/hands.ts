@@ -1,4 +1,4 @@
-import type { Capture, TriageBucket } from "../types";
+import type { Capture } from "../types";
 import { BUCKET_LABELS } from "../types";
 
 export async function copyText(text: string): Promise<void> {
@@ -103,14 +103,4 @@ export async function shareText(title: string, text: string): Promise<boolean> {
 export function mailtoDoList(captures: Capture[]): void {
   const body = encodeURIComponent(formatDoList(captures));
   window.location.href = `mailto:?subject=${encodeURIComponent("TetherLog — do list")}&body=${body}`;
-}
-
-export function bucketColour(bucket: TriageBucket): string {
-  const map: Record<TriageBucket, string> = {
-    do: "#6a9e6a",
-    later: "#d4a574",
-    drop: "#8a8378",
-    wonder: "#9b8fb8",
-  };
-  return map[bucket];
 }

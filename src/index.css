@@ -1,37 +1,101 @@
 @import "tailwindcss";
-@import "./nil-ds/tokens/tokens.css";
-@import "./nil-ds/core/core.css";
+@import "./styles/tokens.generated.css";
 
+/*
+ * Tailwind v4 scans the repository for class names and cannot tell prose from
+ * markup, so documentation compiles into real CSS rules. `.cursorrules` and
+ * `ROADMAP.md` both quote an arbitrary-value class as an anti-pattern and both
+ * shipped a broken rule to production; CLAUDE.md and docs/UI-OVERHAUL.md added
+ * fourteen more from ordinary words like "blur", "shadow", "fixed" and
+ * "static". There is no writing rule that avoids those words. See CLAUDE.md.
+ */
+@source not "../*.md";
+@source not "../docs/**/*.md";
+@source not "../.cursorrules";
+
+/*
+ * ── @theme ────────────────────────────────────────────────────────────────
+ * The one sanctioned place a --tl-ref-* name appears outside the generated
+ * file: Tailwind's --font-*, --text-* and --spacing namespaces need a value
+ * and there is no useful role name for "the body typeface".
+ * scripts/check-tokens.sh exempts this file for that reason and no other.
+ *
+ * --spacing is a SINGLE base. Tailwind v4 derives the whole scale from it.
+ * Never define --spacing-1, --spacing-2 etc. alongside it: a partial override
+ * gives you two scales at once. See CLAUDE.md.
+ */
 @theme {
-  --color-paper: var(--nil-color-bg);
-  --color-raised: var(--nil-color-surface);
-  --color-line: var(--nil-color-border);
-  --color-ink: var(--nil-color-text);
-  --color-muted: var(--nil-color-text-muted);
-  --color-mark: var(--nil-color-accent);
-  --color-mark-text: var(--nil-color-accent-contrast);
-  --color-tag-now: #d4764e;
-  --color-tag-later: #d4a574;
-  --color-tag-wonder: #9b8fb8;
-  --color-do: #6a9e6a;
-  --color-later: #d4a574;
-  --color-drop: #8a8378;
-  --color-wonder: #9b8fb8;
+  --color-paper: var(--tl-ground);
+  --color-raised: var(--tl-raised);
+  --color-line: var(--tl-rule);
+  --color-ink: var(--tl-ink);
+  --color-muted: var(--tl-ink-muted);
+  --color-mark: var(--tl-mark);
+  --color-mark-text: var(--tl-on-mark);
 
-  --font-sans: var(--nil-font-body);
+  --color-tag-now: var(--tl-bucket-now);
+  --color-tag-later: var(--tl-bucket-later);
+  --color-tag-wonder: var(--tl-bucket-wonder);
+  --color-do: var(--tl-bucket-do);
+  --color-drop: var(--tl-bucket-drop);
 
-  --radius-xl: 0px;
-  --radius-card: 0px;
+  --font-sans: var(--tl-ref-type-font-body);
+  --font-mono: var(--tl-ref-type-font-mono);
 
-  --spacing-1: 0.25rem;
-  --spacing-2: 0.5rem;
-  --spacing-4: 1rem;
-  --spacing-6: 1.5rem;
-  --spacing-8: 2rem;
+  --spacing: var(--tl-ref-space-base);
 
-  --ease-file: cubic-bezier(0.22, 1, 0.36, 1);
-  --duration-file: 700ms;
-  --animate-file-into-stack: file-into-stack 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  --radius-none: var(--tl-radius);
+
+  --ease-focus: var(--tl-spring-focus-ease);
+  --ease-commit: var(--tl-spring-commit-ease);
+  --ease-settle: var(--tl-spring-settle-ease);
+  --ease-dismiss: var(--tl-spring-dismiss-ease);
+
+  --animate-file-into-stack: file-into-stack var(--tl-ref-motion-duration-legacy-file)
+    var(--tl-ref-motion-easing-legacy-file) forwards;
+}
+
+/*
+ * ── Interim --nil-* aliases ───────────────────────────────────────────────
+ * The five UI primitives and NavBar still read --nil-* through inline styles.
+ * Rather than rewrite eight components in the same step that introduces the
+ * token pipeline, the old names are aliased onto the new semantic layer, so
+ * this phase changes where values come from and not what they are.
+ *
+ * DELETE THIS BLOCK IN PHASE 5, one alias at a time as its last reader goes.
+ * When it is empty, remove the --nil-* rule from eslint.config.js too.
+ */
+:root {
+  --nil-color-bg: var(--tl-ground);
+  --nil-color-surface: var(--tl-raised);
+  --nil-color-text: var(--tl-ink);
+  --nil-color-text-muted: var(--tl-ink-muted);
+  --nil-color-border: var(--tl-rule);
+  --nil-color-accent: var(--tl-mark);
+  --nil-color-accent-contrast: var(--tl-on-mark);
+  --nil-color-danger: var(--tl-danger);
+
+  --nil-spacing-xs: var(--tl-space-xs);
+  --nil-spacing-sm: var(--tl-space-sm);
+  --nil-spacing-md: var(--tl-space-md);
+  --nil-spacing-lg: var(--tl-space-lg);
+
+  --nil-radius-none: var(--tl-radius);
+  --nil-border-width: var(--tl-border-width);
+
+  --nil-font-body: var(--tl-font-body);
+  --nil-font-mono: var(--tl-font-mono);
+  --nil-type-scale-xs: var(--tl-text-xs);
+  --nil-type-scale-base: var(--tl-text-base);
+
+  --nil-motion-duration-base: 200ms;
+  --nil-motion-easing-standard: var(--tl-ref-motion-easing-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --nil-motion-duration-base: var(--tl-ref-motion-duration-instant);
+  }
 }
 
 @keyframes file-into-stack {
@@ -51,17 +115,33 @@
   }
 }
 
-html {
-  color-scheme: light;
-}
-
+/*
+ * NIL's core.css painted the body. Tailwind's preflight sets no background or
+ * colour, and App.tsx only paints its own max-w-lg wrapper, so without this the
+ * page gutters go white on any screen wider than lg.
+ *
+ * core.css also carried an UNLAYERED `*, *::before, *::after { margin: 0;
+ * padding: 0 }`. Unlayered rules beat every @layer, so that one reset silently
+ * neutralised all 72 padding, margin and space-y utilities in the app. It is
+ * deliberately not re-created: Tailwind's preflight already resets margin and
+ * box-sizing inside @layer base, where utilities correctly win.
+ * See docs/UI-OVERHAUL.md section 1.12.
+ */
 body {
-  margin: 0;
+  background-color: var(--tl-ground);
+  color: var(--tl-ink);
+  font-family: var(--tl-font-body);
+  font-size: var(--tl-text-base);
+  line-height: 1.5;
   min-height: 100svh;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  color-scheme: light;
 }
 
 #root {

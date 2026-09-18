@@ -2,3 +2,10 @@ node_modules
 dist
 .DS_Store
 *.local
+
+# Visual references are third-party images and video collected for direction.
+# This repo is public and MIT, so they stay local; docs/LOOK.md is the durable
+# artefact derived from them.
+docs/references/*
+!docs/references/README.md
+!docs/references/NOTES.md
