@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { LogStack } from "../components/LogStack";
 import { Button, Chip, Field, FileCard, type FileTone } from "../components/ui";
 import { parkCapture } from "../db";
 import {
@@ -310,8 +309,6 @@ export function CaptureView({ onParked }: CaptureViewProps) {
           >
             {status === "logged" ? "Logged." : ""}
           </p>
-
-          <LogStack className="pointer-events-none opacity-35" />
         </div>
       </div>
     </section>

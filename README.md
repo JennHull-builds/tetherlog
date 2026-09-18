@@ -4,7 +4,7 @@
 
 ND capture log — dumb-fast park, agent-powered evening review, pattern detection, hands that export your `do` items.
 
-See `PRODUCT.md` for full spec.
+See `ARCHITECTURE.md` for how it fits together, `PRODUCT.md` for the full spec.
 
 ## Privacy
 

@@ -11,7 +11,9 @@ fail=0
 
 # Identifiers that must never appear in this repo. Kept as a pattern rather
 # than a literal list so the file itself does not publish what it protects.
-PATTERNS='[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|/Users/[a-z]+|/home/[a-z]+|C:\\\\Users'
+# Email addresses, absolute home paths, and home-relative paths that point
+# outside this repo (a `~/something/` reference is always a private system).
+PATTERNS='[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|/Users/[a-z]+|/home/[a-z]+|C:\\\\Users|~/[a-zA-Z][a-zA-Z0-9_-]+/'
 
 hits=$(git ls-files -z 2>/dev/null \
   | xargs -0 grep -nEI "$PATTERNS" 2>/dev/null \

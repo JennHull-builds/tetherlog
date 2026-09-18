@@ -175,6 +175,11 @@ declared once as custom properties and everything reads from it.
 | `--t-input` | 17px | The capture field. **Never smaller.** |
 | `--t-display` | 34px | The one headline per screen |
 
+**The face is Geist**, chosen 2026-09-18 by comparing Geist, Instrument Sans, Schibsted Grotesk and
+Archivo live on the screen rather than on a specimen sheet. Geist Mono for the two mono roles. One
+family and its mono sibling: 51.3 KB of self-hosted latin subset, and a single voice with a single
+counter-voice.
+
 **Rules that came out of the first pass being wrong:**
 
 1. **The display face is weight 300, not 200.** At 200 a 26px headline is spindly and the screen has
