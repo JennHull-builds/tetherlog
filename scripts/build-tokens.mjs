@@ -18,6 +18,10 @@ import { dirname } from "node:path";
 
 const SRC = "src/tokens/tokens.json";
 const OUT = "src/styles/tokens.generated.css";
+/** The same spring solve, for the one animation CSS cannot drive: the lens.
+ *  A canvas needs the curve as numbers, and solving it twice is how the CSS
+ *  arc and the WebGL arc drift apart. Phase 4. */
+const OUT_TS = "src/motion/springs.generated.ts";
 
 /** 1%. Imperceptible on a 3px shadow or a 200px slide, and it bounds the
  *  end-stop clamp below, so the two settings cannot disagree. */
@@ -62,7 +66,8 @@ function springDurationMs(cfg) {
   throw new Error(`Spring never settles within 4s: ${JSON.stringify(cfg)}`);
 }
 
-function linearEasing(cfg, ms) {
+/** The sampled curve. CSS and the lens both read THIS, never two solves. */
+function springPoints(cfg, ms) {
   const n = Math.max(2, Math.round(ms / SAMPLE_MS));
   const points = [];
   for (let i = 0; i <= n; i++) {
@@ -72,6 +77,10 @@ function linearEasing(cfg, ms) {
   // The error this introduces is bounded by REST_DELTA by construction: at most
   // a 1% correction over the final 10ms, which is not perceptible.
   points[n] = 1;
+  return points;
+}
+
+function linearEasing(points) {
   return `linear(${points.join(", ")})`;
 }
 
@@ -107,6 +116,23 @@ function resolve(value, seen = new Set()) {
   return resolve(target.$value, new Set(seen).add(ref));
 }
 
+/** The terminal token path an alias chain points at, or null if not an alias. */
+function aliasPath(value) {
+  let v = value;
+  let path = null;
+  const seen = new Set();
+  while (isAlias(v)) {
+    const ref = v.slice(1, -1);
+    if (seen.has(ref)) throw new Error(`Circular alias: ${ref}`);
+    seen.add(ref);
+    path = ref;
+    const target = flat.get(ref);
+    if (!target) throw new Error(`Unknown alias: ${value}`);
+    v = target.$value;
+  }
+  return path;
+}
+
 /** Semantics get --tl-<role>. Everything else gets --tl-ref-<path>. */
 const cssName = (path) =>
   path.startsWith("semantic.")
@@ -119,15 +145,30 @@ const quoteFamily = (f) => (/[\s]/.test(f) ? `'${f}'` : f);
 
 const root = [];
 const reduced = [];
+const springCurves = [];
+
+/**
+ * Pre-pass: every token carrying a plain reduced-motion value, by path.
+ * Built before emitting because a SEMANTIC that aliases one of these needs the
+ * override too, and the semantic layer is the only layer a component may read.
+ * Without this the override lands on --tl-ref-* and reaches nothing.
+ */
+const reducedValueByPath = new Map();
+for (const [path, token] of flat) {
+  const rm = token.$extensions?.["tetherlog.reducedMotion"];
+  if (rm && "value" in rm) reducedValueByPath.set(path, rm.value);
+}
 
 for (const [path, token] of flat) {
   if (path.startsWith("motion.spring.")) {
     const name = path.split(".")[2];
     const cfg = token.$value;
     const ms = springDurationMs(cfg);
+    const points = springPoints(cfg, ms);
     // Duration and curve come from the same solve, so they cannot drift apart.
     root.push(`  --tl-spring-${name}-duration: ${ms}ms;`);
-    root.push(`  --tl-spring-${name}-ease: ${linearEasing(cfg, ms)};`);
+    root.push(`  --tl-spring-${name}-ease: ${linearEasing(points)};`);
+    springCurves.push({ name, ms, points, description: token.$description ?? "" });
 
     const rm = token.$extensions?.["tetherlog.reducedMotion"];
     if (!rm) {
@@ -142,6 +183,14 @@ for (const [path, token] of flat) {
   }
 
   const value = resolve(token.$value);
+
+  // A reduced-motion counterpart on this token, or on the token it aliases.
+  const reducedValue = reducedValueByPath.has(path)
+    ? reducedValueByPath.get(path)
+    : reducedValueByPath.get(aliasPath(token.$value));
+  if (reducedValue !== undefined) {
+    reduced.push(`    ${cssName(path)}: ${reducedValue};`);
+  }
 
   if (token.$type === "fontFamily" && Array.isArray(value)) {
     root.push(`  ${cssName(path)}: ${value.map(quoteFamily).join(", ")};`);
@@ -175,11 +224,6 @@ for (const [path, token] of flat) {
   root.push(`  ${cssName(path)}: ${value};`);
 }
 
-const confirmReduced = flat.get("motion.duration.confirm-reduced");
-if (confirmReduced) {
-  reduced.push(`    --tl-ref-motion-duration-confirm: ${confirmReduced.$value};`);
-}
-
 const css = `/**
  * GENERATED FROM src/tokens/tokens.json. DO NOT EDIT BY HAND.
  *
@@ -205,4 +249,46 @@ ${reduced.join("\n")}
 
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, css);
-console.log(`✓ ${OUT} — ${flat.size} tokens, ${root.length} custom properties`);
+
+// ─── the same curves, as numbers ───────────────────────────────────────────
+// CSS linear() drives every DOM transition. The gravity lens is a canvas and
+// cannot read an easing function, so it samples this array instead. Both come
+// from one solve above: there is no second implementation to drift.
+const ts = `/**
+ * GENERATED FROM src/tokens/tokens.json. DO NOT EDIT BY HAND.
+ *
+ *   Regenerate:  npm run tokens
+ *   Verify:      npm run tokens:check
+ *
+ * The same sampled spring curves that become the CSS linear() easings in
+ * tokens.generated.css, as numbers, for the one animation CSS cannot drive:
+ * the gravity lens is a canvas. Solving the springs twice is how a DOM arc and
+ * a WebGL arc drift apart, so this file exists instead. See CLAUDE.md.
+ */
+
+export interface SpringCurve {
+  /** Full duration of the arc in milliseconds, from the same solve as the CSS. */
+  readonly durationMs: number;
+  /** Position 0 -> 1, sampled every ${SAMPLE_MS}ms. The last point is exactly 1. */
+  readonly points: readonly number[];
+}
+
+export const springs = {
+${springCurves
+  .map(
+    (s) =>
+      `  /** ${s.description} */\n  ${s.name}: {\n    durationMs: ${s.ms},\n    points: [${s.points.join(", ")}],\n  },`,
+  )
+  .join("\n")}
+} as const satisfies Record<string, SpringCurve>;
+
+export type SpringName = keyof typeof springs;
+`;
+
+mkdirSync(dirname(OUT_TS), { recursive: true });
+writeFileSync(OUT_TS, ts);
+
+console.log(
+  `✓ ${OUT} — ${flat.size} tokens, ${root.length} custom properties\n` +
+    `✓ ${OUT_TS} — ${springCurves.length} spring curves`,
+);

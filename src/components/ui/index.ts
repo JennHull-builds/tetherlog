@@ -3,3 +3,12 @@ export { Card, type CardProps } from "./Card";
 export { Chip, type ChipProps, type ChipTone } from "./Chip";
 export { Field, type FieldProps } from "./Field";
 export { FileCard, type FileCardProps, type FileTone } from "./FileCard";
+export {
+  IconButton,
+  MicGlyph,
+  ParkGlyph,
+  StopGlyph,
+  type IconButtonProps,
+  type IconButtonTone,
+} from "./IconButton";
+export { PeekStack, type PeekStackProps } from "./PeekStack";

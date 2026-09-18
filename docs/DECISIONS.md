@@ -27,9 +27,11 @@ into `docs/BUILD-SPEC.md`. `git log` has the original if it is ever wanted.
 | | |
 |---|---|
 | Phases 1 and 2 | Done and pushed, 2026-09-18 |
-| Phase 3 onward | Not started. Phases 3 and 4 need rework against `docs/LOOK.md` first. |
+| Phase 3 | **Built 2026-09-18**, awaiting a look. The ground, the type and the PWA chrome. |
+| Phase 4 | **Built 2026-09-18**, awaiting a look. Capture's composition, the lens, the arc. See D-014 and D-015. |
+| Phases 5 to 7 | Not started. Review, then Patterns and Settings, then the sweep. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. |
-| Live palette | Still NIL's light values, on purpose. Phase 3 swaps them for a `docs/LOOK.md` palette. |
+| Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
 ---
 
@@ -119,6 +121,28 @@ where the UI says "done" before the disk does.
 | Missing only on the phone | IndexedDB quota, likely stored audio blobs | Browser storage inspector; `ROADMAP.md` flags quota as future work |
 | Two captures for one Park | A retry was added, or the hold was not cleared | `inFlightRef.current.delete` on both paths |
 | Field does not clear at all | Something async crept in above the release | Step 2 of `handlePark` |
+
+**BUILT IN PHASE 4, 2026-09-18.** This entry was written as a decision and the code did not follow
+it: `handlePark` awaited `parkCapture` before clearing the field, there was no `inFlightRef`, and a
+rejected write threw with no recovery and no `console.warn`. All four steps now exist. Verified in a
+browser rather than by reading, because a capture path that silently drops one in a hundred looks
+exactly like one that works:
+
+| Checked | Result |
+|---|---|
+| Field usable immediately after Enter | focused, empty and enabled in the same tick |
+| Two parks in under a second | both stored, count 2, no queue, 58ms of wall clock |
+| Forced write failure | text back in the field, error shown, `console.warn` carried the words |
+| Failure landing while the next thought is being typed | `"The new thought!\nThe old thought"`: nothing overwritten, and the caret stays on the person's own line |
+| Rows written on a failed park | zero |
+
+**The caret was a real find and rule 4 did not cover it.** Rule 4 says the failed text is appended
+rather than overwriting what has been typed since, and that held. What it did not say is that
+rewriting a controlled field moves the caret to the end, so the rest of what someone was mid-way
+through typing landed inside the recovered sentence: `"The new thoug\nThe old thoughtht"`. Nothing
+was lost and it still arrived shredded, at the exact moment they were being told the last one
+failed. `restoreFailedPark` now puts the caret back where the person was. **Rule 6, new: a recovery
+may not move the caret.**
 
 **The trade, stated plainly.** Given up: the guarantee that the UI never says done before the disk
 does. Gained: a field ready in 0ms rather than in however long IndexedDB takes, which is the single
@@ -438,3 +462,152 @@ it.**
 
 **For the phases that remain:** Phase 4 onward are the design phases. They own layout, density and
 composition. They do not own copy.
+
+## D-014: Capture's composition, and what six elements became
+
+**2026-09-18. Closed.** This is the clutter brief in `docs/BUILD-SPEC.md` Phase 4, answered. It was
+answered before any shader work, because a well behind a cluttered screen is still a cluttered
+screen.
+
+**Six elements at rest became three: the headline, the sub-line, the field.**
+
+### The five open questions, and the answers
+
+**Where do Park and Mic live? Inside the field.** Mic is a quiet glyph on the field's trailing edge
+and Park is an accent disc beside it. This was the one question put to a person rather than decided
+here, because it is the composition of the screen the product exists for. The alternative was a
+control row under the field, which is roomier for text at 390px and is still two objects. The
+direction is one heavy object with space bent around it, so the controls went inside.
+
+**What is the resting element count?** Three. The field is the only thing above the fold with the
+headline, at 390px and at 1280px.
+
+**Do the chips appear at rest?** No. They appear only once there is text, in a reserved line under
+the field, with no transition. `PRODUCT.md` forbids questions at park time and three chips sitting
+on an empty screen are a question. Once the thought is already in the field, tagging it is an
+option rather than a gate. No transition, because nothing animates in response to typing.
+
+**Does the sub-line persist?** Yes, unchanged. `docs/LOOK.md` defends it explicitly: it tells you to
+let go and it tells you what happens next, which is the thing that makes letting go safe. It is one
+13px line and it earns its place.
+
+**What is Park for on desktop if Enter parks?** It is the target. The disc is a ring when the field
+is empty and fills with accent when there is something to park, so **the one colour per screen is
+present in every state, on the same element**, rather than blinking into existence when you start
+typing. Same object on the phone, where it is also the thumb target. No responsive difference.
+
+### One reserved line, three jobs
+
+The line under the field is always the same height and holds: nothing at rest, the tag chips once
+there is text, the confirm word after a park. The two can never collide, because a park empties the
+field. **Nothing on this screen moves, ever.**
+
+### What rendering it found, and reading it would not have
+
+1. **The field rose by 66px the first time anything was parked.** The peek stack was rendered
+   conditionally, so it shrank the centred block above it. The one screen that must never move,
+   moving, at the exact moment a person is watching to see whether their thought landed. The stack
+   slot is now a fixed height whether or not anything is in it.
+2. **The luminous rim became the default for every `Field`.** Settings then rested with the one
+   colour per screen appearing three times: the API key field, the reminder hour and Save settings.
+   The rim is the capture field's mass signature, not a generic input treatment, so it is opt in and
+   every other field keeps the structural rule token.
+3. **A blank third row in the peek stack was invisible, not subtle.** Every surface token measures
+   1.10:1 to 1.24:1 on this ground, so a textless bar cannot be seen at all. It is gone. The count
+   says there are three while showing two, and that is the cue. **Rendering something nobody can see
+   is worse than rendering nothing, because it reads as done.**
+
+### Copy this phase touched, for the copy work to inherit
+
+Phase 4 does not own copy and did not set out to change any. Three things happened anyway and are
+listed here rather than buried:
+
+| What | Why |
+|---|---|
+| **New:** "That one did not save. It is back in the field." | D-004 requires the recovery to be visible and there was no failure string at all, because there was no failure path. |
+| **New:** "3 parked today" | Specified in `docs/LOOK.md`'s copy table and never built. Pluralised for one. |
+| "Mic" and "Stop and park" are no longer drawn | They are the `aria-label` on their glyphs, verbatim. Nothing is lost to a screen reader and the copy work still has the strings. |
+
+### Left alone, and worth saying
+
+The recording timer carries `aria-live="polite"` and updates four times a second, which is four
+announcements a second on a screen reader. It shipped that way and Phase 4 did not change it: it is
+not a composition question and it should not be guessed at without testing on a real screen reader.
+**Flagged for whoever owns accessibility next.**
+
+## D-015: The gravity lens
+
+**2026-09-18. Closed.** `src/components/GravityField.tsx`. One fullscreen fragment shader, no
+library, **4.84 KB gzipped measured by building with and without it**, against the roughly 4 KB
+`docs/LOOK.md` budgeted.
+
+### How the arcs are made
+
+Not by smearing the sample along the tangent. The offset from each star is measured in a squashed
+space whose long axis follows the bend, so the star is **drawn** as an ellipse stretched along the
+tangent: one sample per layer, and the arc is continuous. Multi-tapping instead needs a tap roughly
+every pixel to avoid drawing three separate dots, which is about twenty samples per pixel at full
+stretch, on every pixel of the screen.
+
+The stretch asymptotes rather than growing with mass. Past about 3.5 the ellipse outgrows its own
+grid cell and the star clips into a hard edge instead of fading out.
+
+### The tuning finding, and it is the useful part
+
+**The sweep and the arcs were cancelling each other out.** Space nearest the mass is swept clear of
+stars, which is right and physical. The first tuning cleared them out to three quarters of the
+influence radius, which is precisely the band where the stretch is strongest. So the screenshot
+showed a plain field on a plain ground: the shader was working perfectly and painting almost
+nothing. The sweep is now a tight collar that ends where the arcs begin.
+
+### Star brightness is a contrast constraint, not a visual one
+
+The headline and the sub-line sit on this field with no surface under them, so **the brightest star
+is their background** wherever one lands behind a glyph. Measured off rendered frames, not
+calculated:
+
+| Near-layer gain | Brightest painted star | `--tl-ink` on it | `--tl-ink-muted` on it |
+|---|---|---|---|
+| 1.00 | `rgb(76, 82, 94)` | 7.9:1 | **3.62:1, fails AA** |
+| 0.72 | `rgb(62, 67, 77)` | 9.02:1 | **4.29:1, fails AA** |
+| **0.64, shipped** | `rgb(56, 61, 70)` | **9.91:1** | **4.71:1** |
+
+Star coverage above twice the ground value is 0.43% of pixels. **Raising these gains puts 13px muted
+copy under AA over the brightest stars.** They are a contrast constraint wearing a visual hat and
+they are not a taste knob.
+
+### Nothing loops, and it is instrumented rather than asserted
+
+`requestAnimationFrame` is wrapped in the harness and counted. Idle at rest: **0 calls in 3
+seconds.** Idle and focused: **0 calls in 3 seconds.** A whole park arc: 10 to 21 calls. Idle after
+the arc settles: **0.** The frame function schedules its successor only while an arc is running and
+the exit that leaves nothing scheduled is the one where nothing is moving.
+
+### The rest of the contract, checked
+
+- **Capture never waits on the GPU.** The context is created after first paint, off the idle
+  callback. One context per page.
+- **No WebGL loses nothing.** With `getContext` returning null for `webgl`, park still works, the
+  stack still fills and the console is clean.
+- **Reduced motion runs zero frames for a whole park.** `--tl-duration-confirm` reads 1.2s and
+  `--tl-light-commit-peak` reads 0, so the commit light does not fire: a flash with no travel is a
+  strobe.
+- **The rim, measured from painted pixels:** 3.48:1 against the ground and 3.25:1 against the field
+  at rest, 5.69:1 and 4.92:1 on focus. Both sides clear WCAG 1.4.11 in both states, and focus is
+  visibly brighter in a still.
+
+### The one that will bite again
+
+**A negative `z-index` paints a fixed canvas behind an ancestor's background.** `App` carries
+`bg-ground`, so `-z-10` rendered the entire starfield into a canvas nobody could see: build green,
+instrumentation perfect, screen empty. The canvas is `z-0` and the content above it is `z-10`.
+
+### Spring curves as numbers
+
+`scripts/build-tokens.mjs` now emits `src/motion/springs.generated.ts` alongside the CSS. A canvas
+cannot read a CSS easing, and solving the springs twice is exactly how a DOM arc and a WebGL arc
+drift apart. Same solve, two outputs, and `npm run tokens:check` diffs both.
+
+The generator also learned to put a reduced-motion override on the **semantic** name, not only the
+primitive. Before this, `--tl-ref-motion-duration-confirm` was overridden inside the media query and
+nothing could read it, because components may not read primitives. The override reached nothing.

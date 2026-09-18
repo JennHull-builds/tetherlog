@@ -2,8 +2,11 @@ import {
   useImperativeHandle,
   useLayoutEffect,
   useRef,
+  useState,
   type ChangeEvent,
+  type CSSProperties,
   type KeyboardEventHandler,
+  type ReactNode,
   type RefObject,
 } from "react";
 
@@ -21,12 +24,64 @@ export interface FieldProps {
   disabled?: boolean;
   className?: string;
   inputRef?: RefObject<HTMLInputElement | HTMLTextAreaElement | null>;
+  /** The shell, for measuring the well the lens has to bend space around. */
+  shellRef?: RefObject<HTMLDivElement | null>;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement | HTMLTextAreaElement>;
+  /**
+   * Controls that sit INSIDE the field, on its trailing edge. Phase 4 moved
+   * Mic and Park in here: the direction is one heavy object with space bent
+   * around it, and a button row underneath is a second object competing with
+   * it. See docs/DECISIONS.md D-014.
+   */
+  trailing?: ReactNode;
+  /** Focus drives the lens, so the view needs to know, not just the CSS. */
+  onFocusChange?: (focused: boolean) => void;
+  /**
+   * The luminous rim. OFF by default, and the default is the point.
+   *
+   * The rim is the capture field's mass signature, not a generic input
+   * treatment. Making it the default put an accent ring on the API key field
+   * and the reminder hour, so Settings rested with the one colour per screen
+   * appearing three times. Only the capture field asks for it.
+   */
+  rim?: boolean;
 }
 
-const FIELD_STYLE: React.CSSProperties = {
+/**
+ * The shell carries the whole appearance: ground, rim and radius. The control
+ * inside is transparent and borderless.
+ *
+ * There is exactly one code path here. An earlier draft styled the input
+ * directly when there was no `trailing` and used a shell when there was, and
+ * two paths for one primitive is how a field ends up looking different on two
+ * screens for no reason anybody can find later.
+ */
+const SHELL_STYLE: CSSProperties = {
+  // A COLUMN, always, whether or not there is anything trailing. Controls sit
+  // under the text rather than beside it: at 390px a row leaves about 22
+  // characters visible in the one place a distracted person types, and the
+  // field is also a textarea that grows to three lines.
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "stretch",
+  gap: "var(--tl-space-sm)",
   width: "100%",
   padding: "var(--tl-space-md) var(--tl-space-lg)",
+  // Barely lighter than the ground, per docs/LOOK.md. The lens gives it mass.
+  background: "var(--tl-field)",
+  borderRadius: "var(--tl-radius-field)",
+  borderStyle: "solid",
+  // Set per variant below. NEVER the decorative hairline: this is the edge of
+  // an input and a user has to be able to see it. See CLAUDE.md rule 6.
+  position: "relative",
+};
+
+const CONTROL_STYLE: CSSProperties = {
+  flex: "1 1 auto",
+  minWidth: 0,
+  width: "100%",
+  padding: 0,
+  margin: 0,
   fontFamily: "var(--tl-font-body)",
   // 17px, and NEVER below it. This is the one place a person types while
   // distracted. An inline style beats a utility class, so this line is what
@@ -36,10 +91,8 @@ const FIELD_STYLE: React.CSSProperties = {
   letterSpacing: "var(--tl-tracking-input)",
   lineHeight: "var(--tl-leading-body)",
   color: "var(--tl-ink)",
-  // Barely lighter than the ground, per docs/LOOK.md. Phase 4 gives it mass.
-  background: "var(--tl-field)",
-  border: "var(--tl-border-width) solid var(--tl-rule)",
-  borderRadius: "var(--tl-radius-field)",
+  background: "transparent",
+  border: "none",
   outline: "none",
   // The autosize effect below sets height from scrollHeight, so a scrollbar
   // track can never be needed. Leaving it auto painted a visible sliver down
@@ -61,9 +114,14 @@ export function Field({
   disabled,
   className = "",
   inputRef,
+  shellRef,
   onKeyDown,
+  trailing,
+  onFocusChange,
+  rim = false,
 }: FieldProps) {
   const innerRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+  const [focused, setFocused] = useState(false);
 
   // Hand the caller the live node. useImperativeHandle rather than writing to
   // inputRef.current by hand: mutating a prop's ref during a ref callback is
@@ -84,43 +142,76 @@ export function Field({
     el.style.height = `${Math.min(el.scrollHeight, cap)}px`;
   }, [value, maxLines]);
 
-  if (maxLines > 1) {
-    return (
-      <textarea
-        ref={innerRef as RefObject<HTMLTextAreaElement | null>}
-        value={value}
-        onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
-          onChange(event.target.value)
-        }
-        onKeyDown={onKeyDown}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        enterKeyHint={enterKeyHint}
-        disabled={disabled}
-        rows={1}
-        className={`resize-none text-input leading-relaxed placeholder:text-muted ${className}`}
-        style={FIELD_STYLE}
-      />
-    );
+  function handleFocus() {
+    setFocused(true);
+    onFocusChange?.(true);
   }
 
+  function handleBlur() {
+    setFocused(false);
+    onFocusChange?.(false);
+  }
+
+  const shared = {
+    onKeyDown,
+    onFocus: handleFocus,
+    onBlur: handleBlur,
+    placeholder,
+    autoComplete,
+    enterKeyHint,
+    disabled,
+    style: CONTROL_STYLE,
+    className: `placeholder:text-muted ${className}`,
+  };
+
   return (
-    <input
-      ref={innerRef as RefObject<HTMLInputElement | null>}
-      type={type}
-      value={value}
-      onChange={(event: ChangeEvent<HTMLInputElement>) =>
-        onChange(event.target.value)
-      }
-      onKeyDown={onKeyDown}
-      placeholder={placeholder}
-      autoComplete={autoComplete}
-      enterKeyHint={enterKeyHint}
-      min={min}
-      max={max}
-      disabled={disabled}
-      className={`placeholder:text-muted ${className}`}
-      style={FIELD_STYLE}
-    />
+    <div
+      ref={shellRef}
+      style={{
+        ...SHELL_STYLE,
+        // The rim brightens on focus. Scale is never a focus indicator here,
+        // and neither is the fill: both are carried by this one line plus the
+        // deeper bend in the lens behind it.
+        //
+        // The width is constant within a variant. Thickening a border on focus
+        // moves everything inside it by a pixel, and this field has a caret in
+        // it at the time.
+        borderWidth: rim ? "var(--tl-rim-width)" : "var(--tl-border-width)",
+        borderColor: focused
+          ? "var(--tl-rim-focus)"
+          : rim
+            ? "var(--tl-rim)"
+            : "var(--tl-rule)",
+        background: focused ? "var(--tl-field-focus)" : "var(--tl-field)",
+        transition:
+          "border-color var(--tl-spring-focus-duration) var(--tl-spring-focus-ease), " +
+          "background var(--tl-spring-focus-duration) var(--tl-spring-focus-ease)",
+      }}
+    >
+      {maxLines > 1 ? (
+        <textarea
+          {...shared}
+          ref={innerRef as RefObject<HTMLTextAreaElement | null>}
+          rows={1}
+          value={value}
+          onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+            onChange(event.target.value)
+          }
+        />
+      ) : (
+        <input
+          {...shared}
+          ref={innerRef as RefObject<HTMLInputElement | null>}
+          type={type}
+          min={min}
+          max={max}
+          value={value}
+          onChange={(event: ChangeEvent<HTMLInputElement>) =>
+            onChange(event.target.value)
+          }
+        />
+      )}
+      {trailing}
+    </div>
   );
 }
