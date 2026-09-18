@@ -20,7 +20,7 @@ import {
   shareText,
 } from "../lib/hands";
 import { formatDuration } from "../lib/voice";
-import type { Capture, TriageBucket, TriageSuggestion } from "../types";
+import type { Capture, TriageBucket, TriageSuggestion, Win } from "../types";
 import { BUCKET_LABELS, VOICE_TEXT_PLACEHOLDER, todayKey } from "../types";
 
 interface CaptureAudioProps {
@@ -45,13 +45,21 @@ function CaptureAudio({ blob, durationMs }: CaptureAudioProps) {
   );
 }
 
+// Stable empty defaults. useLiveQuery already returns its third argument while
+// the query is pending, so the old `?? []` was dead, and a fresh [] literal on
+// every render is what made the useMemo dependencies below unstable.
+const NO_CAPTURES: Capture[] = [];
+const NO_WINS: Win[] = [];
+
 export function ReviewView() {
   const dayKey = todayKey();
-  const captures =
-    useLiveQuery(() => getCapturesForDay(dayKey), [dayKey], []) ?? [];
-  const backlog =
-    useLiveQuery(() => getUntriagedCaptures(), [], []) ?? [];
-  const wins = useLiveQuery(() => getWinsForDay(dayKey), [dayKey], []) ?? [];
+  const captures = useLiveQuery(
+    () => getCapturesForDay(dayKey),
+    [dayKey],
+    NO_CAPTURES,
+  );
+  const backlog = useLiveQuery(() => getUntriagedCaptures(), [], NO_CAPTURES);
+  const wins = useLiveQuery(() => getWinsForDay(dayKey), [dayKey], NO_WINS);
   const settings = useLiveQuery(getSettings, [], null);
 
   const [winDraft, setWinDraft] = useState("");
@@ -134,11 +142,14 @@ export function ReviewView() {
     setSuggestions((prev) => prev.filter((item) => item.captureId !== captureId));
   }
 
-  const triagedToday =
-    useLiveQuery(async () => {
+  const triagedToday = useLiveQuery(
+    async () => {
       const all = await getCapturesForDay(dayKey);
       return all.filter((capture) => capture.triagedAt);
-    }, [dayKey], []) ?? [];
+    },
+    [dayKey],
+    NO_CAPTURES,
+  );
 
   const doCaptures = triagedToday.filter((c) => c.bucket === "do");
 

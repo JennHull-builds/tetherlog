@@ -1,9 +1,9 @@
 import {
+  useImperativeHandle,
   useLayoutEffect,
   useRef,
   type ChangeEvent,
   type KeyboardEventHandler,
-  type MutableRefObject,
   type RefObject,
 } from "react";
 
@@ -52,33 +52,22 @@ export function Field({
   inputRef,
   onKeyDown,
 }: FieldProps) {
-  const innerRef = useRef<HTMLTextAreaElement | null>(null);
+  const innerRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
-  function setTextAreaRef(node: HTMLTextAreaElement | null) {
-    innerRef.current = node;
-    if (typeof inputRef === "object" && inputRef) {
-      (
-        inputRef as MutableRefObject<
-          HTMLInputElement | HTMLTextAreaElement | null
-        >
-      ).current = node;
-    }
-  }
-
-  function setInputRef(node: HTMLInputElement | null) {
-    if (typeof inputRef === "object" && inputRef) {
-      (
-        inputRef as MutableRefObject<
-          HTMLInputElement | HTMLTextAreaElement | null
-        >
-      ).current = node;
-    }
-  }
+  // Hand the caller the live node. useImperativeHandle rather than writing to
+  // inputRef.current by hand: mutating a prop's ref during a ref callback is
+  // what the React Compiler rejects, and this is the sanctioned equivalent.
+  // CaptureView only ever calls .focus() on it, and that call is step 2 of the
+  // optimistic park, so it must stay synchronous. See docs/DECISIONS.md D-004.
+  useImperativeHandle<
+    HTMLInputElement | HTMLTextAreaElement | null,
+    HTMLInputElement | HTMLTextAreaElement | null
+  >(inputRef, () => innerRef.current);
 
   useLayoutEffect(() => {
     if (maxLines <= 1) return;
     const el = innerRef.current;
-    if (!el) return;
+    if (!(el instanceof HTMLTextAreaElement)) return;
     el.style.height = "auto";
     const cap = 1.5 * 16 * maxLines + 24;
     el.style.height = `${Math.min(el.scrollHeight, cap)}px`;
@@ -87,7 +76,7 @@ export function Field({
   if (maxLines > 1) {
     return (
       <textarea
-        ref={setTextAreaRef}
+        ref={innerRef as RefObject<HTMLTextAreaElement | null>}
         value={value}
         onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
           onChange(event.target.value)
@@ -106,7 +95,7 @@ export function Field({
 
   return (
     <input
-      ref={setInputRef}
+      ref={innerRef as RefObject<HTMLInputElement | null>}
       type={type}
       value={value}
       onChange={(event: ChangeEvent<HTMLInputElement>) =>

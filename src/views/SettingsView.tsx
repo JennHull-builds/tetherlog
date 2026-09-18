@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Button, Card, Field } from "../components/ui";
 import { exportAllData, getSettings, importAllData, saveSettings } from "../db";
@@ -11,12 +11,17 @@ export function SettingsView() {
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    if (!settings) return;
+  // Settings arrive from Dexie asynchronously and re-emit after every save.
+  // Adjusting state during render is React's documented pattern for syncing
+  // to a changed source; setState inside an effect costs an extra render pass
+  // and is what react-hooks/set-state-in-effect flags.
+  const [syncedFrom, setSyncedFrom] = useState(settings);
+  if (settings && settings !== syncedFrom) {
+    setSyncedFrom(settings);
     setApiKey(settings.geminiApiKey ?? "");
     setReminderHour(settings.reviewReminderHour ?? 20);
     setReminderEnabled(settings.reviewReminderEnabled ?? false);
-  }, [settings]);
+  }
 
   async function handleSave() {
     await saveSettings({
