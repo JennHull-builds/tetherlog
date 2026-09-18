@@ -26,15 +26,26 @@ export interface FieldProps {
 
 const FIELD_STYLE: React.CSSProperties = {
   width: "100%",
-  padding: "var(--nil-spacing-sm) var(--nil-spacing-md)",
-  fontFamily: "var(--nil-font-body)",
-  fontSize: "var(--nil-type-scale-base)",
-  lineHeight: 1.5,
-  color: "var(--nil-color-text)",
-  background: "var(--nil-color-bg)",
-  border: "var(--nil-border-width) solid var(--nil-color-border)",
-  borderRadius: "var(--nil-radius-none)",
+  padding: "var(--tl-space-md) var(--tl-space-lg)",
+  fontFamily: "var(--tl-font-body)",
+  // 17px, and NEVER below it. This is the one place a person types while
+  // distracted. An inline style beats a utility class, so this line is what
+  // actually decides the size: setting text-input on the element does nothing
+  // while this says otherwise. See docs/LOOK.md.
+  fontSize: "var(--tl-text-input)",
+  letterSpacing: "var(--tl-tracking-input)",
+  lineHeight: "var(--tl-leading-body)",
+  color: "var(--tl-ink)",
+  // Barely lighter than the ground, per docs/LOOK.md. Phase 4 gives it mass.
+  background: "var(--tl-field)",
+  border: "var(--tl-border-width) solid var(--tl-rule)",
+  borderRadius: "var(--tl-radius-field)",
   outline: "none",
+  // The autosize effect below sets height from scrollHeight, so a scrollbar
+  // track can never be needed. Leaving it auto painted a visible sliver down
+  // the right edge of the field at 390px.
+  overflow: "hidden",
+  resize: "none",
 };
 
 export function Field({
@@ -87,7 +98,7 @@ export function Field({
         enterKeyHint={enterKeyHint}
         disabled={disabled}
         rows={1}
-        className={`resize-none text-lg leading-relaxed placeholder:text-muted ${className}`}
+        className={`resize-none text-input leading-relaxed placeholder:text-muted ${className}`}
         style={FIELD_STYLE}
       />
     );

@@ -14,7 +14,7 @@ export function formatDoList(captures: Capture[]): string {
 
   return doItems
     .map((item) => {
-      const action = item.suggestedAction ? ` — ${item.suggestedAction}` : "";
+      const action = item.suggestedAction ? `: ${item.suggestedAction}` : "";
       return `- ${item.text}${action}`;
     })
     .join("\n");
@@ -25,7 +25,7 @@ export function formatReviewMarkdown(
   captures: Capture[],
   wins: string[],
 ): string {
-  const lines = [`# Review — ${dayKey}`, ""];
+  const lines = [`# Review ${dayKey}`, ""];
 
   if (wins.length) {
     lines.push("## Wins", "");
@@ -38,7 +38,7 @@ export function formatReviewMarkdown(
   for (const capture of captures) {
     const bucket = capture.bucket ?? "later";
     lines.push(
-      `- **${BUCKET_LABELS[bucket]}** ${capture.text}${capture.reason ? ` — ${capture.reason}` : ""}`,
+      `- **${BUCKET_LABELS[bucket]}** ${capture.text}${capture.reason ? `: ${capture.reason}` : ""}`,
     );
   }
 
@@ -102,5 +102,5 @@ export async function shareText(title: string, text: string): Promise<boolean> {
 
 export function mailtoDoList(captures: Capture[]): void {
   const body = encodeURIComponent(formatDoList(captures));
-  window.location.href = `mailto:?subject=${encodeURIComponent("TetherLog — do list")}&body=${body}`;
+  window.location.href = `mailto:?subject=${encodeURIComponent("TetherLog do list")}&body=${body}`;
 }

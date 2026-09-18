@@ -12,7 +12,7 @@ export default function App() {
   return (
     <div
       data-theme="light"
-      className="mx-auto flex min-h-dvh max-w-lg flex-col bg-paper text-ink"
+      className="mx-auto flex min-h-dvh max-w-lg flex-col bg-ground text-ink"
     >
       <main className="flex-1">
         {screen === "capture" && (

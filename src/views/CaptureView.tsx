@@ -205,8 +205,8 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     >
       <div className="flex flex-col gap-10">
         <header className="space-y-2">
-          <h1 className="text-2xl font-medium text-ink">What's pulling you?</h1>
-          <p className="text-sm text-muted">Park it. Go back. No thinking here.</p>
+          <h1 className="text-display font-light tracking-display text-ink">What's pulling you?</h1>
+          <p className="text-small text-muted">Park it. Sort it tonight.</p>
         </header>
 
         <form
@@ -252,7 +252,7 @@ export function CaptureView({ onParked }: CaptureViewProps) {
           {recording ? (
             <div className="flex flex-col gap-3">
               <p
-                className="text-center text-sm text-ink"
+                className="text-center text-body text-ink"
                 aria-live="polite"
               >
                 Recording {formatDuration(elapsedMs)}
@@ -281,7 +281,7 @@ export function CaptureView({ onParked }: CaptureViewProps) {
                   Mic
                 </Button>
               ) : (
-                <p className="text-center text-sm text-muted">
+                <p className="text-center text-body text-muted">
                   Mic needs HTTPS (Vercel preview or localhost).
                 </p>
               )}
@@ -289,7 +289,7 @@ export function CaptureView({ onParked }: CaptureViewProps) {
           )}
 
           {voiceError && (
-            <p className="text-center text-sm text-ink" role="alert">
+            <p className="text-center text-body text-ink" role="alert">
               {voiceError}
             </p>
           )}
@@ -303,11 +303,11 @@ export function CaptureView({ onParked }: CaptureViewProps) {
 
         <div className="flex flex-col gap-6 pt-2">
           <p
-            className="h-5 text-center text-sm text-mark"
+            className="h-5 text-center text-body text-mark"
             aria-live="polite"
             aria-atomic="true"
           >
-            {status === "logged" ? "Logged." : ""}
+            {status === "logged" ? "Parked." : ""}
           </p>
         </div>
       </div>

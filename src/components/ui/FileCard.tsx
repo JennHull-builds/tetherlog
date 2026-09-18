@@ -16,7 +16,7 @@ const TONE_BAR: Record<FileTone, string> = {
   wonder: "var(--color-tag-wonder)",
   do: "var(--color-do)",
   drop: "var(--color-drop)",
-  neutral: "var(--nil-color-border)",
+  neutral: "var(--tl-rule)",
 };
 
 /**
@@ -35,13 +35,13 @@ export function FileCard({
   const barColor = TONE_BAR[tone];
   const shellStyle: CSSProperties = {
     position: "relative",
-    background: "var(--nil-color-surface)",
-    border: "var(--nil-border-width) solid var(--nil-color-border)",
-    borderRadius: "var(--nil-radius-none)",
-    padding: peek ? (compact ? "var(--nil-spacing-sm)" : "var(--nil-spacing-md)") : "var(--nil-spacing-md)",
-    paddingLeft: "calc(var(--nil-spacing-md) + 6px)",
+    background: "var(--tl-raised)",
+    border: "var(--tl-border-width) solid var(--tl-rule)",
+    borderRadius: "var(--tl-radius)",
+    padding: peek ? (compact ? "var(--tl-space-sm)" : "var(--tl-space-md)") : "var(--tl-space-md)",
+    paddingLeft: "calc(var(--tl-space-md) + 6px)",
     minHeight: peek ? (compact ? "2.25rem" : "4rem") : undefined,
-    boxShadow: peek ? "3px 3px 0 var(--nil-color-border)" : undefined,
+    boxShadow: peek ? "3px 3px 0 var(--tl-rule)" : undefined,
     ...style,
   };
 
@@ -64,8 +64,8 @@ export function FileCard({
           position: "absolute",
           left: "6px",
           top: 0,
-          fontFamily: "var(--nil-font-mono)",
-          fontSize: "var(--nil-type-scale-xs)",
+          fontFamily: "var(--tl-font-mono)",
+          fontSize: "var(--tl-text-small)",
           color: barColor,
           lineHeight: 1,
           padding: "2px 4px",

@@ -4,8 +4,12 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#f5f0eb" />
+    <meta name="theme-color" content="#08090c" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- Preload both faces. font-display:swap means text is never invisible,
+         and preloading stops the swap being visible on a cold load. -->
+    <link rel="preload" href="/fonts/Geist-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/GeistMono-latin.woff2" as="font" type="font/woff2" crossorigin />
     <title>TetherLog</title>
   </head>
   <body>

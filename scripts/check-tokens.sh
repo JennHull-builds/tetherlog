@@ -67,7 +67,7 @@ if [ -n "$prim" ]; then
 fi
 
 # ── 4. the reset that ate the layout ───────────────────────────────────────
-# See docs/UI-OVERHAUL.md 1.12. An unlayered universal reset outranks every
+# See docs/DECISIONS.md D-005. An unlayered universal reset outranks every
 # Tailwind utility and silently zeroes all padding and margin in the app.
 reset=$(grep -rn -E '^\s*\*\s*,|^\s*\*\s*\{' src --include='*.css' 2>/dev/null \
         | grep -v "^$GENERATED:" || true)

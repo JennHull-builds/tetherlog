@@ -371,7 +371,24 @@ Phases 1 and 2 are done. Their evidence is in the commits and summarised in `doc
 
 ---
 
-**Phase 3: the ground, the type and the chrome**
+**Phase 3: the ground, the type and the chrome** BUILT 2026-09-18, AWAITING REVIEW
+
+> **Built, not done.** A phase is done when someone has looked at it. Screenshots were taken at
+> 390px and 1280px on all four screens and the mechanical criteria below were checked in a browser.
+> When the review passes, this whole section is deleted and replaced by a decision entry in
+> `docs/DECISIONS.md`, per D-009.
+>
+> **Evidence.** Fonts 45.1 KB transfer on a cold load, zero requests to `fonts.googleapis.com`.
+> Only the five type steps appear on any screen. Weights 300, 400 and 500 only, no 600. Mono is on
+> the navigation alone. **Zero AA failures on all four screens**, measured per element against its
+> own computed background. `theme-color`, `theme_color`, the favicon ground and `--tl-ground` are
+> all `#08090c`. JS 106.74 KB, CSS 4.82 KB gzipped.
+>
+> **Five bugs were found by rendering it, none of which broke the build:** a selected chip put
+> near-white ink on a light bucket fill at 1.52:1; the capture field rendered at 15px because an
+> inline style beat the utility class; the field showed a scrollbar sliver at 390px; `bg-paper` was
+> a dead class in `App.tsx` and `NavBar.tsx` after the theme rename; and the favicon was invalid
+> XML because an SVG comment cannot contain a double hyphen and it said `--tl-ground`.
 
 *Files:* `src/tokens/tokens.json`, `src/index.css`, `index.html`,
 `public/manifest.webmanifest`, `public/favicon.svg`, `public/fonts/*`, the four views for copy
@@ -414,7 +431,11 @@ palette follows from it.
 - The confirm word is **"Parked."**, not "Logged." `PRODUCT.md` has always specified this and the
   shipped app followed the deleted `DESIGN.md`.
 - Headline "What's pulling you?", sub-line "Park it. Sort it tonight.", placeholder "One line is
-  enough", count in the form "3 parked today".
+  enough".
+- **The parked count is NOT in this phase.** `docs/LOOK.md`'s copy table specifies "3 parked
+  today", but no count exists: `onParked` is a no-op. Adding one means a new live query inside the
+  capture path, which is a feature rather than a retypeset, so it belongs to Phase 4 where Capture
+  is rebuilt. Until it lands, mono appears in one place, the navigation, not two.
 - **Zero em dashes in shipped UI copy.** `grep -rn '—' src/` returns only code comments. There are
   16 in user-visible strings today, across `agent.ts` triage reasons, `ReviewView`, `SettingsView`,
   `PatternsView` and `hands.ts`. The `hands.ts` ones leave the app in the markdown export, the do

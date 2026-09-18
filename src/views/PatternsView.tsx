@@ -34,8 +34,8 @@ export function PatternsView() {
   return (
     <section className="space-y-6 px-4 py-8">
       <div>
-        <p className="text-sm text-muted">Patterns</p>
-        <h1 className="mt-1 text-2xl font-medium text-ink">What keeps showing up</h1>
+        <p className="text-body text-muted">Patterns</p>
+        <h1 className="mt-1 text-display font-light tracking-display text-ink">What keeps showing up</h1>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -51,7 +51,7 @@ export function PatternsView() {
           {stats.heatmap.map((count, hour) => (
             <div
               key={hour}
-              title={`${hour}:00 — ${count}`}
+              title={`${hour}:00, ${count}`}
               className="flex-1 rounded-none bg-mark"
               style={{ height: `${(count / maxHeat) * 100}%`, opacity: count ? 1 : 0.15 }}
             />
@@ -62,7 +62,7 @@ export function PatternsView() {
       {stats.topRepeats.length > 0 && (
         <Card>
           <h2 className="font-medium text-ink">Repeats</h2>
-          <ul className="mt-3 space-y-2 text-sm text-ink">
+          <ul className="mt-3 space-y-2 text-body text-ink">
             {stats.topRepeats.map((item) => (
               <li key={item.text}>
                 {item.text} <span className="text-muted">×{item.count}</span>
@@ -84,11 +84,11 @@ export function PatternsView() {
           </Button>
         </div>
         {!settings?.geminiApiKey && (
-          <p className="mt-2 text-sm text-muted">
+          <p className="mt-2 text-body text-muted">
             Add Gemini key in Settings for narrative digest. Stats above always work.
           </p>
         )}
-        {digest && <p className="mt-4 text-sm leading-relaxed text-ink">{digest}</p>}
+        {digest && <p className="mt-4 text-body leading-relaxed text-ink">{digest}</p>}
         <div className="mt-4 flex flex-wrap gap-2">
           <Button variant="ghost" className="py-2" onClick={() => void copyText(digestMarkdown)}>
             Copy digest
@@ -118,8 +118,8 @@ export function PatternsView() {
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <Card>
-      <p className="text-sm text-muted">{label}</p>
-      <p className="mt-1 text-2xl font-medium text-ink">{value}</p>
+      <p className="text-body text-muted">{label}</p>
+      <p className="mt-1 text-display font-light tracking-display text-ink">{value}</p>
     </Card>
   );
 }

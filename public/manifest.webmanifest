@@ -1,11 +1,11 @@
 {
   "name": "TetherLog",
   "short_name": "TetherLog",
-  "description": "Park it. Review later. See the pattern.",
+  "description": "Park it. Sort it tonight.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f5f0eb",
-  "theme_color": "#f5f0eb",
+  "background_color": "#08090c",
+  "theme_color": "#08090c",
   "icons": [
     {
       "src": "/favicon.svg",

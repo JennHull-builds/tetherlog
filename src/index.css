@@ -19,6 +19,35 @@
 @source not "../.github/**";
 
 /*
+ * ── @font-face ────────────────────────────────────────────────────────────
+ * Self-hosted, never fonts.googleapis.com: a CDN link sends the user's IP to
+ * Google on every load and contradicts the privacy promise in Settings.
+ *
+ * NAMING A FONT DOES NOT LOAD IT. NIL named 'IBM Plex Sans' for months with no
+ * @font-face anywhere and every screen quietly rendered in system-ui, because
+ * the fallback was plausible. These two blocks are what make the token real.
+ * If a headline is not visibly Geist, look here first. See CLAUDE.md.
+ *
+ * Both are variable wght faces, latin subset, 45.5 KB for the pair.
+ * swap: text is readable in the fallback immediately and never invisible.
+ */
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/Geist-latin.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/GeistMono-latin.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
  * ── @theme ────────────────────────────────────────────────────────────────
  * The one sanctioned place a --tl-ref-* name appears outside the generated
  * file: Tailwind's --font-*, --text-* and --spacing namespaces need a value
@@ -30,13 +59,22 @@
  * gives you two scales at once. See CLAUDE.md.
  */
 @theme {
-  --color-paper: var(--tl-ground);
+  --color-ground: var(--tl-ground);
   --color-raised: var(--tl-raised);
-  --color-line: var(--tl-rule);
+  --color-field: var(--tl-field);
+  --color-field-focus: var(--tl-field-focus);
+
   --color-ink: var(--tl-ink);
   --color-muted: var(--tl-ink-muted);
+  --color-faint: var(--tl-ink-faint);
+
+  --color-line: var(--tl-rule);
+  --color-hairline: var(--tl-hairline);
+
   --color-mark: var(--tl-mark);
+  --color-mark-high: var(--tl-mark-high);
   --color-mark-text: var(--tl-on-mark);
+  --color-danger: var(--tl-danger);
 
   --color-tag-now: var(--tl-bucket-now);
   --color-tag-later: var(--tl-bucket-later);
@@ -47,9 +85,24 @@
   --font-sans: var(--tl-ref-type-font-body);
   --font-mono: var(--tl-ref-type-font-mono);
 
+  /* FIVE STEPS, and nothing on a screen may use a size outside them. */
+  --text-micro: var(--tl-text-micro);
+  --text-small: var(--tl-text-small);
+  --text-body: var(--tl-text-body);
+  --text-input: var(--tl-text-input);
+  --text-display: var(--tl-text-display);
+
+  --tracking-display: var(--tl-tracking-display);
+  --tracking-input: var(--tl-tracking-input);
+  --tracking-micro: var(--tl-tracking-micro);
+
   --spacing: var(--tl-ref-space-base);
 
-  --radius-none: var(--tl-radius);
+  --radius-sm: var(--tl-radius-sm);
+  --radius-md: var(--tl-radius);
+  --radius-lg: var(--tl-radius-lg);
+  --radius-field: var(--tl-radius-field);
+  --radius-full: var(--tl-radius-full);
 
   --ease-focus: var(--tl-spring-focus-ease);
   --ease-commit: var(--tl-spring-commit-ease);
@@ -61,47 +114,12 @@
 }
 
 /*
- * ── Interim --nil-* aliases ───────────────────────────────────────────────
- * The five UI primitives and NavBar still read --nil-* through inline styles.
- * Rather than rewrite eight components in the same step that introduces the
- * token pipeline, the old names are aliased onto the new semantic layer, so
- * this phase changes where values come from and not what they are.
- *
- * DELETE THIS BLOCK IN PHASE 5, one alias at a time as its last reader goes.
- * When it is empty, remove the --nil-* rule from eslint.config.js too.
+ * The interim --nil-* alias block lived here from Phase 1 until Phase 3.
+ * It is gone: every component now reads a --tl-<role> semantic directly.
+ * Phase 3 had to touch all of them anyway, and leaving an alias called
+ * --nil-radius-none pointing at a generous 16px radius would have been
+ * exactly the kind of lying name this repo keeps paying for.
  */
-:root {
-  --nil-color-bg: var(--tl-ground);
-  --nil-color-surface: var(--tl-raised);
-  --nil-color-text: var(--tl-ink);
-  --nil-color-text-muted: var(--tl-ink-muted);
-  --nil-color-border: var(--tl-rule);
-  --nil-color-accent: var(--tl-mark);
-  --nil-color-accent-contrast: var(--tl-on-mark);
-  --nil-color-danger: var(--tl-danger);
-
-  --nil-spacing-xs: var(--tl-space-xs);
-  --nil-spacing-sm: var(--tl-space-sm);
-  --nil-spacing-md: var(--tl-space-md);
-  --nil-spacing-lg: var(--tl-space-lg);
-
-  --nil-radius-none: var(--tl-radius);
-  --nil-border-width: var(--tl-border-width);
-
-  --nil-font-body: var(--tl-font-body);
-  --nil-font-mono: var(--tl-font-mono);
-  --nil-type-scale-xs: var(--tl-text-xs);
-  --nil-type-scale-base: var(--tl-text-base);
-
-  --nil-motion-duration-base: 200ms;
-  --nil-motion-easing-standard: var(--tl-ref-motion-easing-standard);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --nil-motion-duration-base: var(--tl-ref-motion-duration-instant);
-  }
-}
 
 @keyframes file-into-stack {
   0% {
@@ -136,8 +154,8 @@ body {
   background-color: var(--tl-ground);
   color: var(--tl-ink);
   font-family: var(--tl-font-body);
-  font-size: var(--tl-text-base);
-  line-height: 1.5;
+  font-size: var(--tl-text-body);
+  line-height: var(--tl-leading-body);
   min-height: 100svh;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -146,7 +164,10 @@ body {
 }
 
 html {
-  color-scheme: light;
+  /* Dark, decided 2026-09-18. See docs/DECISIONS.md D-011. This also tells the
+     browser to paint form controls, scrollbars and the overscroll area dark. */
+  color-scheme: dark;
+  background-color: var(--tl-ground);
 }
 
 #root {

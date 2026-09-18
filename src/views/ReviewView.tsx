@@ -39,7 +39,7 @@ function CaptureAudio({ blob, durationMs }: CaptureAudioProps) {
     <div className="mt-3 space-y-1">
       <audio controls src={url} preload="metadata" className="w-full" />
       {typeof durationMs === "number" && durationMs > 0 && (
-        <p className="text-xs text-muted">{formatDuration(durationMs)}</p>
+        <p className="text-micro text-muted">{formatDuration(durationMs)}</p>
       )}
     </div>
   );
@@ -113,8 +113,8 @@ export function ReviewView() {
     } catch (err) {
       setError(
         err instanceof Error
-          ? `${err.message} — fell back to rule triage.`
-          : "AI triage failed — fell back to rule triage.",
+          ? `${err.message} Fell back to rule triage.`
+          : "AI triage failed. Fell back to rule triage.",
       );
       setSuggestions(ruleBasedTriage(queue).items);
       setUsedAi(false);
@@ -179,16 +179,16 @@ export function ReviewView() {
   return (
     <section className="space-y-6 px-4 py-8 print:block">
       <div>
-        <p className="text-sm text-muted">Review</p>
-        <h1 className="mt-1 text-2xl font-medium text-ink">Evening review</h1>
-        <p className="mt-2 text-sm text-muted">
-          Agent runs here — not at capture.
+        <p className="text-body text-muted">Review</p>
+        <h1 className="mt-1 text-display font-light tracking-display text-ink">Evening review</h1>
+        <p className="mt-2 text-body text-muted">
+          Agent runs here, not at capture.
         </p>
       </div>
 
       <Card>
         <h2 className="font-medium text-ink">Wins</h2>
-        <p className="mt-1 text-sm text-muted">What moved today?</p>
+        <p className="mt-1 text-body text-muted">What moved today?</p>
         <div className="mt-3 flex gap-2">
           <div className="min-w-0 flex-1">
             <Field
@@ -202,7 +202,7 @@ export function ReviewView() {
           </Button>
         </div>
         {wins.length > 0 && (
-          <ul className="mt-3 space-y-1 text-sm text-ink">
+          <ul className="mt-3 space-y-1 text-body text-ink">
             {wins.map((win) => (
               <li key={win.id}>• {win.text}</li>
             ))}
@@ -232,7 +232,7 @@ export function ReviewView() {
           </Button>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-ink">
+        <label className="flex items-center gap-2 text-body text-ink">
           <input
             type="checkbox"
             checked={includeBacklog}
@@ -245,15 +245,15 @@ export function ReviewView() {
         </label>
 
         {!settings?.geminiApiKey && (
-          <p className="text-sm text-muted">
-            No API key — using rule-based triage. Add your Gemini key in Settings
+          <p className="text-body text-muted">
+            No API key, so using rule-based triage. Add your Gemini key in Settings
             for AI. Capture and review still work without it.
           </p>
         )}
 
-        {error && <p className="text-sm text-ink">{error}</p>}
+        {error && <p className="text-body text-ink">{error}</p>}
         {usedAi && !error && suggestions.length > 0 && (
-          <p className="text-sm text-muted">Suggestions from your Gemini key (on this device).</p>
+          <p className="text-body text-muted">Suggestions from your Gemini key (on this device).</p>
         )}
 
         {suggestions.map((suggestion) => {
@@ -265,7 +265,7 @@ export function ReviewView() {
               <p className="font-medium text-ink">{capture.text}</p>
               {capture.audioBlob &&
                 capture.text === VOICE_TEXT_PLACEHOLDER && (
-                  <p className="mt-1 text-sm text-muted">No transcript yet</p>
+                  <p className="mt-1 text-body text-muted">No transcript yet</p>
                 )}
               {capture.audioBlob && (
                 <CaptureAudio
@@ -273,12 +273,12 @@ export function ReviewView() {
                   durationMs={capture.durationMs}
                 />
               )}
-              <p className="mt-2 text-sm text-muted">{suggestion.reason}</p>
+              <p className="mt-2 text-body text-muted">{suggestion.reason}</p>
               {suggestion.suggestedAction && (
-                <p className="mt-1 text-sm text-muted">{suggestion.suggestedAction}</p>
+                <p className="mt-1 text-body text-muted">{suggestion.suggestedAction}</p>
               )}
               {suggestion.carryForward && (
-                <p className="mt-1 text-sm text-do">Carry forward (max one)</p>
+                <p className="mt-1 text-body text-do">Carry forward (max one)</p>
               )}
               <div className="mt-3 flex flex-wrap gap-2">
                 <Chip
@@ -308,18 +308,18 @@ export function ReviewView() {
       {triagedToday.length > 0 && (
         <Card>
           <h2 className="font-medium text-ink">Review summary</h2>
-          <p className="mt-3 flex flex-wrap gap-3 text-sm text-ink">
+          <p className="mt-3 flex flex-wrap gap-3 text-body text-ink">
             <span>Do {summaryCounts.do}</span>
             <span>Later {summaryCounts.later}</span>
             <span>Drop {summaryCounts.drop}</span>
             <span>Wonder {summaryCounts.wonder}</span>
           </p>
           {carryForward ? (
-            <p className="mt-3 text-sm text-ink">
+            <p className="mt-3 text-body text-ink">
               Carry forward: {carryForward.text}
             </p>
           ) : (
-            <p className="mt-3 text-sm text-muted">No carry-forward chosen tonight.</p>
+            <p className="mt-3 text-body text-muted">No carry-forward chosen tonight.</p>
           )}
           {carryForward?.audioBlob && (
             <CaptureAudio
@@ -333,8 +333,8 @@ export function ReviewView() {
       {triagedToday.length > 0 && (
         <Card className="no-print">
           <h2 className="font-medium text-ink">Hands</h2>
-          <p className="mt-1 text-sm text-muted">
-            Export your do items — no paid integrations.
+          <p className="mt-1 text-body text-muted">
+            Export your do items. No paid integrations.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button variant="ghost" className="py-2" onClick={() => void copyDoList()}>
@@ -383,7 +383,7 @@ export function ReviewView() {
             </Button>
           </div>
           {doCaptures.length > 0 && (
-            <ul className="mt-4 space-y-1 text-sm text-ink">
+            <ul className="mt-4 space-y-1 text-body text-ink">
               {doCaptures.map((item) => (
                 <li key={item.id}>• {item.text}</li>
               ))}

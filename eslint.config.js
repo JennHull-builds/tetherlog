@@ -54,14 +54,16 @@ export default defineConfig([
           message:
             "Primitive token in a template literal. Use a semantic role.",
         },
-        // PHASE 5 adds:
-        //   { selector: "Literal[value=/--nil-/]",
-        //     message: "NIL DS is removed. Use var(--tl-<role>)." }
-        // It cannot be enabled yet: the five primitives and NavBar still read
-        // --nil-* through inline styles, aliased onto the token layer in
-        // src/index.css. Turning it on now fails lint on 56 intentional,
-        // documented interim references. Enable it in the same commit that
-        // deletes the alias block.
+        // Enabled in Phase 3, in the same change that deleted the alias
+        // block from src/index.css. Nothing reads --nil-* any more.
+        {
+          selector: "Literal[value=/--nil-/]",
+          message: "NIL DS is removed. Use var(--tl-<role>). See CLAUDE.md.",
+        },
+        {
+          selector: "TemplateElement[value.raw=/--nil-/]",
+          message: "NIL DS is removed. Use var(--tl-<role>). See CLAUDE.md.",
+        },
       ],
     },
   },

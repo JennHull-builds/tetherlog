@@ -108,23 +108,23 @@ export function ruleBasedTriage(captures: Capture[]): ReviewBatch {
   const items: TriageSuggestion[] = captures.map((capture) => {
     const repeats = getRepeatCount(capture.text, allCaptures);
     let bucket: TriageSuggestion["bucket"] = "later";
-    let reason = "Parked for later — review when you have space.";
+    let reason = "Parked for later. Review when you have space.";
     let suggestedAction: string | undefined;
     let carryForward = false;
 
     if (capture.tag === "now") {
       bucket = "do";
-      reason = "You tagged this now — worth a small action if you can.";
+      reason = "You tagged this now, so a small action may help.";
       suggestedAction = "15-minute block";
     } else if (capture.tag === "?") {
       bucket = "wonder";
-      reason = "A question, not a task — no action needed tonight.";
+      reason = "A question, not a task. No action needed tonight.";
     } else if (capture.tag === "later") {
       bucket = "later";
-      reason = "You tagged this later — leave it until you have space.";
+      reason = "You tagged this later. Leave it until you have space.";
     } else if (repeats >= 3) {
       bucket = "drop";
-      reason = `You've parked this ${repeats} times — maybe it isn't homework.`;
+      reason = `You've parked this ${repeats} times, so maybe it isn't homework.`;
     }
 
     if (bucket === "do" && !carryUsed) {

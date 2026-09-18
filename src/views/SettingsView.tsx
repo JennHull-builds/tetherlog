@@ -61,15 +61,15 @@ export function SettingsView() {
   return (
     <section className="space-y-6 px-4 py-8">
       <div>
-        <p className="text-sm text-muted">Settings</p>
-        <h1 className="mt-1 text-2xl font-medium text-ink">Your device only</h1>
+        <p className="text-body text-muted">Settings</p>
+        <h1 className="mt-1 text-display font-light tracking-display text-ink">Your device only</h1>
       </div>
 
       <Card className="space-y-3">
         <h2 className="font-medium text-ink">Gemini API key (BYOK)</h2>
-        <p className="text-sm text-muted">
+        <p className="text-body text-muted">
           Your key stays on this device. We never see it. Without a key, capture,
-          patterns, and rule-based review still work — AI triage and digest stay off.
+          patterns, and rule-based review still work. AI triage and digest stay off.
         </p>
         <Field
           type="password"
@@ -81,7 +81,7 @@ export function SettingsView() {
 
       <Card className="space-y-3">
         <h2 className="font-medium text-ink">Evening review reminder</h2>
-        <label className="flex items-center gap-2 text-sm text-ink">
+        <label className="flex items-center gap-2 text-body text-ink">
           <input
             type="checkbox"
             checked={reminderEnabled}
@@ -99,7 +99,7 @@ export function SettingsView() {
               onChange={(value) => setReminderHour(Number(value))}
             />
           </div>
-          <span className="text-sm text-muted">Hour (0–23)</span>
+          <span className="text-body text-muted">Hour (0–23)</span>
         </div>
       </Card>
 
@@ -110,8 +110,8 @@ export function SettingsView() {
             Export JSON
           </Button>
           <label
-            className="cursor-pointer border-2 border-line bg-raised px-4 py-2 text-sm font-medium text-ink"
-            style={{ borderRadius: "var(--nil-radius-none)" }}
+            className="cursor-pointer border-2 border-line bg-raised px-4 py-2 text-body font-medium text-ink"
+            style={{ borderRadius: "var(--tl-radius)" }}
           >
             Import JSON
             <input type="file" accept="application/json" className="hidden" onChange={handleImport} />
@@ -124,7 +124,7 @@ export function SettingsView() {
       </Button>
 
       {saved && (
-        <p className="text-center text-sm text-mark" aria-live="polite">
+        <p className="text-center text-body text-mark" aria-live="polite">
           Saved.
         </p>
       )}

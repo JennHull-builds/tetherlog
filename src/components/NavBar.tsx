@@ -16,7 +16,7 @@ export function NavBar({ screen, onNavigate }: NavBarProps) {
   return (
     <nav
       className="no-print sticky bottom-0 border-t-2 border-line bg-raised"
-      style={{ borderTopWidth: "var(--nil-border-width)" }}
+      style={{ borderTopWidth: "var(--tl-border-width)" }}
     >
       <div className="mx-auto grid max-w-lg grid-cols-4 gap-1 px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {NAV.map((item) => (
@@ -24,17 +24,17 @@ export function NavBar({ screen, onNavigate }: NavBarProps) {
             key={item.id}
             type="button"
             onClick={() => onNavigate(item.id)}
-            className={`px-2 py-2 text-xs sm:text-sm ${
+            className={`px-2 py-2 font-mono text-micro tracking-micro ${
               screen === item.id
-                ? "bg-paper font-medium text-ink"
+                ? "bg-field font-medium text-ink"
                 : "text-muted"
             }`}
             style={{
-              borderRadius: "var(--nil-radius-none)",
+              borderRadius: "var(--tl-radius)",
               border:
                 screen === item.id
-                  ? "var(--nil-border-width) solid var(--nil-color-border)"
-                  : "var(--nil-border-width) solid transparent",
+                  ? "var(--tl-border-width) solid var(--tl-rule)"
+                  : "var(--tl-border-width) solid transparent",
             }}
           >
             {item.label}

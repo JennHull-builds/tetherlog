@@ -10,19 +10,19 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, CSSProperties> = {
   primary: {
-    background: "var(--nil-color-accent)",
-    color: "var(--nil-color-accent-contrast)",
-    border: "var(--nil-border-width) solid transparent",
+    background: "var(--tl-mark)",
+    color: "var(--tl-on-mark)",
+    border: "var(--tl-border-width) solid transparent",
   },
   ghost: {
     background: "transparent",
-    color: "var(--nil-color-text)",
-    border: "var(--nil-border-width) solid var(--nil-color-border)",
+    color: "var(--tl-ink)",
+    border: "var(--tl-border-width) solid var(--tl-rule)",
   },
   danger: {
     background: "transparent",
-    color: "var(--nil-color-danger)",
-    border: "var(--nil-border-width) solid var(--nil-color-danger)",
+    color: "var(--tl-danger)",
+    border: "var(--tl-border-width) solid var(--tl-danger)",
   },
 };
 
@@ -43,25 +43,26 @@ export function Button({
       disabled={disabled}
       className={["nil-btn", className].filter(Boolean).join(" ")}
       style={{
-        fontFamily: "var(--nil-font-body)",
-        fontWeight: 600,
-        borderRadius: "var(--nil-radius-none)",
+        fontFamily: "var(--tl-font-body)",
+        // 500. The scale is 300/400/500; 600 was off it.
+        fontWeight: 500,
+        borderRadius: "var(--tl-radius)",
         cursor: disabled ? "not-allowed" : "pointer",
         padding: fullWidth
-          ? "var(--nil-spacing-md) var(--nil-spacing-lg)"
-          : "var(--nil-spacing-sm) var(--nil-spacing-lg)",
+          ? "var(--tl-space-md) var(--tl-space-lg)"
+          : "var(--tl-space-sm) var(--tl-space-lg)",
         fontSize: fullWidth
-          ? "var(--nil-type-scale-base)"
-          : "var(--nil-type-scale-base)",
+          ? "var(--tl-text-body)"
+          : "var(--tl-text-body)",
         width: fullWidth ? "100%" : undefined,
-        transition: `background var(--nil-motion-duration-base) var(--nil-motion-easing-standard)`,
+        transition: `background var(--tl-spring-dismiss-duration) var(--tl-ease-standard)`,
         ...variantStyles[variant],
         ...(disabled
           ? {
               opacity: 0.55,
-              background: "var(--nil-color-surface)",
-              color: "var(--nil-color-text-muted)",
-              border: "var(--nil-border-width) solid var(--nil-color-border)",
+              background: "var(--tl-raised)",
+              color: "var(--tl-ink-muted)",
+              border: "var(--tl-border-width) solid var(--tl-rule)",
             }
           : null),
         ...style,

@@ -10,7 +10,7 @@
  * within 0.025 absolute across the whole curve. Taking the dependency would
  * mean ~756 KB in node_modules to produce four strings at build time, and
  * motion's generateLinearEasing is not headline API, so a minor release could
- * move it. See docs/UI-OVERHAUL.md section 4.4.
+ * move it. See docs/DECISIONS.md D-003.
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";

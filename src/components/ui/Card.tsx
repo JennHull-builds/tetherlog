@@ -7,10 +7,10 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 /** NIL DS Card — token-only, inlined to avoid cross-repo React type skew. */
 export function Card({ children, className = "", style, ...rest }: CardProps) {
   const shell: CSSProperties = {
-    backgroundColor: "var(--nil-color-surface)",
-    border: "var(--nil-border-width) solid var(--nil-color-border)",
-    borderRadius: "var(--nil-radius-none)",
-    padding: "var(--nil-spacing-md)",
+    backgroundColor: "var(--tl-raised)",
+    border: "var(--tl-border-width) solid var(--tl-rule)",
+    borderRadius: "var(--tl-radius)",
+    padding: "var(--tl-space-md)",
     ...style,
   };
 
