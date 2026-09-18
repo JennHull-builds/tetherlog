@@ -28,7 +28,7 @@ as unused; Phase 4 in `docs/BUILD-SPEC.md` rebuilds it under the chosen directio
 
 **Voice — NEXT.** PRODUCT.md locks voice + transcript as fundamental, writing lane second, Android-first PWA third. Phase 7A (this plan) is done. Build [7B — Voice MVP](#7b--voice-mvp-slice-1) next. Do not wait for full UI polish.
 
-**Do not:** salvage Clearpath UI. Do not borrow Mothership lime. Do not install shadcn — four screens need 5 primitives, not a kit.
+**Do not:** salvage UI from another project, and do not borrow another project's lime accent. Do not install shadcn: four screens need 5 primitives, not a kit.
 
 ---
 
