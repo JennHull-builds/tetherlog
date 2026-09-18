@@ -88,6 +88,10 @@ has the originals. Any instruction referencing either file is out of date.
    reduced-motion counterpart in the same token entry. The generator throws if one is missing. The
    ND user base makes this correctness, not courtesy.
 
+**Copy is not part of the UI overhaul.** It is worked separately, and Phases 4 to 6 must not change
+UI strings. 16 strings shipped in `9df1da0` before that was settled; `docs/DECISIONS.md` D-013
+lists them. Anything the copy work decides supersedes them.
+
 Tone: warm, literal, spare.
 
 **Em dashes: zero in any heading, at most one per document in prose.** Use a colon, a full stop or a

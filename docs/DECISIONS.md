@@ -375,3 +375,54 @@ touches the lockfile.
 
 **106.76 KB of 130.** Combined with holding React at 19.2.8 (D-010), roughly 23 KB of headroom
 going into Phase 4, which spends about 4 KB on the shader.
+
+## D-013: Copy leaves the overhaul phases, and the phase sequence was wrong
+
+**2026-09-18. Closed as a process decision; the sequencing consequence is live.**
+
+### Copy is not owned by the UI overhaul any more
+
+Copy is being worked separately and this repo's phase plan must not touch it again. Phase 3's
+acceptance criteria included a copy pass; that was removed.
+
+**16 strings were already changed and pushed in `9df1da0` before this decision.** They are listed
+here so the copy work inherits them rather than colliding with them:
+
+| Where | Change |
+|---|---|
+| `CaptureView` confirm | "Logged." became **"Parked."**, which `PRODUCT.md` always specified |
+| `CaptureView` sub-line | "Park it. Go back. No thinking here." became "Park it. Sort it tonight." |
+| `agent.ts` | 5 triage reason strings, em dashes removed |
+| `hands.ts` | 4 strings, including the markdown export heading and the mailto subject |
+| `ReviewView` | 5 strings |
+| `SettingsView`, `PatternsView` | 1 each |
+
+Most were corrections rather than choices: `PRODUCT.md` compliance and the em dash rule. **They are
+not a copy direction and should not be treated as one.** Anything the copy work decides supersedes
+them.
+
+### The sequence was wrong, and it is worth saying why
+
+Phase 3 delivered colour, type and copy with the layout untouched, then asked for a verdict on the
+palette and the typeface. **That is asking someone to judge a composition that does not exist.**
+The honest response it got was that everything looks bland, which is the correct reading of a type
+scale applied to an undesigned screen.
+
+Copy and layout are one decision, not two: where a sub-line goes and whether there should be one
+are the same question. Colour and type are judged in a composition or not at all.
+
+**What was genuinely right to do early**, and would be done the same way again: proving the
+typeface actually loads, that the token pipeline reaches the components, that contrast passes, and
+that the PWA chrome agrees with the ground. That is plumbing, and plumbing before composition is
+correct. **The mistake was labelling plumbing as a design phase and asking for a design verdict on
+it.**
+
+### Provisional verdicts, explicitly not final
+
+- **The violet is fine for now** and is expected to change once there is a composition to judge it
+  against. Not a decision, a placeholder.
+- **The type is bland**, noted at the time it was reviewed. The five-step scale stands as
+  structure; how it is used is a layout question.
+
+**For the phases that remain:** Phase 4 onward are the design phases. They own layout, density and
+composition. They do not own copy.

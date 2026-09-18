@@ -362,6 +362,13 @@ it becomes a real `Button` with a hidden file input inside it.
 Each phase is independently shippable and ends with someone looking at a rendered screen. A phase is
 not done because the code was written and the build passed.
 
+> **Phases 4 to 6 are the design phases. They own layout, density and composition.** Phase 3 was
+> plumbing wearing a design phase's name, which is why its review produced "everything is bland":
+> a type scale on an undesigned screen has nothing to be judged against. See `docs/DECISIONS.md`
+> D-013.
+>
+> **None of them own copy.** Copy is worked separately.
+
 Every phase ends with **a screenshot at 390px and at 1280px**, checked against that phase's
 criteria. Phases marked ● also need **a screen recording of the full arc** (rest, focus, type, Park,
 back to rest), **the same recording with `prefers-reduced-motion: reduce`**, and **a double-park**
@@ -393,9 +400,11 @@ Phases 1 and 2 are done. Their evidence is in the commits and summarised in `doc
 *Files:* `src/tokens/tokens.json`, `src/index.css`, `index.html`,
 `public/manifest.webmanifest`, `public/favicon.svg`, `public/fonts/*`, the four views for copy
 
-*Does:* the dark ground, the five-step type scale, self-hosted Geist, the corrected copy and the
-PWA chrome. **No shader and no motion work in this phase.** Components stay structurally as they
-are, so this is a recolour, a retypeset and a copy fix.
+*Does:* the dark ground, the five-step type scale, self-hosted Geist and the PWA chrome.
+
+> **Copy was removed from this phase's scope on 2026-09-18 (D-013), after the fact.** Copy is
+> worked separately and the overhaul phases do not own it. 16 strings had already shipped in
+> `9df1da0`; D-013 lists them so the copy work inherits rather than collides with them.
 
 *Source of truth:* `docs/LOOK.md`, sections **Typography**, **Copy** and **Standing rules**.
 
@@ -425,23 +434,6 @@ palette follows from it.
 - **Colour appears once per screen**, on the primary action. Bucket hues are markers, not surfaces.
 - No text on any screen fails AA. Check the Park button, the confirm word and the carry-forward
   line specifically; those are the three that failed before.
-
-*Acceptance, copy:*
-
-- The confirm word is **"Parked."**, not "Logged." `PRODUCT.md` has always specified this and the
-  shipped app followed the deleted `DESIGN.md`.
-- Headline "What's pulling you?", sub-line "Park it. Sort it tonight.", placeholder "One line is
-  enough".
-- **The parked count is NOT in this phase.** `docs/LOOK.md`'s copy table specifies "3 parked
-  today", but no count exists: `onParked` is a no-op. Adding one means a new live query inside the
-  capture path, which is a feature rather than a retypeset, so it belongs to Phase 4 where Capture
-  is rebuilt. Until it lands, mono appears in one place, the navigation, not two.
-- **Zero em dashes in shipped UI copy.** `grep -rn '—' src/` returns only code comments. There are
-  16 in user-visible strings today, across `agent.ts` triage reasons, `ReviewView`, `SettingsView`,
-  `PatternsView` and `hands.ts`. The `hands.ts` ones leave the app in the markdown export, the do
-  list and the mailto subject, so they land in someone else's notes. `agent.ts` and `hands.ts` are
-  on the do-not-touch list, so this is the phase that has permission to change their strings, and
-  only their strings.
 
 *Acceptance, mechanical:*
 
