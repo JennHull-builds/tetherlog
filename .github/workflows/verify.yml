@@ -36,11 +36,9 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Non-blocking: 9 pre-existing problems (4 errors) as of 2026-09-18.
-      # Clear those and this becomes blocking, and folds into `npm run verify`.
-      - name: Lint (informational)
+      # Blocking since 2026-09-18, when the last 9 problems were cleared.
+      - name: Lint
         run: npm run lint
-        continue-on-error: true
 
       # The prose-leak guard from D-006 is silent when it breaks: the rules it
       # lets through are valid CSS, just not ours. So assert the directives are

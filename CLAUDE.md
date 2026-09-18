@@ -304,12 +304,9 @@ axis carrying the z-axis, a `Plane` primitive). `docs/LOOK.md` superseded it. If
 instruction referencing planes, `distance` props or the width axis, it predates 2026-09-18. See
 `docs/DECISIONS.md` D-007.
 
-Enforced by **`npm run verify`**, which runs the privacy check and the token check. **It does not
-run lint**, because `npm run lint` currently reports 9 pre-existing problems (4 errors, all
-`react-hooks` findings in `SettingsView` and `ReviewView`) and a gate that always fails is a gate
-nobody reads. Lint runs in CI non-blocking so the count stays visible. Clearing those 4 errors and
-then folding lint into `verify` is outstanding work. Separately, `no-restricted-syntax` rules in
-`eslint.config.js` put a message at the point of the mistake.
+Enforced by **`npm run verify`**: privacy check, token check and lint. **Lint is clean and must
+stay clean**, so any new problem fails the gate rather than joining a backlog. Separately,
+`no-restricted-syntax` rules in `eslint.config.js` put a message at the point of the mistake.
 
 **`verify` is deliberately NOT part of `npm run build`.** It was, and every Vercel deployment from
 2026-09-18 failed while a clean local clone with `npm ci` and `CI=1 VERCEL=1` built green. Rather

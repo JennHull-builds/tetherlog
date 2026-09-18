@@ -273,3 +273,32 @@ that is not there.**
 document, because it reads as current. When a phase completes, the spec for it moves to a decision
 entry here or it goes. The mechanical version of this check is cheap and worth keeping: for every
 backticked path in the docs, assert the file exists.
+
+## D-010: React held at 19.2.8 on bundle grounds
+
+**2026-09-18. Open, and cheap to reverse.**
+
+Dependencies were swept: **0 vulnerabilities**. Every semver-compatible update was taken (Vite
+8.3.0, Dexie 4.4.6, ESLint 10.10.0, typescript-eslint 8.70.0, the React types, plugin-react,
+globals).
+
+**React and React DOM are held at 19.2.8 and pinned to an exact version** so `npm update` does not
+take them silently. Measured, not assumed: 19.3.0 costs **+8.64 KB gzipped** on its own, taking the
+bundle from 114.50 to 123.14 KB against a 130 KB budget. Every other update in the sweep was free.
+
+That leaves 6.9 KB of headroom instead of 15.5, immediately before two phases that spend budget:
+Phase 3 adds self-hosted fonts and Phase 4 adds the WebGL shader, roughly 4 KB. There is no
+security reason to move and no feature in 19.3.0 the app needs.
+
+**To reverse:** set both back to `^19.2.8` and run `npm update`. Worth revisiting once the shader
+has landed and the real number is known.
+
+**Four major updates were deliberately not taken**, because each needs a decision rather than a
+command:
+
+| Package | From | To | Why it is held |
+|---|---|---|---|
+| `zod` | 3.25.76 | 4.6.5 | Schemas in `types.ts` and `agent.ts`. `agent.ts` is do-not-touch. |
+| `dexie-react-hooks` | 1.1.7 | 4.4.0 | Three majors. Touches every live query and the Dexie layer. |
+| `typescript` | 6.0.3 | 7.0.2 | Major. Likely to surface new errors across strict mode. |
+| `@types/node` | 24.13.5 | 26.6.1 | Low risk, no benefit right now. |
