@@ -457,6 +457,40 @@ this direction rather than restoring it)
 *Does:* the gravity well and all four moments, plus the optimistic park from `docs/DECISIONS.md`
 D-004. **This is the phase the whole direction rests on.**
 
+> ### Lead with the clutter, not the shader
+>
+> **Reviewed 2026-09-18: Capture is cluttered for what it is meant to do, and the bar is elegance
+> rather than completeness.** This is the first thing Phase 4 addresses, before any shader work.
+> A well behind a cluttered screen is still a cluttered screen.
+>
+> **Six things are on screen at rest**, for a surface whose entire job is to take one thought in
+> under five seconds:
+>
+> | | Element | The problem with it |
+> |---|---|---|
+> | 1 | Headline | Fine. It asks the question. |
+> | 2 | Sub-line | Onboarding text shown forever. Does it earn its place after the first use? |
+> | 3 | The field | The point of the screen. |
+> | 4 | Three tag chips | Always visible. `PRODUCT.md` forbids questions at park time, and three chips sitting there are a question, even an optional one. |
+> | 5 | Park, full width | Primary action. Earns its size on a phone. |
+> | 6 | Mic, full width | **The clearest fault.** It is the same size and weight as Park, so an alternative input method reads as an equal primary action. |
+>
+> **Named directly: Mic should be an icon.** Not a full-width button competing with Park.
+>
+> **The questions Phase 4 has to answer, none of them pre-decided here:**
+>
+> - What is the resting element count, and what does each survivor earn?
+> - Do the chips appear at rest, on focus, after a park, or not at all? Tagging is optional and
+>   the product forbids asking anything at park time.
+> - Does the sub-line persist, fade after first use, or go?
+> - If Enter parks and the field is always focused, what is the Park button actually for on
+>   desktop, and does that differ from the phone?
+> - Where does Mic sit once it is an icon: inside the field, beside it, or somewhere quieter?
+>
+> **Acceptance gains one criterion from this:** the resting screenshot at 390px is compared
+> against the Phase 3 one and **the element count has gone down**. If it has not, this part of the
+> phase did not happen, whatever the well looks like.
+
 *The mechanism, from `docs/LOOK.md`:* a single fullscreen fragment shader, two triangles, no
 library, roughly 4 KB of JavaScript and GLSL. The field is not raised and not recessed. It is
 heavy, and space bends around it.
