@@ -120,6 +120,28 @@ never auto-retries, because a silent retry can double-write.
 exactly this: text typed, Park pressed, nothing in Review. Read that table before debugging anything
 else, and read it before changing the order of those four steps.
 
+### Do not put shell scripts in the build command
+
+Every Vercel deployment on 2026-09-18 failed after `npm run build` was changed to
+`npm run privacy:check && npm run tokens:check && tsc -b && vite build`. The commit before that
+change deployed green; every commit after it errored, on both `main` and the branch.
+
+**It did not reproduce locally.** A clean shallow clone with `npm ci` and `CI=1 VERCEL=1` built
+green, at the first failing commit and at HEAD. `npm ci` was clean. The build logs were not readable
+with the available credentials.
+
+It was settled by changing exactly one thing, the build command, back to what was green. The next
+deployment went `READY` immediately. **The cause was the bash scripts in the build command**, though
+the precise mechanism is still unknown.
+
+So: **`npm run build` stays `tsc -b && vite build`.** Verification lives in `npm run verify` and is
+run before pushing. If you ever want a check to gate the deploy, add it as a real CI step in GitHub
+Actions where the logs are readable, not as a shell script wedged into the build command.
+
+The wider lesson, and it is the second time this repo has taught it: **a green local build proves
+nothing about Vercel.** The first time it was a sibling-repo path (`f1416d2`); this time it was a
+shell script. Both looked fine locally.
+
 ### Vercel checks out this repo and nothing else
 
 `vite.config.ts` once aliased a sibling `../nil-ds` checkout. `npm run build` passed here because the
