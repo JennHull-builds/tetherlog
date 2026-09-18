@@ -638,3 +638,33 @@ These apply to every phase and are not re-litigated per phase. The full set is i
 the commit when they move.
 
 One phase per session. Screenshot before moving on. A phase is done when someone has looked at it.
+
+---
+
+## Next session kickoff
+
+**Paste this into a new chat to start Phase 4:**
+
+> Read `CLAUDE.md`, then `docs/DECISIONS.md`, then `docs/BUILD-SPEC.md` Phase 4. Build Phase 4.
+> Start with the clutter brief, not the shader.
+
+That is the whole prompt. Everything else is in those three files, which is the point of them.
+
+**Where things stand as of 2026-09-18:**
+
+- Phases 1 and 2 done. **Phase 3 built and live**, awaiting a considered look at the composition
+  rather than the palette.
+- The direction is settled (D-007) and the ground is dark (D-011). **The violet and the type are
+  placeholders**, not decisions, and are expected to change once there is a composition to judge
+  them against.
+- **Copy is not yours.** It is worked separately. Do not change UI strings. D-013 lists the 16
+  that already shipped.
+- Budget: **106.76 KB JS of 130**, 4.82 KB CSS of 12, fonts 45.1 KB of 90. React is pinned and
+  zod is on `mini` to protect it (D-010, D-012). The shader costs about 4 KB.
+- `npm run verify` before every push. Never put a shell script in `npm run build` (D-008).
+
+**The live app is https://tetherlog-rouge.vercel.app and it updates on every push to `main`.**
+A green local build proves nothing about Vercel: check the real URL, twice bitten.
+
+**Phase 4's first question is not what the well looks like.** It is which of the six things on
+Capture earn their place.
