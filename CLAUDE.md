@@ -51,10 +51,10 @@ before any visual work. Three rules from it that contradict everything written b
 - **Never same-colour-as-ground plus two soft shadows.** That is neumorphism and it is the one thing
   explicitly rejected.
 
-Phases 1 and 2 are **done and pushed**. The direction was approved on 2026-09-18 and **Phases 3
-and 4 have been rewritten against `docs/LOOK.md`**, so Phase 3 can start. One thing is still open
-inside it: `docs/LOOK.md` leaves **light ground or dark** undecided and proposes dark. Settle that
-before the palette, because everything else follows from it.
+Phases 1 and 2 are **done and pushed**. **Phases 3 and 4 are built and awaiting a look.** Capture is
+now three elements at rest with the gravity lens behind it; the composition is in `docs/DECISIONS.md`
+D-014 and the lens is in D-015. **Phase 5 is Review**, and its first question is structural, not
+visual.
 
 ---
 
@@ -148,6 +148,43 @@ never auto-retries, because a silent retry can double-write.
 **`docs/DECISIONS.md` D-004 is the full write-up**, including a symptom-to-cause table for
 exactly this: text typed, Park pressed, nothing in Review. Read that table before debugging anything
 else, and read it before changing the order of those four steps.
+
+### A negative z-index hides a fixed canvas behind an ancestor's background
+
+The gravity lens rendered the entire starfield into a canvas nobody could see. The build was green,
+the rAF instrumentation was perfect, one WebGL context was created, no errors anywhere, and the
+screen was empty black. `App`'s wrapper carries `bg-ground`, and a `-z-10` child paints behind an
+ancestor's background rather than behind its content.
+
+**The canvas is `z-0` and the content above it is `z-10`.** If the starfield disappears, look here
+before looking at the shader. Written up in `docs/DECISIONS.md` D-015.
+
+### In the lens, the sweep and the arcs can cancel each other out
+
+Space nearest the mass is swept clear of stars, which is right and physical. Set the sweep too wide
+and it clears exactly the band where the tangential stretch is strongest, so a working shader paints
+a plain field on a plain ground. **The sweep must end where the arcs begin.** The first tuning swept
+to three quarters of the influence radius; it is now a tight collar.
+
+### Star brightness in the lens is a contrast constraint, not a taste knob
+
+The headline and the sub-line sit on the starfield with no surface under them, so **the brightest
+star is their background** wherever one lands behind a glyph. Measured off rendered frames: at a
+near-layer gain of 1.0 the brightest painted star put `--tl-ink-muted` at 3.62:1, which fails AA. It
+ships at 0.64, where the worst case is 9.91:1 for `--tl-ink` and 4.71:1 for `--tl-ink-muted`.
+
+**Raising those gains puts 13px muted copy under AA.** If the starfield ever needs to be brighter,
+the muted copy has to move off it first.
+
+### Nothing on Capture may change the layout
+
+The field rose 66px the first time anything was parked, because the peek stack was rendered
+conditionally and shrank the centred block above it. That is the one screen that must never move,
+moving, at the exact moment a person is watching to see whether their thought landed.
+
+**Both variable regions are fixed-height slots that are always present:** the line under the field
+(chips, or the confirm word, or nothing) and the peek-stack slot. Reserved space costs nothing on an
+empty screen and it cannot shift.
 
 ### Do not put shell scripts in the build command
 
@@ -316,6 +353,16 @@ more rules apply, and none of them can be caught by an automated check:
     functional.
 11. **Scale is never a focus indicator**, and never animate `font-variation-settings`: it forces a
     text relayout every frame.
+12. **The luminous rim is opt in and belongs to the capture field alone.** `<Field rim />`. It was
+    briefly the default for every `Field`, which rested Settings with the one colour per screen
+    appearing three times. Every other field uses the structural rule token.
+13. **A reduced-motion override has to reach a SEMANTIC name.** Components may not read `--tl-ref-*`,
+    so an override that only lands on the primitive reaches nothing. The generator now emits both.
+
+**Two generated files, one solve.** `scripts/build-tokens.mjs` writes
+`src/styles/tokens.generated.css` and `src/motion/springs.generated.ts`. The canvas cannot read a
+CSS easing, and solving the springs twice is how a DOM arc and a WebGL arc drift apart.
+`npm run tokens:check` diffs both.
 
 **Depth Field is dead.** An earlier plan recommended it (planes at distances, a variable font width
 axis carrying the z-axis, a `Plane` primitive). `docs/LOOK.md` superseded it. If you find an
@@ -338,13 +385,16 @@ can go back into `build`.
 
 - **Zero runtime.** Springs are solved at build time into CSS `linear()` easings. No animation
   library is installed and none should be without a decision recorded in `docs/DECISIONS.md`.
-- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Currently **106.76
-  KB JS and 4.62 KB CSS**, so roughly 23 KB of headroom. Two deliberate holds protect it: React is
-  pinned at 19.2.8 (D-010) and zod uses the `mini` export (D-012). Record the numbers in the commit
-  when they move.
-- **Commit is where the budget goes.** If one moment is exceptional it is the handover. Under Depth
-  Field there is exactly one light event in the entire app and it lives here: 320ms, peak 0.22 alpha,
-  and it does not fire under reduced motion because a flash with no travel is a strobe.
+- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Currently **113.07
+  KB JS and 5.01 KB CSS**, so roughly 17 KB of headroom. The lens is 4.84 KB of that, measured by
+  building with and without it. Two deliberate holds protect the rest: React is pinned at 19.2.8
+  (D-010) and zod uses the `mini` export (D-012). Record the numbers in the commit when they move.
+- **Commit is where the budget goes.** If one moment is exceptional it is the handover. There is
+  exactly one light event in the entire app and it lives here: 320ms, peak 0.22 alpha, and it does
+  not fire under reduced motion because a flash with no travel is a strobe. It is the
+  `--tl-light-commit-peak` token, which the media query sets to 0, and the lens reads it as a
+  uniform. **Keep it tight to the well**: at a wide falloff it lifts the whole screen, which reads as
+  the page flashing rather than the object flaring.
 - **Nothing rewards returning.** No celebration, no flourish, no "nice one". The reward is that the
   thought is gone.
 - **Motion must never queue.** Commit animations run on transient elements keyed by capture id, and
@@ -352,6 +402,9 @@ can go back into `build`.
   succession must never make the second one wait.
 - **Verify motion with a recording, not a screenshot**: the full arc, the same arc with
   `prefers-reduced-motion: reduce`, and a double-park.
+- **"It looks still" is not evidence.** Wrap `requestAnimationFrame`, count the calls, and assert
+  zero while the screen is idle. The lens must reach 0 at rest, 0 while focused and idle, and 0
+  again once an arc has settled.
 
 ---
 

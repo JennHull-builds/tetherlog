@@ -452,7 +452,38 @@ palette follows from it.
 
 ---
 
-**Phase 4 ●: Capture, the well and the arc**
+**Phase 4 ●: Capture, the well and the arc** BUILT 2026-09-18, AWAITING REVIEW
+
+> **Built, not done.** A phase is done when someone has looked at it. Stills were taken at 390px
+> and 1280px in rest, focus, typed, commit and after states, plus the other three screens, and
+> every mechanical criterion below was checked in a browser. When the review passes, this whole
+> section is deleted and replaced by a decision entry, per D-009. The entries are already written:
+> **D-014** for the composition and **D-015** for the lens.
+>
+> **The clutter brief was answered first, and the element count went from six to three.** Headline,
+> sub-line, field. Mic is a glyph and Park is a disc, both inside the field. Chips appear only once
+> there is text. See D-014 for all five questions and their answers.
+>
+> **D-004 was specified and had never been built.** `handlePark` awaited the write before clearing
+> the field, there was no `inFlightRef`, and a rejected write threw with no recovery. All four steps
+> now exist and the recovery path is tested, including a failure landing mid-typing.
+>
+> **Evidence.** rAF while idle at rest: 0 in 3s. Idle and focused: 0 in 3s. A whole park arc: 10 to
+> 21. Idle after the arc: 0. One WebGL context, created after first paint. Field usable in the same
+> tick as Enter; two parks in 58ms of wall clock, both stored. Reduced motion runs 0 frames for a
+> whole park and the commit light reads 0. WebGL disabled: park works, console clean. Field y is
+> identical with 0 and with 2 parked. No scroll at 1280. Zero AA failures, including 9.91:1 for
+> `--tl-ink` and 4.71:1 for `--tl-ink-muted` over the brightest painted star. Rim 3.48:1 and 3.25:1
+> at rest, 5.69:1 and 4.92:1 on focus, measured from painted pixels.
+>
+> **JS 113.07 KB gzipped of 130, CSS 5.01 KB of 12, fonts unchanged.** The lens alone is 4.84 KB,
+> measured by building with and without it, against the roughly 4 KB `docs/LOOK.md` budgeted.
+>
+> **Four things were found by rendering it, none of which broke the build:** the whole starfield
+> rendered into a canvas hidden behind an ancestor's background by a negative `z-index`; the swept
+> collar and the arcs cancelling each other out, so a working shader painted a plain field on a
+> plain ground; the field jumping 66px the first time anything was parked; and the luminous rim
+> becoming the default for every `Field`, which put three accents on a resting Settings screen.
 
 *Files:* `src/components/ui/Field.tsx`, `src/components/ui/Button.tsx`,
 `src/components/ui/Chip.tsx`, `src/views/CaptureView.tsx`, a new shader layer, plus a new

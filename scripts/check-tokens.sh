@@ -3,7 +3,7 @@
 # Runs inside `npm run build`, so it fails identically here and on Vercel, with
 # no network and no sibling repository. Three checks:
 #
-#   1. tokens.generated.css matches tokens.json
+#   1. both generated files match tokens.json
 #   2. no colour literal outside the generated file
 #   3. no component reaching past the semantic layer into --tl-ref-*
 #
@@ -12,36 +12,44 @@
 set -uo pipefail
 
 GENERATED="src/styles/tokens.generated.css"
+# The lens samples the spring curves as numbers; same solve, second output.
+GENERATED_TS="src/motion/springs.generated.ts"
 fail=0
 
 # ── 1. staleness ───────────────────────────────────────────────────────────
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-cp "$GENERATED" "$tmp/committed.css" 2>/dev/null || {
-  echo "✗ $GENERATED is missing. Run: npm run tokens" >&2
-  exit 1
-}
+for f in "$GENERATED" "$GENERATED_TS"; do
+  cp "$f" "$tmp/$(basename "$f")" 2>/dev/null || {
+    echo "✗ $f is missing. Run: npm run tokens" >&2
+    exit 1
+  }
+done
 
 node scripts/build-tokens.mjs >/dev/null || {
   echo "✗ scripts/build-tokens.mjs failed." >&2
   exit 1
 }
 
-if ! diff -q "$tmp/committed.css" "$GENERATED" >/dev/null 2>&1; then
-  echo "✗ $GENERATED is stale. Run: npm run tokens" >&2
-  diff -u "$tmp/committed.css" "$GENERATED" | head -40 >&2
-  # Leave the tree exactly as found so the check has no side effects.
-  cp "$tmp/committed.css" "$GENERATED"
-  fail=1
-fi
+for f in "$GENERATED" "$GENERATED_TS"; do
+  committed="$tmp/$(basename "$f")"
+  if ! diff -q "$committed" "$f" >/dev/null 2>&1; then
+    echo "✗ $f is stale. Run: npm run tokens" >&2
+    diff -u "$committed" "$f" | head -40 >&2
+    # Leave the tree exactly as found so the check has no side effects.
+    cp "$committed" "$f"
+    fail=1
+  fi
+done
 
 # ── 2. colour literals ─────────────────────────────────────────────────────
 # Hex is allowed in the generated file (it is the source of colour) and in
 # tokens.json (it is the source of truth).
 hex=$(grep -rnE '#[0-9a-fA-F]{3,8}\b' src \
         --include='*.ts' --include='*.tsx' --include='*.css' 2>/dev/null \
-      | grep -v "^$GENERATED:" || true)
+      | grep -v "^$GENERATED:" \
+      | grep -v "^$GENERATED_TS:" || true)
 
 if [ -n "$hex" ]; then
   echo "✗ Colour literal outside $GENERATED." >&2
@@ -57,6 +65,7 @@ fi
 prim=$(grep -rn -- '--tl-ref-' src \
          --include='*.ts' --include='*.tsx' --include='*.css' 2>/dev/null \
        | grep -v "^$GENERATED:" \
+       | grep -v "^$GENERATED_TS:" \
        | grep -v '^src/index.css:' || true)
 
 if [ -n "$prim" ]; then

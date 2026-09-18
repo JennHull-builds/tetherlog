@@ -108,9 +108,6 @@
   --ease-commit: var(--tl-spring-commit-ease);
   --ease-settle: var(--tl-spring-settle-ease);
   --ease-dismiss: var(--tl-spring-dismiss-ease);
-
-  --animate-file-into-stack: file-into-stack var(--tl-ref-motion-duration-legacy-file)
-    var(--tl-ref-motion-easing-legacy-file) forwards;
 }
 
 /*
@@ -121,20 +118,44 @@
  * exactly the kind of lying name this repo keeps paying for.
  */
 
-@keyframes file-into-stack {
-  0% {
-    transform: translateY(0) scale(1);
-    opacity: 1;
+/*
+ * A parked thought arriving in the stack under the field. This is the tail of
+ * the commit arc: the well collapses, and a moment later the log below is one
+ * row longer.
+ *
+ * It runs on a NEW element every time, because PeekStack keys its rows by
+ * capture id. Two parks in quick succession animate two different elements, so
+ * the second can never wait for the first. Motion must never queue.
+ *
+ * The travel is small on purpose. Nothing here rewards returning; the reward
+ * is that the thought is gone.
+ */
+@keyframes tl-park-land {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
   }
-  100% {
-    transform: translateY(16rem) scale(0.62);
-    opacity: 0.15;
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
+.tl-parked-row {
+  animation: tl-park-land var(--tl-spring-settle-duration)
+    var(--tl-spring-settle-ease) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-file-into-stack {
+  /*
+   * The row appears WITHOUT travelling. Not `animation: none`: that would
+   * leave `both` fill applied from a 0-opacity start in some engines. The row
+   * must simply be there.
+   */
+  .tl-parked-row {
     animation: none;
+    transform: none;
+    opacity: 1;
   }
 }
 
