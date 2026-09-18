@@ -8,10 +8,16 @@ which is why this file exists. Where the two differ, this file wins.
 **The current work is the UI overhaul.** The plan is `docs/UI-OVERHAUL.md`. Start at its
 `## Build session kickoff` section.
 
-**The palette is dark and cool.** Jen ruled out the warm direction on 2026-09-18 and lifted every
-prior constraint: no card stock, no locked accent, no inherited colours. Three dark directions are
-proposed and rendered; the recommendation is Depth Field. **Phases 1 and 2 are safe to build before
-the direction is picked; Phase 3 onward is not.**
+**`docs/LOOK.md` is the visual direction and it is binding.** It was derived from reference images
+rather than adjectives, which is the third attempt and the first one grounded in pictures. Read it
+before any visual work. Three rules from it that contradict everything written before:
+
+- **Radius is generous.** NIL's `0px` lock is dead.
+- **Depth is what an object does to its surroundings**, never a shadow attached to its edge.
+- **Never same-colour-as-ground plus two soft shadows.** That is neumorphism and it is the one thing
+  explicitly rejected.
+
+Phases 1 and 2 are **done and pushed**. Phase 3 onward needs the direction confirmed.
 
 ---
 
