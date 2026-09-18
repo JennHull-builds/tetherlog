@@ -133,10 +133,13 @@ cost saving, because there was no cost to save.
 
 ## Open questions
 
-**Light ground or dark.** Eight of the nine still references are near-white. The video that matches
-the product almost exactly is pure black. The mechanism works on both: on light, the field is a
-depression that bends a fine grid or grain rather than a starfield. Dark is proposed, because it is
-what the closest reference does and because a warm-white ground is explicitly ruled out.
+**Light ground or dark. DECIDED 2026-09-18: dark.** Eight of the nine still references are
+near-white, but the video that matches the product almost exactly is pure black, and that is the
+one the direction was derived from. The mechanism works on both, so this was a genuine choice
+rather than a constraint: on light the field would be a depression bending a fine grid or grain
+instead of a starfield. Dark wins because it is what the closest reference does, because a
+warm-white ground is explicitly ruled out, and because the starfield is the literal form of the
+gravity-well metaphor. **The palette follows from this.** See `docs/DECISIONS.md` D-011.
 
 **Whether one moment of character is wanted.** The Ask Agent pill and the Next badge both put a small
 piece of personality on a utility control. TetherLog's rules forbid celebration and anything that

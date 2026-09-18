@@ -92,8 +92,21 @@ Tone: warm, literal, spare.
 
 **Em dashes: zero in any heading, at most one per document in prose.** Use a colon, a full stop or a
 bracket. This repo is public and the em dash is the current tell for AI-written text. Check with
-`grep -c '—' <file>` before committing. `ROADMAP.md` carries 48 from before this rule and is the
-known exception until someone sweeps it.
+`grep -c '—' <file>` before committing. En dashes in numeric ranges (`2–3 lines`) are correct and
+are not the same character.
+
+**State as of 2026-09-18:** `ROADMAP.md`, `ARCHITECTURE.md`, `docs/` and the new files are at zero.
+**Still outstanding, and deliberately not swept without a decision:**
+
+| Where | Count | Why it was left |
+|---|---|---|
+| Shipped UI copy in `src/` | 16 | User-visible. Folded into Phase 3's copy pass. |
+| `src/lib/agent.ts`, `src/lib/hands.ts` | 9 of those 16 | Both on the do-not-touch list above. |
+| `PRODUCT.md` | 46 | Binding spec; rewording risks changing meaning. |
+| Code comments in `src/` | 11 | Not user-visible, not the tell. Leave them. |
+
+The `hands.ts` ones matter most: they are in the markdown export, the do list and the mailto
+subject, so they leave the app and land in someone else's notes or inbox.
 
 ---
 

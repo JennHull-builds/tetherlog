@@ -302,3 +302,23 @@ command:
 | `dexie-react-hooks` | 1.1.7 | 4.4.0 | Three majors. Touches every live query and the Dexie layer. |
 | `typescript` | 6.0.3 | 7.0.2 | Major. Likely to surface new errors across strict mode. |
 | `@types/node` | 24.13.5 | 26.6.1 | Low risk, no benefit right now. |
+
+## D-011: The ground is dark
+
+**Decided 2026-09-18. Closed.** This was the last thing blocking Phase 3.
+
+`docs/LOOK.md` left light or dark open and proposed dark. The mechanism works on either, so this
+was a real choice: on a light ground the capture field would be a depression bending a fine grid or
+grain rather than a starfield, and the gravity well would still read.
+
+**Dark, for three reasons.** It is what the closest reference does, and that reference is the one
+the whole direction was derived from. A warm-white ground is already ruled out, so light would mean
+a cool near-white, which none of the references establish. And the starfield is the literal form of
+the metaphor: a thought with enough mass to hold what you let go of reads better against space than
+against paper.
+
+**What this unblocks.** Phase 3 can start. The palette, the PWA `theme-color`, the favicon and the
+contrast targets all follow from the ground.
+
+**What it does not settle.** The exact ground value. `docs/BUILD-SPEC.md` section 1 carries a dead
+direction's `#0a0b0e` as reference only; Phase 3 derives the real one from `docs/LOOK.md`.

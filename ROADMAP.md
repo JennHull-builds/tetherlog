@@ -1,4 +1,4 @@
-# TetherLog — roadmap to done
+# TetherLog: roadmap to done
 
 **Refer here for delivery order only.** Spec is `PRODUCT.md`. Look is `docs/LOOK.md`. Binding rules
 are `CLAUDE.md`. What is decided is `docs/DECISIONS.md`; what is specified but unbuilt is
@@ -20,13 +20,13 @@ Work **in the tetherlog repo**. New chat per phase. `@` the files, paste the pro
 
 ## Honest status
 
-**Agentic Review loop — done** (see [Done means](#done-means--agentic-review-loop) below). Capture → rule or Gemini triage (Zod) → confirm/override → summary + carry-forward → Hands. Wins persist. BYOK honest; no key still works.
+**Agentic Review loop: done** (see [Done means](#done-means-agentic-review-loop) below). Capture → rule or Gemini triage (Zod) → confirm/override → summary + carry-forward → Hands. Wins persist. BYOK honest; no key still works.
 
-**UI craft — superseded by the UI overhaul.** Tokens/primitives and Capture craft largely shipped
+**UI craft: superseded by the UI overhaul.** Tokens/primitives and Capture craft largely shipped
 (`/`, haptic, file-into-stack, 2–3 line expand). The peek stack component was removed on 2026-09-18
 as unused; Phase 4 in `docs/BUILD-SPEC.md` rebuilds it under the chosen direction. Review/Patterns/Settings visual polish and remaining Phase 5 non-PWA gaps (Obsidian, chart extras) are not this slice. Do not restyle until priorities say so.
 
-**Voice — NEXT.** PRODUCT.md locks voice + transcript as fundamental, writing lane second, Android-first PWA third. Phase 7A (this plan) is done. Build [7B — Voice MVP](#7b--voice-mvp-slice-1) next. Do not wait for full UI polish.
+**Voice: NEXT.** PRODUCT.md locks voice + transcript as fundamental, writing lane second, Android-first PWA third. Phase 7A (this plan) is done. Build [7B, Voice MVP](#7b-voice-mvp-slice-1) next. Do not wait for full UI polish.
 
 **Do not:** salvage UI from another project, and do not borrow another project's lime accent. Do not install shadcn: four screens need 5 primitives, not a kit.
 
@@ -43,7 +43,7 @@ as unused; Phase 4 in `docs/BUILD-SPEC.md` rebuilds it under the chosen directio
 
 ---
 
-## Phase 0 — Drop these files into the app repo
+## Phase 0: drop these files into the app repo
 
 Copy from this folder into the `tetherlog` repo:
 
@@ -51,32 +51,32 @@ These files now live in this repo and are edited here. The copy-in workflow is r
 
 ---
 
-## Phase prompts — historical record
+## Phase prompts: historical record
 
 > **These prompts already ran.** Phases 1 to 6 are built. They are kept as a record of what was
 > asked for, not as instructions to paste. Anything referencing `DESIGN.md` predates its deletion on
 > 2026-09-18; the current visual contract is `docs/LOOK.md` and the current build spec is
 > `docs/BUILD-SPEC.md`.
 
-### 1 — Tokens + primitives
+### 1. Tokens + primitives
 
 **Files:** `@docs/LOOK.md` `@ROADMAP.md` `@.cursorrules` `@src/index.css` `@src/App.tsx` `@src/views` `@src/components`
 
 ```
-Read docs/LOOK.md and ROADMAP.md. Implement the v1 light-filed token set in src/index.css using Tailwind v4 @theme (semantic colour/radius/spacing/font — no :root-only vars with bg-[var(...)] leftovers). Add primitives Button, Field, Card, Chip, FileCard under src/components/ui/. Rewire the four views and NavBar to those utilities/primitives. Light background (paper), charcoal text (ink). Do not invent new screens or change product behaviour. UK English. Commit.
+Read docs/LOOK.md and ROADMAP.md. Implement the v1 light-filed token set in src/index.css using Tailwind v4 @theme (semantic colour/radius/spacing/font, no :root-only vars with bg-[var(...)] leftovers). Add primitives Button, Field, Card, Chip, FileCard under src/components/ui/. Rewire the four views and NavBar to those utilities/primitives. Light background (paper), charcoal text (ink). Do not invent new screens or change product behaviour. UK English. Commit.
 ```
 
 **You do after:** look at Capture in the browser. If colours feel wrong, say it in one line and retune tokens only.
 
-### 2 — Capture craft (the Fun one)
+### 2. Capture craft (the fun one)
 
 **Files:** `@docs/LOOK.md` `@PRODUCT.md` `@.cursorrules` `@src/views/CaptureView.tsx` `@src/components` `@src/index.css`
 
 ```
-Craft the Capture screen only. It must feel dumb-fast and quiet: one field, Park, "Logged." confirm, optional Now/Later/? chips. LogStack in background — abstract filing tabs peeking behind the hero. On Park: file-into-stack motion (card slides down into the stack), then "Logged.", field ready. Honour prefers-reduced-motion. Keyboard: / or tap focuses, Enter parks, field stays ready. Optional expand to 2–3 lines max — not an essay. Haptic if the browser allows. No AI, no extra copy, no charts. Follow docs/LOOK.md tokens/primitives. UK English. Commit.
+Craft the Capture screen only. It must feel dumb-fast and quiet: one field, Park, "Logged." confirm, optional Now/Later/? chips. LogStack in background: abstract filing tabs peeking behind the hero. On Park: file-into-stack motion (card slides down into the stack), then "Logged.", field ready. Honour prefers-reduced-motion. Keyboard: / or tap focuses, Enter parks, field stays ready. Optional expand to 2–3 lines max, not an essay. Haptic if the browser allows. No AI, no extra copy, no charts. Follow docs/LOOK.md tokens/primitives. UK English. Commit.
 ```
 
-### 3 — Review ritual
+### 3. Review ritual
 
 **Files:** `@docs/LOOK.md` `@PRODUCT.md` `@.cursorrules` `@src/views/ReviewView.tsx` `@src/lib/hands.ts`
 
@@ -84,7 +84,7 @@ Craft the Capture screen only. It must feel dumb-fast and quiet: one field, Park
 Craft Review only. Keep the flow: optional wins → triage → summary → Hands. Use FileCard for triage items with bucket colour on the tab. Add a summary card (bucket counts + one carry-forward max). Confirm/override should be obvious; Hands need a short "Copied." / "Downloaded." state. Persist wins to Dexie (the wins table already exists). Do not swipe-build unless cheap. Follow docs/LOOK.md. UK English. Commit.
 ```
 
-### 4 — Patterns + Settings
+### 4. Patterns + Settings
 
 **Files:** `@PRODUCT.md` `@src/views/PatternsView.tsx` `@src/views/SettingsView.tsx` `@.cursorrules`
 
@@ -92,23 +92,23 @@ Craft Review only. Keep the flow: optional wins → triage → summary → Hands
 Craft Patterns and Settings only. Patterns: readable heatmap with bucket-coloured bars, stuck/repeats, digest card that still works without a key. Settings: BYOK copy stays honest ("key stays on this device"), reminder, backup. Light UI. No new integrations. Follow docs/LOOK.md. UK English. Commit.
 ```
 
-### 5 — Spec gaps (not visual) — PWA parked
+### 5. Spec gaps (not visual), PWA parked
 
 **Files:** `@PRODUCT.md` `@ROADMAP.md` `@src`
 
 ```
-Close remaining non-PWA PRODUCT.md v1 gaps only: Obsidian markdown export, tag breakdown + captures-per-day on Patterns (and `/` on Capture only if still missing). Do NOT add vite-plugin-pwa, Install path, or service-worker evening reminder — those belong to Phase 9 (Android PWA ship). Do not restyle. UK English. Commit.
+Close remaining non-PWA PRODUCT.md v1 gaps only: Obsidian markdown export, tag breakdown + captures-per-day on Patterns (and `/` on Capture only if still missing). Do NOT add vite-plugin-pwa, Install path, or service-worker evening reminder: those belong to Phase 9 (Android PWA ship). Do not restyle. UK English. Commit.
 ```
 
 **Parked → Phase 9:** `vite-plugin-pwa` + offline shell, Android Chrome Install / Add to Home Screen, SW evening reminder (replace `setTimeout`). Do not build them here.
 
-### 6 — Ship (ops)
+### 6. Ship (ops)
 
 Ensure the GitHub repo is public. Vercel from `main`. Screenshot in README. Tick the agent demo checklist in `PRODUCT.md`. HTTPS on Vercel is required before Android mic + Install work well.
 
 ---
 
-## Phase 7 — Voice (NEXT)
+## Phase 7: voice (NEXT)
 
 Front-load the thinnest path to: **recording works on an Android phone today.** Writing lane and full PWA come after a usable recorder.
 
@@ -116,34 +116,34 @@ Front-load the thinnest path to: **recording works on an Android phone today.** 
 
 | Option | Offline audio park | Offline transcript | Cost | Long 10+ min | Quality |
 |--------|--------------------|--------------------|------|--------------|---------|
-| **Web Speech API** (Chrome) | n/a (STT only) | No — needs Google backend | Free | Poor / session limits | OK for short parks |
+| **Web Speech API** (Chrome) | n/a (STT only) | No, needs Google backend | Free | Poor / session limits | OK for short parks |
 | **BYOK cloud STT** (API TBD) | n/a | No | User’s key | Likely yes, after park | Better for long dumps |
-| Hosted STT we pay for | — | — | **Out** ($0 rule) | — | — |
+| Hosted STT we pay for | n/a | n/a | **Out** ($0 rule) | n/a | n/a |
 
-**MVP default (7B):** Audio parks first via `MediaRecorder` (offline OK). Best-effort **Web Speech** for short parks when the browser allows. Fail open — `text` = `[voice]` (or similar) if no transcript yet. **Never block park on network or STT.** Capture stays usable with **no key**.
+**MVP default (7B):** Audio parks first via `MediaRecorder` (offline OK). Best-effort **Web Speech** for short parks when the browser allows. Fail open: `text` = `[voice]` (or similar) if no transcript yet. **Never block park on network or STT.** Capture stays usable with **no key**.
 
 **Follow-up (7C):** Short spike to pick the real BYOK API (Gemini multimodal audio vs other BYOK), then wire post-park transcription for long dumps when a key exists. Do **not** treat “BYOK Gemini STT” as proven until that spike lands. No key still works.
 
 ### Out of Voice Slice 1 (7B)
 
 - Full writing organise / filter / seed export (Phase 8)
-- `write` chip — only if literally free; otherwise leave for Phase 8
+- `write` chip: only if literally free; otherwise leave for Phase 8
 - Fancy UI polish / restyle
 - App Store / native shell
 - AI rewriting babble into blog posts
 - Full PWA / SW / Install (Phase 9)
-- IndexedDB quota / growth cleanup for long dumps — **later warning**, not Slice 1 work
+- IndexedDB quota / growth cleanup for long dumps: **later warning**, not Slice 1 work
 
-### 7A — Voice plan (docs only) — done
+### 7A. Voice plan (docs only), done
 
 This section. Locked slices, STT default, Phase 9 PWA ownership, paste-ready prompts below.
 
-### 7B — Voice MVP (Slice 1)
+### 7B. Voice MVP (Slice 1)
 
 **Done means:**
 
-1. **Dexie version bump (v2)** with optional fields: `audioBlob`, `audioMimeType`, `durationMs`, `transcriptStatus`. `text` stays **required** — use placeholder e.g. `[voice]` if no transcript yet.
-2. Capture: mic start / stop for quick park **and** long recording (10+ min safe via chunked `MediaRecorder` / timeslice — do not blow the tab; do not base64 the whole take in memory).
+1. **Dexie version bump (v2)** with optional fields: `audioBlob`, `audioMimeType`, `durationMs`, `transcriptStatus`. `text` stays **required**, so use a placeholder e.g. `[voice]` if no transcript yet.
+2. Capture: mic start / stop for quick park **and** long recording (10+ min safe via chunked `MediaRecorder` / timeslice: do not blow the tab; do not base64 the whole take in memory).
 3. On stop: park capture with audio Blob in Dexie; best-effort Web Speech transcript if cheap; never block park on network.
 4. Review: replay audio (`<audio>`) + show `text` / transcript when present.
 5. Capture stays dumb: no triage, no “what did you mean,” no summarising mid-record.
@@ -154,7 +154,7 @@ This section. Locked slices, STT default, Phase 9 PWA ownership, paste-ready pro
 ```
 Read PRODUCT.md Voice capture section, ROADMAP.md Phase 7B Done means, docs/LOOK.md, and .cursorrules.
 
-Implement ONLY Voice MVP Slice 1 — nothing else.
+Implement ONLY Voice MVP Slice 1, nothing else.
 
 Must ship:
 - Dexie v2 migration: optional audioBlob, audioMimeType, durationMs, transcriptStatus; text stays required (placeholder e.g. [voice] if no transcript).
@@ -162,7 +162,7 @@ Must ship:
 - On stop: park audio Blob in Dexie; best-effort Web Speech if cheap; never block park on network/STT. No key required.
 - Review: replay audio + show text/transcript.
 - Capture stays dumb: no triage, no questions, no mid-record summary.
-- Android Chrome first. HTTPS required for mic — note Vercel preview or localhost HTTPS in the commit/PR notes.
+- Android Chrome first. HTTPS required for mic, so note Vercel preview or localhost HTTPS in the commit/PR notes.
 
 Do not: write chip (unless literally one free line), writing organise/export, IndexedDB quota work, UI restyle, App Store, full PWA/SW, AI blog rewrite, Patterns changes.
 
@@ -171,11 +171,11 @@ UK English. Commit when MVP works locally. Then give exact steps to try on Andro
 
 **You do after:** 10-second park + a longer babble on Android Chrome (or desktop Chrome first). Confirm audio replays in Review.
 
-### 7C — Transcript reliability (Slice 2)
+### 7C. Transcript reliability (Slice 2)
 
 **Done means:**
 
-1. Short spike: pick BYOK STT API (Gemini multimodal audio vs other BYOK) — document the pick in ROADMAP log before wiring.
+1. Short spike: pick BYOK STT API (Gemini multimodal audio vs other BYOK), then document the pick in ROADMAP log before wiring.
 2. Web Speech polish for short parks where it already helps.
 3. Post-park BYOK transcription for long dumps when a key exists; park never waits on STT.
 4. Settings copy stays honest; Capture + Review remain usable with no key.
@@ -197,9 +197,9 @@ UK English. Commit.
 
 ---
 
-## Phase 8 — Writing lane
+## Phase 8: writing lane
 
-**Done means:** optional `write` capture tag + review bucket (extend Zod / `BUCKET_LABELS` — one system, not two); filter writing seeds in Review; Hands markdown seed export (clipboard or download). No publish-in-app. No AI rewrite at park.
+**Done means:** optional `write` capture tag + review bucket (extend Zod / `BUCKET_LABELS`, one system not two); filter writing seeds in Review; Hands markdown seed export (clipboard or download). No publish-in-app. No AI rewrite at park.
 
 **Files:** `@PRODUCT.md` `@ROADMAP.md` `@docs/LOOK.md` `@.cursorrules` `@src/types.ts` `@src/views` `@src/lib`
 
@@ -217,7 +217,7 @@ UK English. Commit.
 
 ---
 
-## Phase 9 — Android PWA ship
+## Phase 9: Android PWA ship
 
 **Owns exclusively** (do not build in Phase 5):
 
@@ -225,7 +225,7 @@ UK English. Commit.
 - Android Chrome Install / Add to Home Screen path (document in README)
 - Manifest colours match light filed (not old dark `#12121a`)
 - Service-worker evening reminder (replace Settings `setTimeout`)
-- Public HTTPS deploy already assumed from Phase 6 — needed for mic + Install
+- Public HTTPS deploy already assumed from Phase 6, needed for mic + Install
 
 **Files:** `@PRODUCT.md` `@ROADMAP.md` `@package.json` `@vite.config.ts` `@public/manifest.webmanifest` `@src`
 
@@ -265,8 +265,8 @@ Do not restyle screens. No App Store. UK English. Commit. Document Install + HTT
 - [x] Wins persist (Dexie `wins` table)
 - [x] Summary card (counts + one carry-forward)
 - [x] Untriaged backlog toggle
-- [ ] Hands confirm ("Copied." / "Downloaded.") — UI polish, parked
-- [ ] Swipe (only if cheap) — parked
+- [ ] Hands confirm ("Copied." / "Downloaded."): UI polish, parked
+- [ ] Swipe (only if cheap): parked
 - [x] FileCard for triage items
 - [x] Voice: replay audio + show transcript → **7B**
 - [ ] `write` bucket / filter → **Phase 8**
@@ -295,7 +295,7 @@ Do not restyle screens. No App Store. UK English. Commit. Document Install + HTT
 - [x] FileCard + LogStack
 - [ ] Capture / Review / Patterns craft (Capture largely done; Review/Patterns parked)
 - [x] `.cursorrules` in app repo
-- [ ] Public GitHub + Vercel (HTTPS — needed for Android mic + Install)
+- [ ] Public GitHub + Vercel (HTTPS, needed for Android mic + Install)
 - [ ] README screenshot
 - [x] Agentic Review loop mark-done (see below)
 - [x] Voice MVP on Android Chrome → **7B**
@@ -303,7 +303,7 @@ Do not restyle screens. No App Store. UK English. Commit. Document Install + HTT
 
 ---
 
-## Done means — agentic Review loop
+## Done means: agentic Review loop
 
 The learning-lane agentic loop is shippable when:
 
@@ -317,9 +317,9 @@ The learning-lane agentic loop is shippable when:
 
 ## Log
 
-- 2026-08-25: Phase 7B Voice MVP landed — Dexie v2 audio fields, chunked MediaRecorder, best-effort Web Speech, Review replay. HTTPS required for mic (Vercel preview or localhost). 7C still owns BYOK STT spike.
-- 2026-08-25: Phase 7A landed — Voice → Writing → Android PWA track. 7B = skinny audio MVP (Dexie v2 fields, Web Speech best-effort, HTTPS → Android Chrome). 7C = STT spike then BYOK (API TBD). Phase 9 owns all PWA/SW/Install; Phase 5 PWA bullets parked.
-- 2026-08-25: Phase 7A/7B prompts first sketched — Voice unparked ahead of UI polish. Android-first; writing lane second.
+- 2026-08-25: Phase 7B Voice MVP landed: Dexie v2 audio fields, chunked MediaRecorder, best-effort Web Speech, Review replay. HTTPS required for mic (Vercel preview or localhost). 7C still owns BYOK STT spike.
+- 2026-08-25: Phase 7A landed: Voice → Writing → Android PWA track. 7B = skinny audio MVP (Dexie v2 fields, Web Speech best-effort, HTTPS → Android Chrome). 7C = STT spike then BYOK (API TBD). Phase 9 owns all PWA/SW/Install; Phase 5 PWA bullets parked.
+- 2026-08-25: Phase 7A/7B prompts first sketched: Voice unparked ahead of UI polish. Android-first; writing lane second.
 - 2026-08-17: Roadmap locked. Warm-tether UI. Phase prompts copied from DX Grid Phase 2 pattern.
 - 2026-08-19: Pivoted to light filed look. Updated all phase prompts. FileCard + LogStack added. Park/Logged. copy.
 - 2026-08-21: Agentic Review loop marked done (wins persist, summary, backlog toggle, batch normalise, BYOK honesty). UI craft stays parked.

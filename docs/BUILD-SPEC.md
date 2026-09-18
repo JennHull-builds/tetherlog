@@ -415,6 +415,12 @@ palette follows from it.
   shipped app followed the deleted `DESIGN.md`.
 - Headline "What's pulling you?", sub-line "Park it. Sort it tonight.", placeholder "One line is
   enough", count in the form "3 parked today".
+- **Zero em dashes in shipped UI copy.** `grep -rn '—' src/` returns only code comments. There are
+  16 in user-visible strings today, across `agent.ts` triage reasons, `ReviewView`, `SettingsView`,
+  `PatternsView` and `hands.ts`. The `hands.ts` ones leave the app in the markdown export, the do
+  list and the mailto subject, so they land in someone else's notes. `agent.ts` and `hands.ts` are
+  on the do-not-touch list, so this is the phase that has permission to change their strings, and
+  only their strings.
 
 *Acceptance, mechanical:*
 
