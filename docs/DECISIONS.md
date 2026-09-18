@@ -293,15 +293,7 @@ security reason to move and no feature in 19.3.0 the app needs.
 **To reverse:** set both back to `^19.2.8` and run `npm update`. Worth revisiting once the shader
 has landed and the real number is known.
 
-**Four major updates were deliberately not taken**, because each needs a decision rather than a
-command:
-
-| Package | From | To | Why it is held |
-|---|---|---|---|
-| `zod` | 3.25.76 | 4.6.5 | Schemas in `types.ts` and `agent.ts`. `agent.ts` is do-not-touch. |
-| `dexie-react-hooks` | 1.1.7 | 4.4.0 | Three majors. Touches every live query and the Dexie layer. |
-| `typescript` | 6.0.3 | 7.0.2 | Major. Likely to surface new errors across strict mode. |
-| `@types/node` | 24.13.5 | 26.6.1 | Low risk, no benefit right now. |
+**The four major updates were then measured individually and resolved in D-012.**
 
 ## D-011: The ground is dark
 
@@ -322,3 +314,64 @@ contrast targets all follow from the ground.
 
 **What it does not settle.** The exact ground value. `docs/BUILD-SPEC.md` section 1 carries a dead
 direction's `#0a0b0e` as reference only; Phase 3 derives the real one from `docs/LOOK.md`.
+
+## D-012: zod on mini, dexie-react-hooks on 4, TypeScript held
+
+**2026-09-18. Closed for three of four.** Each major was measured rather than judged on reputation,
+and the result contradicted the received wisdom on two of them.
+
+### zod 3 to 4, on the `mini` export. Taken.
+
+| Variant | JS gzipped | Against today |
+|---|---|---|
+| zod 3.25.76 | 114.50 KB | baseline |
+| zod 4.6.5, standard export | 125.41 KB | **+10.91 KB** |
+| zod 4.6.5, `zod/mini` | **106.76 KB** | **7.74 KB smaller** |
+
+Standard zod 4 is substantially **bigger** than zod 3, which is the opposite of how the release is
+usually described. The size win belongs to `zod/mini` alone.
+
+`zod` lives in exactly one file, `src/types.ts`, holding eight simple schemas. The only API
+difference that mattered was `z.optional(z.string())` in place of `z.string().optional()`; `mini`
+drops the chainable builder methods but keeps `.parse()`, which is all `agent.ts` ever calls.
+
+**Verified in a browser, not by typecheck**, because a schema library that silently stops
+validating looks exactly like one that works:
+
+- the rule triage path ran `reviewBatchSchema.parse()` for real and rendered its suggestions
+- a valid payload is accepted
+- a bad enum value, a missing required field, a wrong scalar type and an absent `summary` object
+  are each **rejected**
+- an omitted optional field is still accepted
+
+**If richer schema features are ever needed**, `mini`'s functional API is more verbose than the
+standard one. That is the trade, and it is worth 7.74 KB while the budget is tight.
+
+### dexie-react-hooks 1.1.7 to 4.4.0. Taken.
+
+The 1 to 4 jump reads as three breaking majors and is not: it is version alignment with Dexie 4.
+One API, `useLiveQuery`, across 12 call sites in three views. Clean typecheck, **+0.05 KB**, and
+every live query verified working in the browser: the capture write path, the open capture count,
+Patterns and Settings.
+
+### TypeScript 6 to 7. Refused, and not a judgement call.
+
+`tsc` and `vite build` both succeed on TypeScript 7.0.2. **Lint does not**, and lint is now a
+blocking gate:
+
+```
+Error: typescript-eslint does not support TS 7.0.
+```
+
+An explicit refusal, not a subtle incompatibility. Revisit when typescript-eslint ships TS 7
+support. Until then TypeScript stays at 6.0.3.
+
+### @types/node 24 to 26. Left.
+
+Dev-only, zero runtime, zero bundle, no benefit right now. Take it free whenever something else
+touches the lockfile.
+
+### Where the budget stands
+
+**106.76 KB of 130.** Combined with holding React at 19.2.8 (D-010), roughly 23 KB of headroom
+going into Phase 4, which spends about 4 KB on the shader.

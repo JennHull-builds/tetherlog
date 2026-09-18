@@ -1,4 +1,8 @@
-import { z } from "zod";
+// zod/mini, not the standard zod export. Measured 2026-09-18: standard zod 4
+// costs 10.91 KB gzipped more than zod 3, mini costs 7.78 KB less. The schemas
+// here are simple enough that the only API difference is z.optional(x) in place
+// of x.optional(). See docs/DECISIONS.md D-012.
+import * as z from "zod/mini";
 
 export const captureTagSchema = z.enum(["now", "later", "?"]);
 export type CaptureTag = z.infer<typeof captureTagSchema>;
@@ -11,7 +15,7 @@ export const triageSuggestionSchema = z.object({
   bucket: triageBucketSchema,
   reason: z.string(),
   carryForward: z.boolean(),
-  suggestedAction: z.string().optional(),
+  suggestedAction: z.optional(z.string()),
 });
 
 export type TriageSuggestion = z.infer<typeof triageSuggestionSchema>;

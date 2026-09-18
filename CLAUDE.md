@@ -334,8 +334,10 @@ can go back into `build`.
 
 - **Zero runtime.** Springs are solved at build time into CSS `linear()` easings. No animation
   library is installed and none should be without a decision recorded in `docs/DECISIONS.md`.
-- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Baseline at
-  `f1416d2` was 114.67 KB JS and 6.55 KB CSS. Record the numbers in the commit when they move.
+- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Currently **106.76
+  KB JS and 4.62 KB CSS**, so roughly 23 KB of headroom. Two deliberate holds protect it: React is
+  pinned at 19.2.8 (D-010) and zod uses the `mini` export (D-012). Record the numbers in the commit
+  when they move.
 - **Commit is where the budget goes.** If one moment is exceptional it is the handover. Under Depth
   Field there is exactly one light event in the entire app and it lives here: 320ms, peak 0.22 alpha,
   and it does not fire under reduced motion because a flash with no travel is a strobe.
