@@ -362,9 +362,14 @@ it becomes a real `Button` with a hidden file input inside it.
 Each phase is independently shippable and ends with someone looking at a rendered screen. A phase is
 not done because the code was written and the build passed.
 
-> **Phases 4 to 6 are the design phases. They own layout, density and composition.** Phase 3 was
-> plumbing wearing a design phase's name, which is why its review produced "everything is bland":
-> a type scale on an undesigned screen has nothing to be judged against. See `docs/DECISIONS.md`
+> **Phases 4 to 6 are the design phases. They own layout, density and composition.**
+>
+> **No earlier phase owned the structure.** Phase 3 repainted an inherited six-element layout
+> without ever asking whether that layout was right, and Phase 4 was scoped around motion, so the
+> arrangement of the one screen the product exists for survived the whole overhaul unexamined.
+>
+> **Question the wireframe before painting it.** Structure is judged first and on its own, without
+> colour, type or motion, and it does not need any of them to be judged. See `docs/DECISIONS.md`
 > D-013.
 >
 > **None of them own copy.** Copy is worked separately.

@@ -404,12 +404,24 @@ them.
 ### The sequence was wrong, and it is worth saying why
 
 Phase 3 delivered colour, type and copy with the layout untouched, then asked for a verdict on the
-palette and the typeface. **That is asking someone to judge a composition that does not exist.**
-The honest response it got was that everything looks bland, which is the correct reading of a type
-scale applied to an undesigned screen.
+palette and the typeface.
 
-Copy and layout are one decision, not two: where a sub-line goes and whether there should be one
-are the same question. Colour and type are judged in a composition or not at all.
+**A first version of this entry said the problem was that there was no composition to judge. That
+was wrong, and the correction is the useful part.** A composition existed the whole time: six
+elements in a stack, inherited from the NIL era. That is a wireframe and it was always judgeable.
+Asked about it, the immediate reading was that Capture is cluttered for what it does, and that
+Mic should be an icon rather than a full-width button matching Park.
+
+**The real fault is that no phase ever owned the structure.** Phase 3 repainted the inherited
+layout without asking whether the layout was right. Phase 4 was scoped around motion and the
+shader. So the arrangement of the one screen the product exists for was never on anybody's agenda,
+and it survived a whole overhaul unexamined. That is why the clutter went unnoticed, not because
+it could not be seen.
+
+**The lesson for the phases that remain: question the wireframe before painting it.** Structure is
+judged first and on its own, and it does not need colour, type or motion to be judged. Copy and
+layout are also one decision, not two: where a sub-line goes and whether there should be one at
+all are the same question.
 
 **What was genuinely right to do early**, and would be done the same way again: proving the
 typeface actually loads, that the token pipeline reaches the components, that contrast passes, and
