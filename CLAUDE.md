@@ -33,11 +33,14 @@
 
 Binding rules for TetherLog. Read this before touching anything.
 
-`.cursorrules` covers the same ground for Cursor and Claude Code does not load it automatically,
-which is why this file exists. Where the two differ, this file wins.
+**There is no `.cursorrules` in this repo.** Earlier documents describe one and `ROADMAP.md`'s
+historical phase prompts reference it; it was never committed. This file is the only rule file.
+The `@source not "../.cursorrules"` line in `src/index.css` is kept deliberately, so the guard is
+already in place if one is ever added.
 
-**The current work is the UI overhaul.** The plan is `docs/UI-OVERHAUL.md`. Start at its
-`## Build session kickoff` section.
+**The current work is the UI overhaul.** What is decided is in `docs/DECISIONS.md`; what is
+specified but unbuilt is in `docs/BUILD-SPEC.md`. Start with `docs/DECISIONS.md`, which opens with a
+status table and a map of which file does what.
 
 **`docs/LOOK.md` is the visual direction and it is binding.** It was derived from reference images
 rather than adjectives, which is the third attempt and the first one grounded in pictures. Read it
@@ -59,8 +62,9 @@ what you were doing. Review happens in the evening. Public, MIT, client-only, £
 
 `PRODUCT.md` is the product spec and it is binding. `ROADMAP.md` is the delivery order.
 
-**`DESIGN.md` is historical and not binding.** It describes the NIL DS era, its colour table does not
-match what renders, and it is superseded by `docs/UI-OVERHAUL.md`.
+**`DESIGN.md` and `docs/UI-OVERHAUL.md` were deleted on 2026-09-18.** Both described states the code
+had already left. Their live content is in `docs/DECISIONS.md` and `docs/BUILD-SPEC.md`; `git log`
+has the originals. Any instruction referencing either file is out of date.
 
 ---
 
@@ -81,7 +85,12 @@ match what renders, and it is superseded by `docs/UI-OVERHAUL.md`.
    reduced-motion counterpart in the same token entry. The generator throws if one is missing. The
    ND user base makes this correctness, not courtesy.
 
-Tone: warm, literal, spare. This repo is public, so keep em dashes sparse in anything committed.
+Tone: warm, literal, spare.
+
+**Em dashes: zero in any heading, at most one per document in prose.** Use a colon, a full stop or a
+bracket. This repo is public and the em dash is the current tell for AI-written text. Check with
+`grep -c '—' <file>` before committing. `ROADMAP.md` carries 48 from before this rule and is the
+known exception until someone sweeps it.
 
 ---
 
@@ -116,7 +125,7 @@ The design is four steps in `CaptureView.handlePark`, and **the order is the who
 Nothing between the hold and the release may be async. A failed park never clears silently and
 never auto-retries, because a silent retry can double-write.
 
-**`docs/UI-OVERHAUL.md` section 1.11 is the full write-up**, including a symptom-to-cause table for
+**`docs/DECISIONS.md` D-004 is the full write-up**, including a symptom-to-cause table for
 exactly this: text typed, Park pressed, nothing in Review. Read that table before debugging anything
 else, and read it before changing the order of those four steps.
 
@@ -134,9 +143,9 @@ It was settled by changing exactly one thing, the build command, back to what wa
 deployment went `READY` immediately. **The cause was the bash scripts in the build command**, though
 the precise mechanism is still unknown.
 
-So: **`npm run build` stays `tsc -b && vite build`.** Verification lives in `npm run verify` and is
-run before pushing. If you ever want a check to gate the deploy, add it as a real CI step in GitHub
-Actions where the logs are readable, not as a shell script wedged into the build command.
+So: **`npm run build` stays `tsc -b && vite build`.** Verification lives in `npm run verify`, run
+before pushing, and in `.github/workflows/verify.yml`, where the logs are readable. Never wedge a
+shell script into the build command.
 
 The wider lesson, and it is the second time this repo has taught it: **a green local build proves
 nothing about Vercel.** The first time it was a sibling-repo path (`f1416d2`); this time it was a
@@ -153,12 +162,12 @@ it. `git log f1416d2` is the write-up.
 
 ### Tailwind compiles class names out of prose, including this file
 
-Tailwind v4 scans the repository and cannot tell documentation from markup. `.cursorrules` and
-`ROADMAP.md` each contain an arbitrary-value class as an example of what *not* to write, and Tailwind
-compiles both into real, broken CSS rules that ship to production.
+Tailwind v4 scans the repository and cannot tell documentation from markup. `ROADMAP.md` contains
+an arbitrary-value class as an example of what *not* to write, and Tailwind compiled it into a real,
+broken CSS rule that shipped to production.
 
-It is not only arbitrary values. Adding `docs/UI-OVERHAUL.md` and this file to the repo, with no code
-changed, emitted fourteen more rules into production CSS from ordinary English words:
+It is not only arbitrary values. Adding two markdown files to the repo, with no code changed,
+emitted fourteen more rules into production CSS from ordinary English words:
 
 ```
 .backdrop-filter  .blur     .fixed    .font-sans  .grow   .inline  .invisible
@@ -174,7 +183,12 @@ There is no way to write about a design system without using the words "shadow",
 @source not "../*.md";
 @source not "../docs/**/*.md";
 @source not "../.cursorrules";
+@source not "../.github/**";
 ```
+
+`.github` is on the list because the CI job that asserts these rules never ship has to name them,
+and naming them shipped them: 1.43 KB of junk CSS on 2026-09-18. **Any new file that discusses class
+names needs a `@source not` line before it lands.**
 
 Verified on `tailwindcss@4.3.3`. If those lines ever disappear, the leak comes straight back and
 nothing will warn you: the rules are valid CSS, they just are not yours.
@@ -198,7 +212,7 @@ correctly win. **Do not add another one.** If a third-party stylesheet must be i
 `@import "thing.css" layer(vendor);`
 
 Symptom to watch for: utilities that "do nothing" while `gap-*` and inline styles still work. Check
-the built CSS for a rule at brace depth 0. Written up in `docs/UI-OVERHAUL.md` section 1.12.
+the built CSS for a rule at brace depth 0. Written up in `docs/DECISIONS.md` D-005.
 
 ### Never partially override the spacing scale
 
@@ -280,8 +294,12 @@ of them can be caught by an automated check:
 11. **Never animate `font-variation-settings`.** It forces a text relayout every frame. Width steps
     between token values at the transition boundary; it does not tween.
 
-Enforced by **`npm run verify`** (privacy check, token check, lint), plus `no-restricted-syntax`
-rules in `eslint.config.js` for a message at the point of the mistake.
+Enforced by **`npm run verify`**, which runs the privacy check and the token check. **It does not
+run lint**, because `npm run lint` currently reports 9 pre-existing problems (4 errors, all
+`react-hooks` findings in `SettingsView` and `ReviewView`) and a gate that always fails is a gate
+nobody reads. Lint runs in CI non-blocking so the count stays visible. Clearing those 4 errors and
+then folding lint into `verify` is outstanding work. Separately, `no-restricted-syntax` rules in
+`eslint.config.js` put a message at the point of the mistake.
 
 **`verify` is deliberately NOT part of `npm run build`.** It was, and every Vercel deployment from
 2026-09-18 failed while a clean local clone with `npm ci` and `CI=1 VERCEL=1` built green. Rather
@@ -294,7 +312,7 @@ can go back into `build`.
 ## Motion
 
 - **Zero runtime.** Springs are solved at build time into CSS `linear()` easings. No animation
-  library is installed and none should be without a decision recorded in `docs/UI-OVERHAUL.md`.
+  library is installed and none should be without a decision recorded in `docs/DECISIONS.md`.
 - **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Baseline at
   `f1416d2` was 114.67 KB JS and 6.55 KB CSS. Record the numbers in the commit when they move.
 - **Commit is where the budget goes.** If one moment is exceptional it is the handover. Under Depth
@@ -324,7 +342,7 @@ Not part of the design system work, and changing them is out of scope unless ask
 
 ## Delivery
 
-- **One phase at a time.** `docs/UI-OVERHAUL.md` section 6 has the phases and their acceptance
+- **One phase at a time.** `docs/BUILD-SPEC.md` section 3 has the phases and their acceptance
   criteria.
 - **A phase is done when someone has looked at it**, not when the build passed. Screenshot at 390px
   and 1280px against that phase's criteria before starting the next one.

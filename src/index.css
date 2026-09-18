@@ -5,13 +5,18 @@
  * Tailwind v4 scans the repository for class names and cannot tell prose from
  * markup, so documentation compiles into real CSS rules. `.cursorrules` and
  * `ROADMAP.md` both quote an arbitrary-value class as an anti-pattern and both
- * shipped a broken rule to production; CLAUDE.md and docs/UI-OVERHAUL.md added
+ * shipped a broken rule to production; two more markdown files then added
  * fourteen more from ordinary words like "blur", "shadow", "fixed" and
  * "static". There is no writing rule that avoids those words. See CLAUDE.md.
+ *
+ * .github is excluded for the same reason: the CI job that asserts these
+ * rules never ship has to name them, and naming them shipped them. That
+ * cost 1.43 KB of junk CSS on 2026-09-18, found by the job itself.
  */
 @source not "../*.md";
 @source not "../docs/**/*.md";
 @source not "../.cursorrules";
+@source not "../.github/**";
 
 /*
  * ── @theme ────────────────────────────────────────────────────────────────
@@ -125,7 +130,7 @@
  * neutralised all 72 padding, margin and space-y utilities in the app. It is
  * deliberately not re-created: Tailwind's preflight already resets margin and
  * box-sizing inside @layer base, where utilities correctly win.
- * See docs/UI-OVERHAUL.md section 1.12.
+ * See docs/DECISIONS.md D-005.
  */
 body {
   background-color: var(--tl-ground);

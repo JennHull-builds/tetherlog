@@ -195,7 +195,7 @@ counter-voice.
 ## Copy
 
 The confirm word is **"Parked."** `PRODUCT.md` has always specified this. The shipped app says
-"Logged." because it followed `DESIGN.md`, which is superseded. `PRODUCT.md` wins.
+"Logged." because it followed the old `DESIGN.md`, deleted 2026-09-18. `PRODUCT.md` wins.
 
 | Element | Copy |
 |---|---|

@@ -1,0 +1,74 @@
+name: verify
+
+# Why this exists: on 2026-09-18 the verification scripts were wedged into
+# `npm run build` and every Vercel deployment failed, with no local repro and
+# no readable build logs. The scripts came back off the deploy path and landed
+# here instead, where the logs can actually be read.
+# Background: docs/DECISIONS.md D-008.
+#
+# `npm run build` must stay `tsc -b && vite build`. Never add a shell script to it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Blocking. These are the two checks that were breaking the deploy.
+      - name: Privacy check
+        run: npm run privacy:check
+
+      - name: Token check
+        run: npm run tokens:check
+
+      - name: Build
+        run: npm run build
+
+      # Non-blocking: 9 pre-existing problems (4 errors) as of 2026-09-18.
+      # Clear those and this becomes blocking, and folds into `npm run verify`.
+      - name: Lint (informational)
+        run: npm run lint
+        continue-on-error: true
+
+      # The prose-leak guard from D-006 is silent when it breaks: the rules it
+      # lets through are valid CSS, just not ours. So assert the directives are
+      # still there, then assert on the built file.
+      - name: Assert the @source guards are present
+        run: |
+          MISSING=0
+          for SRC in '../*.md' '../docs/**/*.md' '../.cursorrules' '../.github/**'; do
+            grep -qF "@source not \"$SRC\"" src/index.css || {
+              echo "::error::Missing @source not \"$SRC\" in src/index.css"; MISSING=1; }
+          done
+          [ "$MISSING" = "0" ] || {
+            echo "See docs/DECISIONS.md D-006. Removing these silently ships junk CSS."; exit 1; }
+          echo "All four @source guards present."
+
+      - name: Assert no prose-leaked utilities in built CSS
+        run: |
+          CSS=$(find dist/assets -name '*.css' | head -1)
+          echo "Checking $CSS"
+          FOUND=0
+          for RULE in 'backdrop-filter' 'rounded-card' 'font-sans' 'invisible' 'bg-\[var'; do
+            if grep -qE "^\.${RULE}|[}]\.${RULE}" "$CSS"; then
+              echo "::error::Prose-leaked utility in production CSS: .$RULE"
+              FOUND=1
+            fi
+          done
+          if [ "$FOUND" = "1" ]; then
+            echo "The @source not directives in src/index.css are not holding. See docs/DECISIONS.md D-006."
+            exit 1
+          fi
+          echo "No prose-leaked utilities found."
