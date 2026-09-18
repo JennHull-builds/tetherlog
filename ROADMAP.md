@@ -100,13 +100,13 @@ Close remaining non-PWA PRODUCT.md v1 gaps only: Obsidian markdown export, tag b
 
 ### 6 — Ship (ops)
 
-GitHub `JennHull-builds/tetherlog` if not already public. Vercel from `main`. Screenshot in README. Tick the agent demo checklist in `PRODUCT.md`. HTTPS on Vercel is required before Android mic + Install work well.
+Ensure the GitHub repo is public. Vercel from `main`. Screenshot in README. Tick the agent demo checklist in `PRODUCT.md`. HTTPS on Vercel is required before Android mic + Install work well.
 
 ---
 
 ## Phase 7 — Voice (NEXT)
 
-Front-load the thinnest path to: **Jen can record on her Android phone today.** Writing lane and full PWA come after a usable recorder.
+Front-load the thinnest path to: **recording works on an Android phone today.** Writing lane and full PWA come after a usable recorder.
 
 ### STT options (Android Chrome)
 
@@ -301,7 +301,7 @@ Do not restyle screens. No App Store. UK English. Commit. Document Install + HTT
 
 ## Done means — agentic Review loop
 
-For Jen. The learning-lane agentic loop is shippable when:
+The learning-lane agentic loop is shippable when:
 
 - Parked captures reach Review; rule triage runs with no key; Gemini runs with BYOK and falls back to rules on failure.
 - Suggestions match the Zod triage schema; at most one carry-forward; decisions persist in Dexie.

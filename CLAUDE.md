@@ -1,5 +1,31 @@
 # CLAUDE.md
 
+> ## ⚠️ READ THIS FIRST: this repository is PUBLIC
+>
+> `github.com/…/tetherlog` is public and MIT licensed, and it stays that way. Everything committed
+> here is world-readable forever, including in git history after a later edit.
+>
+> **Never commit any of the following:**
+>
+> - **The owner's name, email, handle, or any personal identifier.** Refer to "the user", "the
+>   owner", or "the primary user". Never a real name, not even in a commit message.
+> - **Verbatim quotes from private conversation.** Carry the decision and the reasoning, never the
+>   words. "The warm palette was ruled out" is fine; quoting what was said is not.
+> - **Health, diagnosis or personal circumstance** beyond what the product spec already states about
+>   its intended audience. Never attributed to a person.
+> - **Absolute paths** (`/Users/…`, `/home/…`), machine names, or references to private
+>   repositories, notes systems or working directories outside this repo.
+> - **Keys, tokens, `.env` contents, API keys.** BYOK keys live in the user's browser only and must
+>   never be logged, committed, or included in an export.
+> - **Third-party images or media** collected as references. `docs/references/` is gitignored for
+>   exactly this reason.
+>
+> **Before every commit, check the diff for these.** A scrub after the fact does not remove anything
+> from git history; it only stops it getting worse.
+>
+> If a document genuinely needs personal context to be useful, it belongs in the owner's private
+> notes, not in this repo, and the public file should carry the conclusion only.
+
 Binding rules for TetherLog. Read this before touching anything.
 
 `.cursorrules` covers the same ground for Cursor and Claude Code does not load it automatically,

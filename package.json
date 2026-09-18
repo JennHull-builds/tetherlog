@@ -7,9 +7,10 @@
     "dev": "vite",
     "tokens": "node scripts/build-tokens.mjs",
     "tokens:check": "bash scripts/check-tokens.sh",
-    "build": "npm run tokens:check && tsc -b && vite build",
+    "build": "npm run privacy:check && npm run tokens:check && tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "privacy:check": "bash scripts/check-privacy.sh"
   },
   "dependencies": {
     "dexie": "^4.0.11",

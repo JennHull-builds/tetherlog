@@ -16,7 +16,7 @@ Most apps get this wrong: they "help" at capture time and become another distrac
 **Rules:**
 1. **Capture is dumb and fast** — no AI analysis, no questions, no triage. Park and leave.
 2. **Always within reach** — phone-first. One tap from home/lock/widget → choose capture mode → go.
-3. **Voice is fundamental** — not a nice-to-have. Text alone will not make this useful for Jen. See [Voice capture](#voice-capture).
+3. **Voice is fundamental** — not a nice-to-have. Text alone will not make this useful for the primary user. See [Voice capture](#voice-capture).
 4. **Writing is a first-class capture lane** — blog seeds, essay rants, half-formed posts. Park fast; organise in Review. See [Writing lane](#writing-lane).
 5. **Review is the agent** — triage, wins, patterns happen here, not mid-task.
 6. **Hands export the outcome** — `do` items leave the app (calendar, clipboard, share, email).
@@ -32,15 +32,15 @@ Most apps get this wrong: they "help" at capture time and become another distrac
 Phone (always) → one tap → pick mode → Park → gone
 ```
 
-**Availability:** Must live on the phone. Installable PWA (or native shell later). Goal: one click from wherever she is, then decide *what* to capture. Details and labels are optional — only when she has time.
+**Availability:** Must live on the phone. Installable PWA (or native shell later). Goal: one click from wherever the user is, then decide *what* to capture. Details and labels are optional — only when there is time.
 
-**Jen's device:** **Android-first.** Chrome → Install / Add to Home Screen is the daily path. iOS is secondary compatibility, not the design target.
+**Target device:** **Android-first.** Chrome → Install / Add to Home Screen is the daily path. iOS is secondary compatibility, not the design target.
 
 **Two capture modes (same product, different duration):**
 
 | Mode | When | Input | Depth |
 |------|------|--------|--------|
-| **Quick** | Mid-task hijack | Text *or* short voice | One tap park. Optional tag/label if she has a second. |
+| **Quick** | Mid-task hijack | Text *or* short voice | One tap park. Optional tag/label if there is a second to spare. |
 | **Long** | Idea dump / blog babble | Voice primary (10+ min ok) | Record freely; transcript lands with the capture. Labels later or at end. |
 
 **Quick (text):**
@@ -51,7 +51,7 @@ Phone (always) → one tap → pick mode → Park → gone
 - Keyboard-first on desktop: `/` or tap to focus, Enter to park, immediately ready for next or dismiss
 - Works offline for text park (PWA)
 
-**Progressive detail:** Capture never requires labels. If she has time, she can add tags / a bit more text / finish the recording. If she doesn't, one tap is enough.
+**Progressive detail:** Capture never requires labels. If there is time, add tags / a bit more text / finish the recording. If not, one tap is enough.
 
 ### Voice capture
 
@@ -74,7 +74,7 @@ Phone (always) → one tap → pick mode → Park → gone
 
 ### Writing lane
 
-Jen's blog side quest (~3h/week) needs TetherLog to **capture and organise writing stuff**, not only random distractions.
+A blog side quest (~3h/week) needs TetherLog to **capture and organise writing stuff**, not only random distractions.
 
 **At capture (still dumb):**
 - Optional tag/label: `write` (or equivalent) — never required
@@ -143,7 +143,7 @@ Every review suggestion must return this shape (Zod):
 }
 ```
 
-`write` = blog/essay seed — organise later, don't treat as a calendar `do` unless she promotes it.
+`write` = blog/essay seed — organise later, don't treat as a calendar `do` unless promoted.
 
 Batch review returns `{ items: [...], summary: { do: n, later: n, drop: n, wonder: n, write: n } }`.
 
@@ -264,8 +264,8 @@ Untriaged captures aren't failure. Parked thoughts, not homework.
 
 - 2026-08-25: Phase 7B Voice MVP — audio parks in Dexie; Web Speech best-effort; Review replay. Capture still dumb; no key required.
 - 2026-08-25: Roadmap Phase 7A locked — Voice MVP next (Web Speech best-effort; BYOK STT API TBD in 7C spike). Capture stays usable with no key.
-- 2026-08-25: Jen locked **Android-first** PWA install path (Chrome home screen). iOS secondary.
-- 2026-08-25: Writing lane locked — capture + organise blog/essay seeds (`write` bucket/tag, seed export). Feeds Jen's blog side quest.
-- 2026-08-25: Jen locked product intent — distraction-sheet job, phone always-available, one-tap then optional depth, **voice + transcript as fundamental** (quick park + long babble). Spec updated; UI build still parked until she unparks it.
+- 2026-08-25: Locked **Android-first** PWA install path (Chrome home screen). iOS secondary.
+- 2026-08-25: Writing lane locked — capture + organise blog/essay seeds (`write` bucket/tag, seed export). Feeds the blog side quest.
+- 2026-08-25: Product intent locked — distraction-sheet job, phone always-available, one-tap then optional depth, **voice + transcript as fundamental** (quick park + long babble). Spec updated; UI build still parked until unparked.
 - 2026-08-17: Spec locked. Client-side BYOK architecture. Hands via browser APIs.
 - 2026-08-21: Agentic Review loop marked done — see `ROADMAP.md` "Done means".
