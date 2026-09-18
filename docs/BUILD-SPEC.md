@@ -18,7 +18,8 @@
 > **What to ignore:** every mention of planes, `wdth`, `distance`, near/mid/far as a depth model,
 > and the elevation scale factors.
 >
-> Section 3's phase acceptance criteria carry the same problem and are marked where they do.
+> **Phases 3 and 4 in section 3 have been rewritten against `docs/LOOK.md`** and are current.
+> Phases 5 to 7 are largely direction-agnostic and were corrected where they named a dead token.
 
 When a phase completes, its section here is deleted and replaced by a decision entry in
 `docs/DECISIONS.md`. This file should shrink to nothing.
@@ -370,74 +371,135 @@ Phases 1 and 2 are done. Their evidence is in the commits and summarised in `doc
 
 ---
 
-**Phase 3: the new palette and the new type**
+**Phase 3: the ground, the type and the chrome**
 
-> **Rework required before starting.** The acceptance criteria below test Depth Field: a width axis
-> and distinguishable planes. Neither exists in the gravity-well direction. Rewrite them against
-> `docs/LOOK.md` first. What still holds: every screen goes dark, nothing fails AA, `theme-color`
-> matches `--tl-mark`, fonts stay under 90 KB.
+*Files:* `src/tokens/tokens.json`, `src/index.css`, `index.html`,
+`public/manifest.webmanifest`, `public/favicon.svg`, `public/fonts/*`, the four views for copy
 
-*Files:* `src/tokens/tokens.json`, `index.html`, `public/manifest.webmanifest`,
-`public/favicon.svg`, `public/fonts/*`
+*Does:* the dark ground, the five-step type scale, self-hosted Geist, the corrected copy and the
+PWA chrome. **No shader and no motion work in this phase.** Components stay structurally as they
+are, so this is a recolour, a retypeset and a copy fix.
 
-*Does:* the real colours from section 1, self-hosted subset fonts, PWA chrome corrected, favicon replaced.
-Components still structurally as they are, so this phase is a recolour and a retypeset only.
+*Source of truth:* `docs/LOOK.md`, sections **Typography**, **Copy** and **Standing rules**.
 
-*Acceptance:*
-- Every screen is **dark**. Side by side with phase 2 the difference is not subtle.
-- Headlines are visibly **wider than the body text**. If they are not, the variable width axis is not
-  applying, which is this direction's version of the font that never loaded.
-- The near plane is distinguishable from the ground in the 390px screenshot. If the whole screen
-  reads as one flat black, the plane values are too close and need opening up.
-- No text on any screen fails AA. Check the Park button, "Logged.", and the carry-forward line
-  specifically; those are the three that failed before.
-- `theme-color` in `index.html`, `theme_color` in the manifest and `--tl-mark` are the same string.
-- The favicon at 32px is warm, square-cornered, and recognisably the same product as the app.
-- Font transfer on a cold load is **under 90 KB** total, from the network panel.
+*Open question to settle before starting:* `docs/LOOK.md` leaves **light ground or dark** open, and
+proposes dark. Eight of nine still references are near white; the video that matches the product
+almost exactly is pure black. **The mechanism works on both**: on light the field is a depression
+that bends a fine grid or grain rather than a starfield. Settle this first, because the whole
+palette follows from it.
+
+*Acceptance, from the screenshots:*
+
+- Every screen is on the chosen ground and, side by side with Phase 2, the difference is not
+  subtle.
+- **Radius is generous everywhere.** No `0px` corners survive. If any element still has square
+  corners it is reading from a dead token.
+- **The headline is visibly Geist, not `system-ui`.** Put a system-ui screenshot beside it. This is
+  the specific gotcha that already cost this repo months: naming a font does not load it, and the
+  fallback is always plausible. Fonts are self-hosted, never `fonts.googleapis.com`.
+- **Exactly five type sizes exist on any screen**: 11, 13, 15, 17 and 34px. Any sixth is a bug.
+  Grep the built CSS for `font-size` declarations and count the distinct values.
+- The display headline is **weight 300 at 34px**, not 200. At 200 it is spindly and the screen has
+  no anchor.
+- **Mono appears in exactly two places: the parked count and the navigation.** Nowhere else.
+- Chips are **sentence case in the body face**, not tracked mono caps. They are choices a person
+  makes, not machine output.
+- The capture field is **never below 17px**.
+- **Colour appears once per screen**, on the primary action. Bucket hues are markers, not surfaces.
+- No text on any screen fails AA. Check the Park button, the confirm word and the carry-forward
+  line specifically; those are the three that failed before.
+
+*Acceptance, copy:*
+
+- The confirm word is **"Parked."**, not "Logged." `PRODUCT.md` has always specified this and the
+  shipped app followed the deleted `DESIGN.md`.
+- Headline "What's pulling you?", sub-line "Park it. Sort it tonight.", placeholder "One line is
+  enough", count in the form "3 parked today".
+
+*Acceptance, mechanical:*
+
+- `theme-color` in `index.html`, `theme_color` in the manifest and the ground token are the same
+  string. Installed on Android the browser chrome must not be a different colour from the app.
+- The favicon at 32px is recognisably the same product as the app.
+- Font transfer on a cold load is **under 90 KB** total from the network panel. `docs/LOOK.md`
+  budgets 51.3 KB for the Geist and Geist Mono latin subsets, so anything near 90 KB means the
+  subset did not apply.
+- JS gzip unchanged. This phase adds no JavaScript.
 
 ---
 
 **Phase 4 ●: Capture, the well and the arc**
 
-> **Rework required before starting.** This phase was specified around a `Plane` primitive, which
-> the direction no longer has. The four moments in `docs/LOOK.md` replace it: at rest the field has
-> mass and space is bent around it; on focus it gains mass; on commit the well collapses inward and
-> the thought falls in; after, space relaxes. The optimistic park (D-004), the double-park
-> requirement and the forced-failure recording all still apply unchanged.
-
 *Files:* `src/components/ui/Field.tsx`, `src/components/ui/Button.tsx`,
-`src/components/ui/Chip.tsx`, `src/views/CaptureView.tsx`, plus a new peek-stack component
-(the old `LogStack.tsx` was deleted on 2026-09-18 as unused; rebuild it against the chosen
-direction rather than restoring it)
+`src/components/ui/Chip.tsx`, `src/views/CaptureView.tsx`, a new shader layer, plus a new
+peek-stack component (the old `LogStack.tsx` was deleted 2026-09-18 as unused; rebuild it against
+this direction rather than restoring it)
 
-*Does:* the `Plane` primitive and all four moments, plus the optimistic park from `docs/DECISIONS.md`
-D-004, which is approved. `Plane` is the component that owns the depth illusion: one `distance` prop sets background,
-type width, ink colour and scale together, so they can never drift apart.
+*Does:* the gravity well and all four moments, plus the optimistic park from `docs/DECISIONS.md`
+D-004. **This is the phase the whole direction rests on.**
+
+*The mechanism, from `docs/LOOK.md`:* a single fullscreen fragment shader, two triangles, no
+library, roughly 4 KB of JavaScript and GLSL. The field is not raised and not recessed. It is
+heavy, and space bends around it.
+
+*The four moments:*
+
+| Moment | What happens |
+|---|---|
+| At rest | The field has mass. Space is bent around it, held still. |
+| On focus | It gains mass. The bend deepens, the rim brightens. |
+| On commit | A pulse: the well briefly collapses inward and the thought falls in. |
+| After | Space relaxes back to rest. The log below is one row longer. |
 
 *Acceptance, from the screenshots:*
-- At 390px the capture field is **the only element above the fold**, with the headline. Park, chips
-  and the peek stack are all below it or just at it.
-- The bucket chips are **legible at 12px** in the 390px screenshot, without zooming.
-- The **rest and focus screenshots are visibly different**: the focused plane is lighter, slightly
-  larger, and the accent focus bar is present. Two PNGs settle this with no judgement call.
-- The peek stack rows get **visibly narrower and dimmer** going down. If all three rows look the
-  same, the depth mechanism is not wired.
-- Accent appears in exactly **one** place on the screen, the Park button.
-- At 1280px the content is left-aligned in a 32rem column, not centred.
+
+- At 390px the capture field is **the only element above the fold**, with the headline.
+- **The distortion is visible in a still.** Stars or grain near the field are dragged into arcs. If
+  a static screenshot looks like a plain field on a plain ground, the effect is not working, and
+  this is the one thing a recording cannot settle better than a still.
+- **Rest and focus screenshots are visibly different**: the bend is deeper and the rim brighter on
+  focus. Two PNGs settle this with no judgement call.
+- **One light source, one direction, on every element.** Two angles collapses the illusion into
+  neumorphism.
+- Accent appears in exactly **one** place, the Park button.
+- The peek stack reads as behind the field without using a shadow attached to its edge.
 
 *Acceptance, from the recordings:*
-- Full arc: the field is typeable **before** the commit animation ends. Watch the caret, not the card.
-- Nothing whatsoever moves while typing.
-- Reduced-motion recording: rest, focus, commit and settle are all still distinguishable, the parked
-  line appears in the stack, the count increments, and "Logged." holds for about a second.
-- Double-park: two thoughts in under a second. **No queue, no pile-up, no delay before the second
-  field is usable.** Two elements may be in flight at once; a third replaces the oldest with no
-  animation.
-- **Force a park failure** (throw from `parkCapture` in devtools) and record it: the text must come
-  back into the field with an error, and a `console.warn` must carry the text. This is the D-004
-  recovery path and it is the one thing on this screen that cannot ship untested.
+
+- Full arc: the field is typeable **before** the commit animation ends. Watch the caret, not the
+  field.
+- **Nothing whatsoever moves while typing**, and **nothing loops at rest.** Record ten seconds of
+  an idle focused field: every frame must be identical. A drifting starfield is an ambient loop and
+  breaks `PRODUCT.md`.
+- Double park: two thoughts in under a second. No queue, no pile-up, no delay before the second
+  field is usable.
+- Reduced motion: all four moments still distinguishable by state, the parked line appears without
+  travelling, the count increments, and the confirm word holds about twice as long because it is
+  carrying more of the answer. The commit light does not fire at all, because a flash with no
+  travel is a strobe.
+- **Force a park failure** (throw from `parkCapture` in devtools) and record it: the text comes back
+  into the field with an error, and a `console.warn` carries the text. This is the D-004 recovery
+  path and it is the one thing on this screen that cannot ship untested.
+
+*Acceptance, mechanical. These are the ones that catch a plausible-looking failure:*
+
+- **No `requestAnimationFrame` loop exists.** Instrument it: wrap `rAF` and assert it is not called
+  while the screen is idle. "It looks still" is not evidence.
+- **Capture never waits on the GPU.** Throttle to the slowest CPU preset and confirm the field is
+  focusable and typeable before the canvas has painted. The field is real DOM; the lens layers in
+  behind it.
+- **Disable WebGL and confirm nothing functional is lost.** Roughly 2% of devices land here. They
+  get the field without the lens.
+- The shader layer adds **no animation library and no WebGL library**. Three.js is about 170 KB
+  gzipped, regl about 30 and OGL about 13, and none is needed for a scene with no geometry, no
+  textures and no loader.
+- JS gzip **≤ 130 KB**. It is 114.50 KB today with about 15 KB of headroom, and React is held back
+  at 19.2.8 specifically to keep it (D-010). Record the number in the commit.
+- Do not reach for a Canvas 2D approximation as a cost saving. It was tried, it was not good
+  enough, and there was no cost to save.
 
 ---
+
 
 **Phase 5: Review**
 
@@ -447,8 +509,10 @@ type width, ink colour and scale together, so they can never drift apart.
 - At 390px **one triage card fills the view** with the next just visible at the fold. Not a list.
 - Bucket colour is visible as a leading-edge bar and is **never the only carrier** of a state: the
   carry-forward line reads without colour.
-- Confirm is the one accent element per card; the override chips sit further back until chosen.
+- Confirm is the one accent element per card; the override chips recede until chosen. **Recede by
+  value and weight, not with a shadow on the edge and not with a Depth Field plane.**
 - The Hands row wraps without overflow at 390px.
+- The confirm copy agrees with Capture. If Capture says "Parked.", nothing here says "Logged."
 
 ---
 
@@ -457,10 +521,12 @@ type width, ink colour and scale together, so they can never drift apart.
 *Files:* `src/views/PatternsView.tsx`, `src/views/SettingsView.tsx`
 
 *Acceptance:*
-- Patterns numerals are in the display face at `--text-3xl` and legible from arm's length in the
-  390px screenshot.
-- The ruled ground is present and measures under 1.5:1 against the page. It should be perceptible and
-  never something you read.
+- Patterns numerals are in the display face at the 34px display step, legible from arm's length in
+  the 390px screenshot. **Only the five sizes from `docs/LOOK.md` exist**; `--text-3xl` was a Depth
+  Field token and is dead.
+- Any ground texture measures under 1.5:1 against the page: perceptible, never something you read.
+  The ruled variant came from the rejected Monolith direction, so if a texture is used here it
+  follows the gravity-well grain, not rules.
 - **No dial, no gauge, no target, no change arrow, no day-over-day comparison, and no sequence chart
   of daily counts** anywhere in the screenshot.
 - The 24-slot hour distribution is readable at 390px; empty hours are visible as empty, not absent.
@@ -470,9 +536,10 @@ type width, ink colour and scale together, so they can never drift apart.
 
 **Phase 7: sweep and document**
 
-*Files:* `README.md`, `.cursorrules`, `CLAUDE.md`, `docs/DECISIONS.md`, this file
+*Files:* `README.md`, `CLAUDE.md`, `docs/DECISIONS.md`, this file
 
-*Does:* `.cursorrules` updated, README screenshot refreshed. **Every completed phase section is
+*Does:* README screenshot refreshed. There is no `.cursorrules` in this repo and one is not being
+added; `CLAUDE.md` is the only rule file. **Every completed phase section is
 deleted from this file** and replaced by a decision entry in `docs/DECISIONS.md`. If Phases 3 to 6
 all landed, this file is deleted entirely.
 

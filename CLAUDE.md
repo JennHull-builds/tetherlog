@@ -51,9 +51,10 @@ before any visual work. Three rules from it that contradict everything written b
 - **Never same-colour-as-ground plus two soft shadows.** That is neumorphism and it is the one thing
   explicitly rejected.
 
-Phases 1 and 2 are **done and pushed**. The direction was approved on 2026-09-18, so Phase 3 is
-unblocked, but **Phases 3 and 4 were specified against the dead Depth Field direction and need
-rewriting against `docs/LOOK.md` before they start.** `docs/BUILD-SPEC.md` marks exactly where.
+Phases 1 and 2 are **done and pushed**. The direction was approved on 2026-09-18 and **Phases 3
+and 4 have been rewritten against `docs/LOOK.md`**, so Phase 3 can start. One thing is still open
+inside it: `docs/LOOK.md` leaves **light ground or dark** undecided and proposes dark. Settle that
+before the palette, because everything else follows from it.
 
 ---
 
