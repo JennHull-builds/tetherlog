@@ -258,9 +258,14 @@ of them can be caught by an automated check:
 11. **Never animate `font-variation-settings`.** It forces a text relayout every frame. Width steps
     between token values at the transition boundary; it does not tween.
 
-Enforced by `npm run tokens:check`, which runs inside `npm run build` so it fails identically here
-and on Vercel, plus `no-restricted-syntax` rules in `eslint.config.js` for a message at the point of
-the mistake.
+Enforced by **`npm run verify`** (privacy check, token check, lint), plus `no-restricted-syntax`
+rules in `eslint.config.js` for a message at the point of the mistake.
+
+**`verify` is deliberately NOT part of `npm run build`.** It was, and every Vercel deployment from
+2026-09-18 failed while a clean local clone with `npm ci` and `CI=1 VERCEL=1` built green. Rather
+than guess, the checks were moved off the deploy path as a controlled experiment. **Run
+`npm run verify` before every push.** If the root cause is found and it was not these scripts, they
+can go back into `build`.
 
 ---
 
