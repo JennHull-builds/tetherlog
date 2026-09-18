@@ -157,3 +157,49 @@ field feel occupied rather than something that congratulates you for using it.
    is the one thing explicitly rejected.
 5. **Depth is what an object does to its surroundings**, not what is attached to its edge.
 6. **Nothing loops.** Static at rest, always. The distortion redraws on state change only.
+
+---
+
+## Typography
+
+Locked 2026-09-18 after the direction was approved.
+
+**Five steps, and nothing on a screen may use a size that is not one of them.** The scale is
+declared once as custom properties and everything reads from it.
+
+| Token | Size | Job |
+|---|---|---|
+| `--t-micro` | 11px | Mono labels only: the parked count, the navigation |
+| `--t-small` | 13px | The sub-line, chip labels |
+| `--t-body` | 15px | Parked items in the log |
+| `--t-input` | 17px | The capture field. **Never smaller.** |
+| `--t-display` | 34px | The one headline per screen |
+
+**Rules that came out of the first pass being wrong:**
+
+1. **The display face is weight 300, not 200.** At 200 a 26px headline is spindly and the screen has
+   no anchor. At 300 and 34px it is quiet *and* confident, which is the difference.
+2. **Mono is for two things only: the count and the navigation.** The first pass had four
+   near-identical tracked-caps mono labels at 0.56, 0.60, 0.60 and 0.64rem. They did not
+   differentiate, and all-caps mono everywhere is a tic rather than a system.
+3. **Chips are sentence case in the body face.** They are choices a person makes, not machine output.
+4. **Tracking tightens as size grows**: -0.032em at display, -0.006em at input, +0.15em on mono
+   micro labels.
+5. **The capture field never goes below 17px.** It is the one place a person types while distracted.
+
+## Copy
+
+The confirm word is **"Parked."** `PRODUCT.md` has always specified this. The shipped app says
+"Logged." because it followed `DESIGN.md`, which is superseded. `PRODUCT.md` wins.
+
+| Element | Copy |
+|---|---|
+| Headline | What's pulling you? |
+| Sub-line | Park it. Sort it tonight. |
+| Placeholder | One line is enough |
+| Confirm | Parked. |
+| Count | 3 parked today |
+
+The sub-line does two jobs in five words: it tells you to let go, and it tells you what happens next,
+which is the thing that makes letting go safe. Voice stays warm, literal, spare, UK English. No
+streaks, no praise, nothing that rewards coming back to look.
