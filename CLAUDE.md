@@ -70,7 +70,7 @@ Tone: warm, literal, spare. This repo is public, so keep em dashes sparse in any
 
 ### If a parked thought goes missing, start here
 
-**Park does not wait for IndexedDB.** Approved by Jen on 2026-09-18. The field clears and refocuses
+**Park does not wait for IndexedDB.** Decided 2026-09-18. The field clears and refocuses
 synchronously the moment Park is pressed, and the database write settles behind it. This is the one
 place in the app where the UI says "done" before the disk does.
 

@@ -75,7 +75,7 @@ Bucket and tag hues are app-level, defined as raw hex in `src/index.css`:
 | accent `#0241e3` | `#3b6ef5` | A visibly different, lighter, less saturated blue |
 | `2px` borders everywhere | `1.5px` | Thinner |
 
-The accent drift is the expensive one. `#0241e3` was chosen and locked by Jen. It passes AA as text
+The accent drift is the expensive one. `#0241e3` was the chosen and locked value. It passes AA as text
 on the ground at 6.54:1 and AAA with white on it at 7.32:1. The rendered `#3b6ef5` fails both, at
 3.96:1 and 4.44:1. **The documented decision was accessible and the shipped one is not**, and nobody
 looked at the difference, because the doc was read instead of the tokens.
@@ -349,10 +349,9 @@ win. The lesson is in `CLAUDE.md`: **never add an unlayered global reset to a Ta
 
 ### 1.11 The optimistic park
 
-**Approved by Jen on 2026-09-18**, with one condition, in her words: *"Just make damn sure you
-document that very well, because if that starts presenting problems we need to know where to look."*
-This subsection is that documentation. It is deliberately longer than the change deserves, because
-the failure it can produce is a **silently lost capture**, and a silently lost capture in a
+**Approved 2026-09-18**, on the condition that it is documented thoroughly enough to debug under
+pressure. This subsection is that documentation. It is deliberately longer than the change deserves,
+because the failure it can produce is a **silently lost capture**, and a silently lost capture in a
 capture app is the worst bug the product can have.
 
 #### What it is today
@@ -644,11 +643,9 @@ the whole block and the lint exemption go together.
 ## 3. Three design directions
 
 **Superseded 2026-09-18, second pass.** The first pass proposed warm stock in three
-variations. Jen ruled the warm palette out and lifted every remaining constraint:
-
-> "All of the old things are out. You do not need to worry about any card stock or accent
-> colours. I do not like the warm feel you currently got going. I imagine something a bit more
-> like the illusion of depth and space, and dramatic but minimalist. Modern and sleek."
+variations. The warm palette was ruled out and every remaining constraint lifted: no card stock, no
+inherited accent, no carried-over colour. The brief became depth and space, dramatic but minimalist,
+modern and sleek.
 
 So: cool, dark, minimal, and depth is the whole subject. Nothing below carries anything over
 from the first pass except the product constraints and the motion arc, which are not aesthetic
@@ -870,8 +867,8 @@ semantics get `--tl-` plus the path with the leading `semantic.` stripped.
 
 DTCG format, `$value` / `$type` / `$description`.
 
-**These values are Direction C, Depth Field**, the recommendation. If Jen picks Aperture or
-Monolith instead, the `color`, `type` and `elevation` primitives swap wholesale and everything else
+**These values are Direction C, Depth Field**, the recommendation. If Aperture or
+Monolith is chosen instead, the `color`, `type` and `elevation` primitives swap wholesale and everything else
 in this section stands unchanged, which is the point of the two-layer split. The semantic role names
 were chosen so they survive that swap: `near`, `mid`, `far` describe distance, not a specific
 palette, and they read sensibly under any of the three directions.
@@ -1852,7 +1849,7 @@ then `PRODUCT.md`. `DESIGN.md` is historical and not binding; read it only to kn
 replaced.
 
 **Start on Phase 1**, the NIL rip-out. It is the only phase that touches no design decision, so it is
-safe to build before the direction is confirmed if Jen wants progress while deciding.
+safe to build before the direction is confirmed.
 
 **Phase 1 is accepted when** the 390px and 1280px screenshots are pixel-identical to the phase 0
 baseline apart from missing button hover and focus states, the 1280px page gutters are still warm

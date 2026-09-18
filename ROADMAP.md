@@ -41,7 +41,7 @@ Work **in the tetherlog repo**. New chat per phase. `@` the files, paste the pro
 
 ## Phase 0 — Drop these files into the app repo
 
-Copy from this folder into `/Users/jennifer/tetherlog`:
+Copy from this folder into the `tetherlog` repo:
 
 | This file | Lands as |
 |-----------|----------|

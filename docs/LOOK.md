@@ -2,9 +2,9 @@
 
 **The visual direction, derived from images rather than adjectives.**
 
-Written 2026-09-18 from twelve references Jen collected. This file exists because the look had been
-described in words three times, in three tools, and words like "modern", "sleek" and "minimal" map
-to hundreds of different screens. It is binding. `CLAUDE.md` points here.
+Written 2026-09-18 from a set of twelve visual references. It exists because the look had previously
+been specified in adjectives, and words like "modern", "sleek" and "minimal" map to hundreds of
+different screens. It is binding. `CLAUDE.md` points here.
 
 The references themselves live in `docs/references/` and are **not committed**: they are third-party
 images and video, and this repo is public and MIT. This file is the durable artefact.
@@ -13,13 +13,13 @@ images and video, and this repo is public and MIT. This file is the durable arte
 
 ## The one thing to get right
 
-Jen's words: *"I am scared of this being thrown back to 2010s neumorphism, so I hope it makes sense
-where I want to go with that, but more current and clever."*
+The direction lives in soft, lit, dimensional territory **without** becoming neumorphism, which is
+explicitly rejected.
 
-Three of the twelve references *are* neumorphism. Five are sculptural. **The gap between them is the
+Three of the twelve references *are* neumorphic. Five are sculptural. **The gap between them is the
 whole brief**, and it is specific enough to write down:
 
-| | Neumorphism (the fear) | Sculpture (the target) |
+| | Neumorphism (rejected) | Sculpture (the target) |
 |---|---|---|
 | Object colour | Same as the ground | Distinct in value or hue |
 | Light | Two soft shadows, opposite corners | **One** source, one direction, consistent everywhere |
@@ -69,8 +69,8 @@ exactly the budget TetherLog has: nothing at rest, everything at the handover.
 
 ## The closest reference, and the direction
 
-Jen sent one link separately, with enthusiasm: George Hastings on the **Krea agent** UI, captioned
-*"I sure do like me some gravity distortion shaders."*
+The closest single reference is the **Krea agent** UI, noted publicly for its gravity distortion
+shader (George Hastings, @soulegit).
 
 It is, almost exactly, TetherLog's home screen:
 
@@ -107,19 +107,36 @@ The resolution is not a compromise. **The field is static at rest.** Star positi
 and the distortion is a still warp, redrawn only when the mass changes, which is at the four moments
 and nowhere else. No `requestAnimationFrame` loop, no drift, no shimmer.
 
-That also settles the cost question: **no WebGL, no shader, no library.** A Canvas 2D pass that
-displaces pre-computed star positions by a lens function runs once per state change. It is a few
-hundred bytes of maths and it is idle the rest of the time, which is what an installable PWA on a
-mid-range Android needs.
+### Cost, corrected
+
+An earlier draft of this file rejected WebGL on bundle grounds. **That was wrong.** A single
+fullscreen fragment shader needs no library at all: two triangles, one shader, roughly **4 KB** of
+JavaScript and GLSL. For comparison, Three.js is about 170 KB gzipped, regl about 30 KB and OGL about
+13 KB, and none of them is needed for a scene with no geometry, no textures and no loader.
+
+The real costs, which are modest:
+
+- **GPU time during transitions only**, roughly 230 to 320ms per interaction, then idle. Not a
+  persistent 60fps loop, which is the thing that actually drains a phone.
+- **Context creation, 10 to 40ms.** Mitigated by architecture: the capture field is real DOM and
+  works the instant the page does. The lens layers in behind it. Capture never waits on the GPU.
+- **No WebGL on roughly 2% of devices.** They get the field without the lens and lose nothing
+  functional.
+- **WebGL cannot sample the DOM**, so it cannot refract real page content. It works here only because
+  the background is procedural and the shader owns it. That is a genuine constraint on where the
+  effect can be used, not a cost.
+
+A Canvas 2D approximation was tried first and was not good enough. Do not reach for it again as a
+cost saving, because there was no cost to save.
 
 ---
 
-## Open, and Jen decides
+## Open questions
 
 **Light ground or dark.** Eight of the nine still references are near-white. The video that matches
 the product almost exactly is pure black. The mechanism works on both: on light, the field is a
 depression that bends a fine grid or grain rather than a starfield. Dark is proposed, because it is
-what she reacted to most strongly and because a warm-white ground is explicitly ruled out.
+what the closest reference does and because a warm-white ground is explicitly ruled out.
 
 **Whether one moment of character is wanted.** The Ask Agent pill and the Next badge both put a small
 piece of personality on a utility control. TetherLog's rules forbid celebration and anything that
