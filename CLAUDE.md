@@ -20,6 +20,11 @@
 > - **Third-party images or media** collected as references. `docs/references/` is gitignored for
 >   exactly this reason.
 >
+> **Commits are authored under a GitHub noreply address**, set locally for this repo
+> (`git config --local user.email`). Do not commit with a personal email. `npm run build` warns if
+> the identity drifts. Note that commits made before 2026-09-18 still carry a personal address in
+> git history; that is known and was accepted rather than rewriting published history.
+>
 > **Before every commit, check the diff for these.** A scrub after the fact does not remove anything
 > from git history; it only stops it getting worse.
 >

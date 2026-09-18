@@ -34,5 +34,21 @@ if [ -n "$media" ]; then
   fail=1
 fi
 
+# ── 3. Commit identity ─────────────────────────────────────────────────
+# This repo is public, so it commits under a GitHub noreply address rather
+# than a personal one. Warn, never fail: CI has no git identity configured,
+# and every commit before 2026-09-18 predates this rule.
+if [ -z "${CI:-}" ] && [ -z "${VERCEL:-}" ]; then
+  email=$(git config user.email 2>/dev/null || true)
+  case "$email" in
+    *users.noreply.github.com|"") ;;
+    *)
+      echo "⚠ git user.email for this repo is '$email', not a GitHub noreply address." >&2
+      echo "  This repo is public. Fix with:" >&2
+      echo "    git config --local user.email '<id>+<login>@users.noreply.github.com'" >&2
+      ;;
+  esac
+fi
+
 [ "$fail" -eq 0 ] && echo "✓ no personal identifiers, absolute paths or reference media tracked"
 exit "$fail"
