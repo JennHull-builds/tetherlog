@@ -51,7 +51,9 @@ before any visual work. Three rules from it that contradict everything written b
 - **Never same-colour-as-ground plus two soft shadows.** That is neumorphism and it is the one thing
   explicitly rejected.
 
-Phases 1 and 2 are **done and pushed**. Phase 3 onward needs the direction confirmed.
+Phases 1 and 2 are **done and pushed**. The direction was approved on 2026-09-18, so Phase 3 is
+unblocked, but **Phases 3 and 4 were specified against the dead Depth Field direction and need
+rewriting against `docs/LOOK.md` before they start.** `docs/BUILD-SPEC.md` marks exactly where.
 
 ---
 
@@ -282,17 +284,25 @@ src/index.css  @theme             maps semantics to Tailwind utilities
 7. **Motion springs are named for the moment in the arc they serve**, not for their shape:
    `focus`, `commit`, `settle`, `dismiss`. A token called `bouncy` has lost the plot.
 
-**If the direction is Depth Field** (recommended, not yet confirmed), four more rules apply, and none
-of them can be caught by an automated check:
+**The direction is the gravity well**, approved 2026-09-18 and specified in `docs/LOOK.md`. Four
+more rules apply, and none of them can be caught by an automated check:
 
-8. **Plane, type width and ink move together or not at all.** Use the `Plane` primitive and its
-   `distance` prop. Setting a plane background without the matching width and ink breaks the depth
-   illusion and looks like a bug nobody can name.
-9. **`--tl-ink-far` is non-text only.** 3.50:1. Clears WCAG 1.4.11 for non-text, fails AA for body
-   copy, deliberately. Anything the user must read moves forward a plane and gains contrast with it.
-10. **Scale and width are never a focus indicator.** Focus is `--tl-focus-bar` at 8.33:1, always.
-11. **Never animate `font-variation-settings`.** It forces a text relayout every frame. Width steps
-    between token values at the transition boundary; it does not tween.
+8. **Depth is what an object does to its surroundings.** The field bends the starfield around it;
+   it is not raised, not recessed, and never carries a shadow attached to its edge. Same-colour-
+   as-ground plus two soft shadows is neumorphism and is the one thing explicitly rejected.
+9. **The field is static at rest.** Star positions are computed once and the warp is redrawn only
+   at the four moments. No `requestAnimationFrame` loop, no drift, no shimmer. An ambient loop in
+   the capture path breaks `PRODUCT.md`.
+10. **Capture never waits on the GPU.** The field is real DOM and works the instant the page does;
+    the lens layers in behind it. Roughly 2% of devices get no WebGL and must lose nothing
+    functional.
+11. **Scale is never a focus indicator**, and never animate `font-variation-settings`: it forces a
+    text relayout every frame.
+
+**Depth Field is dead.** An earlier plan recommended it (planes at distances, a variable font width
+axis carrying the z-axis, a `Plane` primitive). `docs/LOOK.md` superseded it. If you find an
+instruction referencing planes, `distance` props or the width axis, it predates 2026-09-18. See
+`docs/DECISIONS.md` D-007.
 
 Enforced by **`npm run verify`**, which runs the privacy check and the token check. **It does not
 run lint**, because `npm run lint` currently reports 9 pre-existing problems (4 errors, all

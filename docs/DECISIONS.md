@@ -27,9 +27,9 @@ into `docs/BUILD-SPEC.md`. `git log` has the original if it is ever wanted.
 | | |
 |---|---|
 | Phases 1 and 2 | Done and pushed, 2026-09-18 |
-| Phase 3 onward | Blocked on the design direction |
-| Design direction | **Not confirmed.** Depth Field recommended. See D-007. |
-| Live palette | Still NIL's light values, on purpose. Phase 3 swaps them. |
+| Phase 3 onward | Not started. Phases 3 and 4 need rework against `docs/LOOK.md` first. |
+| Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. |
+| Live palette | Still NIL's light values, on purpose. Phase 3 swaps them for a `docs/LOOK.md` palette. |
 
 ---
 
@@ -174,43 +174,50 @@ Verified on `tailwindcss@4.3.3`. If those lines disappear the leak returns silen
 rules are valid CSS. They just are not yours. CI asserts the directives are present for that
 reason: a guard that can be deleted without a sound is not a guard.
 
-## D-007: Design direction: Depth Field recommended, NOT confirmed
+## D-007: Design direction is the gravity well, not Depth Field
 
-**2026-09-18. OPEN. This is what blocks Phase 3.**
+**Approved 2026-09-18. Closed.** The binding document is `docs/LOOK.md`.
 
-Three dark directions were designed and rendered: **Aperture** (depth by glow), **Monolith** (depth
-by bevel) and **Depth Field** (depth by atmospheric perspective: planes at distances, with a
-variable font width axis carrying the z-axis).
+The direction is the **gravity well / refraction lens**, closest to the Krea agent UI: a dark
+ground with a fine starfield, one large fully-rounded input field barely lighter than the ground
+with a luminous rim, and **the starfield bending around the field**. The field is not raised and
+not recessed. It is heavy. Depth is expressed by what an object does to its surroundings, never by
+a shadow attached to its edge.
 
-**Depth Field is recommended**, for four reasons:
+It is also the right metaphor. TetherLog is a place to drop a thought so it stops pulling at you,
+and a gravity well is something with enough mass to hold a thing you let go of.
 
-1. **It is the only one where the depth is real.** The other two simulate it. Depth Field places
-   things at distances and renders them the way distance actually looks.
-2. **The width axis is the most original thing in the set.** A variable font axis carrying the
-   z-axis is a design-systems argument, not a style, and this repo is a public artefact.
-3. **Legibility and depth are the same control.** Anything you are meant to read is near, and near
-   means high contrast, by construction. The accessibility story is structural, not bolted on.
-4. **Cheapest to paint.** No gradient, no shadow, no filter. The commit frame has nothing expensive
-   in it on a mid-range Android.
+**This is the third attempt at a direction and the first grounded in pictures rather than
+adjectives.** Words like "modern", "sleek" and "minimal" map to hundreds of different screens,
+which is why the first two failed. `docs/LOOK.md` was derived from twelve visual references and it
+is binding. Read it before any visual work.
 
-Against it, honestly: **70 KB is the highest font cost of the three**, and it is the quietest at
-rest.
+**What it replaces.** An earlier plan proposed three dark directions, Aperture, Monolith and
+**Depth Field**, and recommended Depth Field: planes at distances with a variable font width axis
+carrying the z-axis. `docs/LOOK.md` superseded all three. **Depth Field is dead**, including its
+width-axis depth cue and its `Plane` primitive. Its contrast-checked palette survives only as
+reference material in `docs/BUILD-SPEC.md`, which is marked accordingly, because the ratios were
+real work even though the mechanism is not the one being built.
 
-**One borrow, from Aperture: the light, for the commit moment only.** Depth Field is calm at rest,
-which is right for a capture screen opened mid-hijack, and it leaves the commit under-dramatised. A
-brief light event at the handover puts the drama where the budget already says it goes and nowhere
-else. Quiet at rest, dramatic at the handover, gone in 420ms.
+**Three rules from `docs/LOOK.md` that contradict everything written before it:**
 
-**Take nothing from Monolith.** Its edge light fights the no-edges premise, and two competing depth
-mechanisms is how design systems rot.
+1. **Radius is generous.** The old `0px` lock is dead.
+2. **Depth is what an object does to its surroundings**, never a shadow attached to its edge.
+3. **Never same-colour-as-ground plus two soft shadows.** That is neumorphism and it is the one
+   thing explicitly rejected. The test: if you removed the shadows, would you still know the object
+   was there? Under neumorphism the object *is* the shadows.
 
-**What confirming this unblocks:** `docs/BUILD-SPEC.md` sections 1 and 2 carry Depth Field's values.
-If the answer is Aperture or Monolith, those two need reworking first. Everything else is
-direction-agnostic by design.
+**The constraint the direction must respect.** `PRODUCT.md` forbids ambient motion in the capture
+path. A drifting starfield is an ambient loop and is not allowed. The resolution is not a
+compromise: **the field is static at rest.** Star positions are computed once and the distortion is
+a still warp, redrawn only at the four moments and nowhere else. No `requestAnimationFrame` loop,
+no drift, no shimmer.
 
-**The open sub-question:** the 70 KB font cost. The app currently ships zero font bytes. If that is
-too much, Anybody's width axis is the expensive part and the direction does not survive losing it,
-so the answer would be a different direction rather than a cheaper subset.
+**Cost.** A single fullscreen fragment shader, roughly 4 KB of JavaScript and GLSL, no library. GPU
+time during transitions only. The capture field is real DOM and works the instant the page does;
+the lens layers in behind it, so **capture never waits on the GPU**. Roughly 2% of devices get no
+WebGL and lose nothing functional. A Canvas 2D approximation was tried and was not good enough; do
+not reach for it again as a cost saving, because there was no cost to save.
 
 ## D-008: Verification is off the deploy path, as a controlled experiment
 

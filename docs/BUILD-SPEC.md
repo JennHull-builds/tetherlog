@@ -2,21 +2,34 @@
 
 **What is specified but not yet built.** Phases 1 and 2 are done; this file covers Phase 3 onward.
 
-**Read `docs/DECISIONS.md` first, specifically D-007.** The design direction is not confirmed.
-Sections 1 and 2 below carry **Direction C, Depth Field** values. If the answer is Aperture or
-Monolith, those two sections are reworked wholesale and everything else stands, which is the point
-of the two-layer token split.
+> ## The direction changed. Read this before using sections 1 and 2.
+>
+> **`docs/LOOK.md` is the binding visual direction: the gravity well / refraction lens**, approved
+> 2026-09-18. See `docs/DECISIONS.md` D-007.
+>
+> **Sections 1 and 2 below were written for Depth Field, which is dead.** They are kept as
+> reference, not as the target, because the contrast ratios and the motion physics were real work
+> and a new palette still has to clear the same bars. **The mechanism in them is wrong**: there is
+> no `Plane` primitive, no plane-distance model and no variable font width axis in the direction
+> being built.
+>
+> **What to take from them:** the contrast-checked ratios, the spring physics, the semantic token
+> naming, the reduced-motion pairs, and the per-surface layout and copy decisions.
+> **What to ignore:** every mention of planes, `wdth`, `distance`, near/mid/far as a depth model,
+> and the elevation scale factors.
+>
+> Section 3's phase acceptance criteria carry the same problem and are marked where they do.
 
 When a phase completes, its section here is deleted and replaced by a decision entry in
 `docs/DECISIONS.md`. This file should shrink to nothing.
 
 ---
 
-## 1. Target token values
+## 1. Target token values (SUPERSEDED, reference only)
 
-DTCG format, `$value` / `$type` / `$description`. This replaces the contents of
-`src/tokens/tokens.json`, which currently still holds NIL's light values on purpose: Phase 2 proved
-the pipeline before the design changes.
+DTCG format, `$value` / `$type` / `$description`. `src/tokens/tokens.json` currently still holds
+NIL's light values on purpose: Phase 2 proved the pipeline before the design changed. Phase 3
+replaces them, but **with a palette derived from `docs/LOOK.md`, not with the values below.**
 
 Every colour was contrast-checked before it went in, and the ratio lives in the token's own
 `$description` so it travels with the value instead of sitting in a document nobody rereads.
@@ -191,8 +204,8 @@ Every colour was contrast-checked before it went in, and the ratio lives in the 
 }
 ```
 
-**The one rule that keeps this direction honest.** `plane`, `type.width` and `ink` move together or
-not at all. A component that changes the plane colour without changing the width has broken the
+**The rule that kept Depth Field honest, recorded because the failure mode generalises.** `plane`,
+`type.width` and `ink` had to move together or not at all. A component that changes the plane colour without changing the width has broken the
 illusion, and it will look like a bug nobody can name. No automated check can catch it,
 so it is written into `CLAUDE.md` as a rule and into the components as a single `Plane` primitive
 that sets all three from one `distance` prop.
@@ -202,10 +215,11 @@ block. The semantic layer is what makes that a table in the generator rather tha
 
 ---
 
-## 2. Surface blueprints
+## 2. Surface blueprints (superseded mechanism, live layout and copy)
 
-Written for the recommended direction. Layout, type roles, elevation mechanism, motion and
-reduced-motion behaviour for each surface.
+Written for Depth Field. **The elevation and type-width mechanics are dead**; the layout, type
+roles, copy, accessibility fixes and reduced-motion behaviour still hold and are the reason this
+section survives.
 
 ### Capture
 
@@ -358,6 +372,11 @@ Phases 1 and 2 are done. Their evidence is in the commits and summarised in `doc
 
 **Phase 3: the new palette and the new type**
 
+> **Rework required before starting.** The acceptance criteria below test Depth Field: a width axis
+> and distinguishable planes. Neither exists in the gravity-well direction. Rewrite them against
+> `docs/LOOK.md` first. What still holds: every screen goes dark, nothing fails AA, `theme-color`
+> matches `--tl-mark`, fonts stay under 90 KB.
+
 *Files:* `src/tokens/tokens.json`, `index.html`, `public/manifest.webmanifest`,
 `public/favicon.svg`, `public/fonts/*`
 
@@ -378,7 +397,13 @@ Components still structurally as they are, so this phase is a recolour and a ret
 
 ---
 
-**Phase 4 ●: Capture, the planes and the arc**
+**Phase 4 ●: Capture, the well and the arc**
+
+> **Rework required before starting.** This phase was specified around a `Plane` primitive, which
+> the direction no longer has. The four moments in `docs/LOOK.md` replace it: at rest the field has
+> mass and space is bent around it; on focus it gains mass; on commit the well collapses inward and
+> the thought falls in; after, space relaxes. The optimistic park (D-004), the double-park
+> requirement and the forced-failure recording all still apply unchanged.
 
 *Files:* `src/components/ui/Field.tsx`, `src/components/ui/Button.tsx`,
 `src/components/ui/Chip.tsx`, `src/views/CaptureView.tsx`, plus a new peek-stack component
