@@ -10,8 +10,8 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>("capture");
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-ground text-ink">
-      <main className="flex-1">
+    <div className="flex min-h-dvh flex-col bg-ground text-ink">
+      <main className="mx-auto w-full max-w-lg flex-1">
         {screen === "capture" && (
           <CaptureView onParked={() => undefined} />
         )}
