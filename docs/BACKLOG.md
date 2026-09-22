@@ -23,7 +23,9 @@ its background wherever one lands behind a glyph. Whether one does is luck of th
 is viewport-dependent rather than constant: on most screen sizes most of the text is clean.
 
 Worst case over nine viewport sizes and four states, sampled off rendered frames against the actual
-glyph mask:
+glyph mask. **These numbers were taken before D-020 changed the lens bloom from a pale violet to a
+deep blue, which lowered the luminance of the ground this copy sits on. They are the pessimistic
+figures until a fresh sweep replaces them.**
 
 | Element | Needs | Before D-019 | After D-019 |
 |---|---|---|---|

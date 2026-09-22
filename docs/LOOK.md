@@ -155,7 +155,10 @@ field feel occupied rather than something that congratulates you for using it.
 2. **One light source, one direction, everywhere.** If two elements are lit from different angles the
    illusion collapses into neumorphism.
 3. **Colour appears once per screen.** The primary action. Bucket hues are the exception and they are
-   markers, not surfaces.
+   markers, not surfaces. **The lens atmosphere is a second exception and a deliberate one**: it is
+   scenery rather than an element, it is nobody's affordance, and it is the blue the direction was
+   derived from. It does not license a third. See `docs/DECISIONS.md` D-020, which also records the
+   accent being offered the same blue and kept violet.
 4. **Never the same colour as the ground plus two soft shadows.** That is the neumorphic move and it
    is the one thing explicitly rejected.
 5. **Depth is what an object does to its surroundings**, not what is attached to its edge.

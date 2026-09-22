@@ -666,7 +666,7 @@ untouched star code.
 | `lens.dispersion` | 0.5 | First pass shipped 0.35 out of unwarranted caution; raised to match what was actually approved — there is no product reason to restrain it |
 | `lens.specular-strength` | 1.0 | The approved artifact applied no damping scalar; matched rather than guessed at |
 | `lens.rim-strength` | 0.85 | Raised from a first-pass 0.32. The real source video's rim was flagged as brighter and thicker than either build; a muted rim was the opposite of the note it was meant to answer |
-| `lens.bloom-strength` | 0.09 | Kept small and tight to the well; see the contrast measurement below |
+| `lens.bloom-strength` | 0.09 | Kept small and tight to the well; see the contrast measurement below. **Both halves of that were wrong and D-020 corrects them: it is 0.10 now, and it was never tight to the well.** |
 
 ### Contrast, measured after the change, not assumed safe
 
@@ -683,6 +683,13 @@ Both clear AA with margin, and the brightest pixel found is darker than D-015's 
 case (`rgb(56, 61, 70)`), consistent with the bloom term's falloff being negligible by the time it
 reaches the headline (~150px away) — the star sky() gains remain the limiting factor, exactly as
 before.
+
+**The last sentence is false and D-020 has the measurement that disproves it.** The bloom's falloff
+is scaled by the field's own size, and the field is wide, so it is still at roughly half strength a
+third of the way up a 390px screen. Turning it off entirely drops the share of sky pixels lifted off
+the ground colour from 44.7% to 2.6%. It was not negligible at the headline; it was most of what was
+lifting the headline's background. The numbers in the table above were taken over one frame at one
+viewport, which is the same mistake D-015 made.
 
 ### What this is not
 
@@ -1043,3 +1050,84 @@ default. `npm run verify` clean.
 | What | Why |
 |---|---|
 | **Removed:** "Park it. Sort it tonight." | It told a person when to do their review. Nothing here should. |
+
+## D-020: The lens atmosphere is blue, and the accent stays violet
+
+**2026-09-22. Closed and built.** Reported as a dull overlay washing the whole screen on load. It was
+the lens bloom, and the fix was its colour rather than its level.
+
+### What it was
+
+The bloom exists so refraction has something worth bending. It read `--tl-mark-high`, the accent
+violet, because that was the only atmospheric colour the palette had when D-016 landed.
+
+Two things were wrong with that, and neither was visible until the starfield got crisper in D-019
+and put a clean reference next to the washed ground.
+
+**One: the falloff is screen-wide, not local.** It is scaled by the field's own size and the field
+is wide, so the bloom is still at roughly half strength a third of the way up a 390px screen.
+D-016's table called it "small and tight to the well" and its contrast note called its falloff
+"negligible by the time it reaches the headline". Both are false. Measured by rendering the screen
+with the bloom on, at a third of strength, and off:
+
+| `lens.bloom-strength` | Median sky pixel | Share of sky lifted off the ground colour |
+|---|---|---|
+| 0.09, as shipped | 0.00338 | 44.7% |
+| 0.03 | 0.00304 | 24.1% |
+| 0 | 0.00274 | 2.6% |
+
+At 0 the median sky pixel is the ground colour exactly, 0.00275. Everything above that line was the
+bloom. It was not negligible at the headline; it was most of what was lifting the headline's
+background.
+
+**Two: the colour was pale, and pale over near-black is grey.** This is the half that actually
+mattered and it is worth keeping, because the instinct is always to reach for the level.
+
+### The hues, measured rather than argued
+
+Taken from the reference artifact's own shader source, not from looking at it:
+
+| | Hue | Lightness |
+|---|---|---|
+| Reference nebula, `vec3(0.07, 0.10, 0.24)` | 229 | 65% |
+| Reference outer glow, `vec3(0.16, 0.24, 0.52)` | 226 | 65% |
+| Reference lens rim | 224 | 81% |
+| Reference accent | 221 | 86% |
+| **Ours, the glow** | **248** | **80%** |
+| Ours, the accent | 248 | 75% |
+
+The reference sits in a band twenty degrees of hue wide. Pure blue is 240 and violet proper does not
+begin until about 260, so **ours was never purple either**: it was blue-violet, and pale.
+
+**A pale colour added to a near-black ground moves it toward grey; a deep saturated one keeps it
+coloured.** At peak the old glow added `rgb(15, 14, 23)`, where red and green are close enough to
+blue to read as neutral. The new one adds `rgb(7, 11, 26)`: half the red and green, more blue. Same
+order of brightness, entirely different character.
+
+### What changed
+
+| | |
+|---|---|
+| `color.lens.glow` | New primitive, `#4a6bff`. The reference's nebula normalised to its own hue, so `bloom-strength` carries the level. |
+| `color.lens.specular` | New primitive, `#d1e0ff`. The highlight was pure white, the last thing lighting the glass from outside the palette. |
+| `lens.bloom-strength` | 0.09 to 0.10, which lands the peak contribution within a decimal of the reference's own. |
+| `uSpecularTint` | New uniform. The shader had `vec3(1.0)` inline, which is a colour literal that the token check cannot see because it is not a hex. |
+
+### The accent stays violet
+
+Offered and declined the same day, with both rendered. With the atmosphere blue, the violet Park
+disc is the only element left from a different family, and the reference's own pale blue would have
+doubled its contrast on ground, 6.21:1 to 12.74:1, which matters because that token is also the
+field's rim and the rim carries a WCAG 1.4.11 duty.
+
+**Declined anyway, and the reason is the point:** the accent is Park here, Confirm on Review and
+Save on Settings. Matching a reference is not a good enough reason to repaint the one colour that
+appears once per screen across the whole application. The atmosphere is scenery; the accent is the
+product. `docs/LOOK.md`'s rule 3 survives unchanged.
+
+### The lesson, which is the same one twice now
+
+**A contrast number taken from one frame at one viewport is a sample, not a worst case.** D-015 did
+it, D-016 did it, and both recorded a comfortable margin that a sweep later contradicted. The
+correction is in `CLAUDE.md` beside the gain it protects: sweep sizes, sweep states, and measure
+every run of text rather than the one you expect to be worst.

@@ -149,6 +149,7 @@ uniform vec3 uGlow;
 uniform float uThick;         // 0..1, lens thickness. Derived from uMass, not a second arc.
 uniform float uDispersion;    // chromatic fringe amount at the rim
 uniform float uSpecular;      // strength of the one fixed-direction highlight
+uniform vec3 uSpecularTint;   // and its colour. Blue-white, not white.
 uniform float uRimStrength;   // brightness of the shader-drawn boundary
 uniform float uBloomStrength; // soft glow behind the field, so refraction has something to bend
 
@@ -260,11 +261,19 @@ vec3 background(vec2 p) {
 
   vec3 col = uGround + acc;
 
-  // A soft glow behind the field so refraction (below) has something worth
-  // bending. Small and tight to the well on purpose: this is a token
-  // (uBloomStrength), and raising it re-opens the same contrast measurement
-  // the sky() gains above went through — see CLAUDE.md on star brightness as
-  // a contrast constraint, not a taste knob.
+  // The atmosphere the lens sits in, so refraction (below) has something worth
+  // bending. It is NOT tight to the well and it is not meant to be: the
+  // reference artifact's own nebula is screen-wide, and so is this one, which
+  // reaches roughly half strength a third of the way up a 390px screen.
+  //
+  // THE COLOUR IS WHAT MAKES THAT ACCEPTABLE. As a violet (--tl-mark-high) it
+  // added rgb(15, 14, 23) at peak and read as haze over the ground rather than
+  // as air. As the reference's blue it adds rgb(7, 11, 26): half the red and
+  // green, more blue. Measured, not guessed.
+  //
+  // Both the hue and the level are tokens. Raising uBloomStrength re-opens the
+  // contrast measurement in docs/BACKLOG.md B-001, because this lifts the
+  // ground the headline sits on.
   float nebula = exp(-(dist * dist) / (uInfluence * uInfluence * 1.1));
   col += uGlow * nebula * uBloomStrength;
 
@@ -335,7 +344,7 @@ void main() {
     // caught rendering it and comparing against the reference screenshots.
     vec3 L = normalize(vec3(-0.42, 0.72, 0.55));
     float sp = pow(max(dot(N, L), 0.0), 20.0);
-    body += vec3(1.0) * sp * uSpecular * (0.4 + uThick * 0.6);
+    body += uSpecularTint * sp * uSpecular * (0.4 + uThick * 0.6);
 
     // The rim: the field's visible boundary now that its CSS border is gone
     // in glass mode (Field.tsx, prop glass). Carries the same WCAG-1.4.11
@@ -382,6 +391,7 @@ interface Lens {
   starWarm: [number, number, number];
   rim: [number, number, number];
   glow: [number, number, number];
+  specularTint: [number, number, number];
   lightPeak: number;
   /** Tier 1 (D-016), all read once from tokens.json's "lens" group. */
   thicknessRest: number;
@@ -453,7 +463,7 @@ function createLens(canvas: HTMLCanvasElement): Lens | null {
   for (const name of [
     "uWell", "uHalf", "uRadius", "uInfluence",
     "uMass", "uLight", "uScale", "uGround",
-    "uStarCool", "uStarWarm", "uRim", "uGlow",
+    "uStarCool", "uStarWarm", "uRim", "uGlow", "uSpecularTint",
     "uThick", "uDispersion", "uSpecular", "uRimStrength", "uBloomStrength",
   ]) {
     u[name] = gl.getUniformLocation(program, name);
@@ -464,7 +474,8 @@ function createLens(canvas: HTMLCanvasElement): Lens | null {
   const [cr, cg, cb] = readColour("--tl-star-cool");
   const [wr, wg, wb] = readColour("--tl-star-warm");
   const [rr, rg, rb] = readColour("--tl-ink-faint");
-  const [lr, lg, lb] = readColour("--tl-mark-high");
+  const [lr, lg, lb] = readColour("--tl-lens-glow");
+  const [pr, pg, pb] = readColour("--tl-lens-specular");
 
   return {
     gl,
@@ -474,6 +485,7 @@ function createLens(canvas: HTMLCanvasElement): Lens | null {
     starWarm: [wr, wg, wb],
     rim: [rr, rg, rb],
     glow: [lr, lg, lb],
+    specularTint: [pr, pg, pb],
     lightPeak: readNumber("--tl-light-commit-peak", 0),
     thicknessRest: readNumber("--tl-lens-thickness-rest", 0.42),
     thicknessCommitPeak: readNumber("--tl-lens-thickness-commit-peak", 1),
@@ -540,6 +552,7 @@ export function GravityField({ well, focused, commitKey, onReady }: GravityField
     gl.uniform3fv(u.uStarWarm, lens.starWarm);
     gl.uniform3fv(u.uRim, lens.rim);
     gl.uniform3fv(u.uGlow, lens.glow);
+    gl.uniform3fv(u.uSpecularTint, lens.specularTint);
 
     // Thickness rides the existing mass arc rather than a second timer, so
     // every invariant that arc already keeps (idle at rest, one pulse per

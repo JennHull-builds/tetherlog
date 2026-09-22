@@ -188,6 +188,21 @@ ancestor's background rather than behind its content.
 **The canvas is `z-0` and the content above it is `z-10`.** If the starfield disappears, look here
 before looking at the shader. Written up in `docs/DECISIONS.md` D-015.
 
+### The lens bloom is screen-wide, and its colour is what makes that survivable
+
+`lens.bloom-strength` is scaled by the field's own size, and the field is wide, so the bloom reaches
+roughly half strength a third of the way up a 390px screen. It is **not** tight to the well, whatever
+D-016's table said. Turning it off drops the share of sky pixels lifted off the ground colour from
+44.7% to 2.6%: it is most of what lifts the ground the headline sits on.
+
+That is fine as long as it is the right colour. **A pale colour added to a near-black ground reads as
+grey; a deep saturated one reads as air.** It shipped as the accent violet at 80% lightness and was
+reported as a dull overlay washing the screen. It is now `--tl-lens-glow`, the reference artifact's
+blue at 65%, and the same amount of light reads as atmosphere instead of dirt.
+
+**So: if the ground ever looks washed out, check this token's colour before its level.** Raising the
+level re-opens `docs/BACKLOG.md` B-001. Written up in `docs/DECISIONS.md` D-020.
+
 ### In the lens, the sweep and the arcs can cancel each other out
 
 Space nearest the mass is swept clear of stars, which is right and physical. Set the sweep too wide

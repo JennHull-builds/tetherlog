@@ -7,7 +7,7 @@
  * This is the ONLY file in the repo that may contain a colour literal.
  * Components read --tl-<role>. Never --tl-ref-*. Never hex. See CLAUDE.md.
  *
- * 129 tokens.
+ * 133 tokens.
  */
 
 :root {
@@ -18,6 +18,8 @@
   --tl-ref-color-ink-base: #f2f4f8;
   --tl-ref-color-ink-muted: #a2abba;
   --tl-ref-color-ink-faint: #6b7482;
+  --tl-ref-color-lens-glow: #4a6bff;
+  --tl-ref-color-lens-specular: #d1e0ff;
   --tl-ref-color-star-cool: #b8ccff;
   --tl-ref-color-star-warm: #fff0db;
   --tl-ref-color-line-rule: #586271;
@@ -79,7 +81,7 @@
   --tl-ref-lens-dispersion: 0.5;
   --tl-ref-lens-specular-strength: 1;
   --tl-ref-lens-rim-strength: 0.85;
-  --tl-ref-lens-bloom-strength: 0.09;
+  --tl-ref-lens-bloom-strength: 0.1;
   --tl-ref-sound-commit-frequency-start: 220;
   --tl-ref-sound-commit-frequency-end: 110;
   --tl-ref-sound-commit-gain-peak: 0.22;
@@ -90,6 +92,8 @@
   --tl-ink: #f2f4f8;
   --tl-ink-muted: #a2abba;
   --tl-ink-faint: #6b7482;
+  --tl-lens-glow: #4a6bff;
+  --tl-lens-specular: #d1e0ff;
   --tl-star-cool: #b8ccff;
   --tl-star-warm: #fff0db;
   --tl-rule: #586271;
@@ -140,7 +144,7 @@
   --tl-lens-dispersion: 0.5;
   --tl-lens-specular-strength: 1;
   --tl-lens-rim-strength: 0.85;
-  --tl-lens-bloom-strength: 0.09;
+  --tl-lens-bloom-strength: 0.1;
   --tl-sound-commit-frequency-start: 220;
   --tl-sound-commit-frequency-end: 110;
   --tl-sound-commit-gain-peak: 0.22;
