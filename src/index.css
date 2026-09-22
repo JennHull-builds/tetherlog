@@ -12,11 +12,19 @@
  * .github is excluded for the same reason: the CI job that asserts these
  * rules never ship has to name them, and naming them shipped them. That
  * cost 1.43 KB of junk CSS on 2026-09-18, found by the job itself.
+ *
+ * scripts is excluded because build-tokens.mjs tests `$type === "shadow"`,
+ * which is a DTCG type name and cannot be reworded: it is the token format,
+ * not a sentence. That one literal shipped .shadow to production for weeks,
+ * in an app whose direction is that depth is never an edge treatment. No
+ * file under scripts renders anything, so none of them carry a class name.
+ * See docs/DECISIONS.md D-024.
  */
 @source not "../*.md";
 @source not "../docs/**/*.md";
 @source not "../.cursorrules";
 @source not "../.github/**";
+@source not "../scripts/**";
 
 /*
  * ── @font-face ────────────────────────────────────────────────────────────

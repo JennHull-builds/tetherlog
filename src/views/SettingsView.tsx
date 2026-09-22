@@ -9,10 +9,16 @@ import { readDurationMs } from "../lib/motion";
  * Settings. The quietest screen: nothing here needs character, it needs to be
  * unambiguous.
  *
- * RULES, NOT CARDS. Sections are separated by a 1px --tl-rule, the structural
- * token at 3.22:1. Not the hairline, which measures 1.08:1 on this ground and
- * is not faint but invisible. Review's wrap-up does the same job with space
- * alone; the two should agree and Phase 7 owns that.
+ * SPACE, NOT RULES, decided 2026-09-22 in Phase 7 (D-026). Sections are
+ * separated by a double step of space and nothing else. This screen used a 1px
+ * --tl-rule and was the only one of the three that did: Patterns and Review's
+ * wrap-up both separate on space, with the same heading treatment Settings
+ * uses, so the odd one out was here. Every section already opens with a
+ * full-ink heading, which is the separator; a line under it is a second signal
+ * for a boundary nobody was going to miss.
+ *
+ * The spacing did not change when the line went, so the grouping did not
+ * either: the gap between sections is still double the gap inside one.
  *
  * THE BYOK PARAGRAPH IS FULL-STRENGTH INK, deliberately, while every other
  * body line here is muted. It is a promise about where a key goes, and muted
@@ -222,7 +228,6 @@ function Section({
       style={{
         marginTop: "var(--tl-space-lg)",
         paddingTop: first ? 0 : "var(--tl-space-lg)",
-        borderTop: first ? undefined : "var(--tl-border-width) solid var(--tl-rule)",
       }}
     >
       {children}

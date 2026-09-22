@@ -16,7 +16,9 @@ shipping unless it says so.**
 
 ## B-001: Text on the bare starfield fails AA at some viewports
 
-**Found 2026-09-22 measuring D-019. Accepted as good enough for now, revisit after Phase 7.**
+**Found 2026-09-22 measuring D-019. Still open after Phase 7, deliberately: the call is the owner's
+and all three options change a composition that D-014 settled.** Phase 7 changed nothing on Capture,
+so every number below still stands.
 
 Capture's remaining copy sits on the starfield with no surface under it, so the brightest star is
 its background wherever one lands behind a glyph. Whether one does is luck of the star grid, so this
@@ -71,22 +73,25 @@ covered, take the brightest, compute the ratio. Sweep viewport sizes; a single o
 
 ## B-002: Prose in source-file comments leaks utilities into production CSS
 
-**Found 2026-09-22 measuring Phase 5. Flagged for Phase 7.**
+**CLOSED 2026-09-22 in Phase 7. Fixed, and the entry below was wrong in two ways worth recording.**
 
-Five rules ship today, 582 bytes uncompressed, and none came from a markdown file:
+It said five rules leaked and that every fix was a decision. Measured against the markup and the
+scanner rather than read off a word list:
 
-```
-.fixed   .inline   .ring   .rounded   .shadow
-```
+- **It was four, not five.** `.fixed` is a real class, used by `GravityField` on the canvas.
+  Counting a used class as junk is the same mistake as the leak: a plausible list nobody checked.
+- **`.shadow` never came from a comment.** It came from `scripts/build-tokens.mjs`, where
+  `$type === "shadow"` is a DTCG type name and cannot be reworded at all.
 
-They come from ordinary English in `src/` comments. The four `@source not` directives are intact and
-working; `src/` cannot join them, because `src/` is where the real class names live. `.shadow` is in
-the production CSS of an app whose direction is that depth is never a shadow attached to an edge.
+So the guard could cover it after all. `src/` genuinely cannot join the `@source not` list;
+`scripts/` is not `src/`, renders nothing and holds no class name, so a fifth directive took it.
+The four comment-sourced words were reworded in the same pass, mildly, because only an exact
+utility name emits: `shadows`, `box-shadow` and `round-cornered` are all safe.
 
-Every fix is a decision: reword comments across the codebase, or post-process the built CSS, and a
-build script is what broke every Vercel deployment on 2026-09-18. The CI assertion in
-`.github/workflows/verify.yml` names five different utilities and has been silent throughout, so
-widening that list is the cheap half and does not need a decision.
+Production CSS went from 5.72 KB to **5.44 KB** gzipped, with exactly four rules removed and none
+added. The CI assertion, which had been green throughout while naming five utilities that have
+never leaked, now names the ones that have, and was run against the leaky build before being
+trusted. Written up in `docs/DECISIONS.md` D-024.
 
 ---
 
@@ -97,12 +102,14 @@ numeral with a mono label beneath, in the same grid Patterns uses for its readou
 screens that both answer "how many" should answer it in the same voice. See `docs/DECISIONS.md`
 D-021.
 
-### A new one, in its place
+### B-003b, in its place
 
-**Review's wrap-up separates its sections with space; Settings separates its with a 1px
-`--tl-rule`.** Both are defensible and they disagree, and the disagreement is visible if you move
-between the two screens. Phase 7 picks one. Not settled in Phase 6 because Review was already
-approved and repainting it there would be scope creep in a phase that does not own it.
+**CLOSED 2026-09-22 in Phase 7. Space won.** Settings separated its sections with a 1px `--tl-rule`
+and Review's wrap-up did the same job with space alone.
+
+**Patterns broke the tie**: it separates on space with no rule, using the same section-heading
+treatment as the other two. Two screens of three already agreed, so Settings was the outlier. Its
+rules are gone; the spacing did not change, so nothing regrouped. See `docs/DECISIONS.md` D-026.
 
 ---
 
@@ -114,3 +121,66 @@ The voice recording timer carries `aria-live="polite"` and updates every 250ms, 
 announcements a second on a screen reader. It shipped that way and no phase has changed it, because
 it is not a composition question and should not be guessed at without testing on a real screen
 reader.
+
+---
+
+## B-005: `docs/DECISIONS.md` is 18 em dashes over the limit
+
+**Found 2026-09-22 sweeping Phase 7.**
+
+`CLAUDE.md` allows zero em dashes in any heading and at most one per document in prose. Measured
+across the repo, everything is clean except two files:
+
+| File | Count | Note |
+|---|---|---|
+| `docs/DECISIONS.md` | 18 | All in prose. The one in a heading was fixed in Phase 7. |
+| `PRODUCT.md` | 45 | Already a known hold: it is the binding spec and rewording risks meaning. |
+
+**The good news is the part that mattered.** Shipped UI copy and `src/lib/hands.ts` were the real
+exposure, because those strings leave the app in the export, the do list and the mailto subject.
+Both are at **zero** now, down from 16 and 9, carried out by the view rebuilds in Phases 4 to 6
+without anyone tracking it.
+
+**Not swept here** because 18 rewordings inside a binding document is a decision, not a change, and
+the risk is changing what an entry means. Every one is in prose, none in a heading, and the repo is
+public so the tell is real but not urgent.
+
+---
+
+## B-006: The focus rim is dimmer on the path almost everyone takes
+
+**Found 2026-09-22 in Phase 7, while re-shooting the README screenshot.**
+
+Capture's field is `<Field rim glass={lensReady} />`. **In glass mode the CSS border is set to
+`transparent` and the shader draws the rim instead**, which is right: two rims would double up. The
+consequence was not measured until now.
+
+Focus rim against the ground immediately outside it, sampled around the field's whole perimeter:
+
+| Path | Who gets it | Worst | **Median** | Best |
+|---|---|---|---|---|
+| WebGL up, shader rim | ~98% of devices | 1.00:1 | **1.79:1** | 6.01:1 |
+| No WebGL, CSS rim | ~2% of devices | 1.00:1 | **5.69:1** | 5.69:1 |
+
+WCAG 1.4.11 wants **3:1** for a focus indicator. The shader rim clears it only on the upper-left
+arc, where the lens's one light source falls; around the rest of the perimeter it is under 2:1. The
+CSS rim is even the whole way round and clears it comfortably, close to the 5.53:1 that
+`--tl-rim-focus` carries in its own `$description`.
+
+**So the fallback is the accessible path and the primary one is not.** The token is contrast-checked
+and correct; it just does not reach the screen on the 98% path, and nothing warned about it because
+both paths render a rim and neither errors.
+
+**It is not viewport-dependent.** Measured at 360, 390, 414, 430, 768 and 1280: the median is 1.78
+to 1.79 at every one. Unlike B-001 this is not star luck, it is the shader's rim strength, so one
+number describes it everywhere.
+
+**Focus is not invisible**, which is why this is a backlog entry and not a stop. Focus changes 2.64%
+of the screen: the rim brightens and the lens bends more deeply behind the field, and both are real.
+The question is whether an indicator that measures 1.79:1 around most of its length is enough on its
+own, and that is a decision about a visual that has been approved.
+
+**What it would take:** raise `lens.rim-strength` (0.85 today) until the shader rim clears 3:1 at its
+darkest point, or stop blanking the CSS border in glass mode and accept a doubled edge, or light the
+rim evenly rather than from one direction, which contradicts `docs/LOOK.md` rule 2. All three change
+an approved visual, so the call is the owner's.

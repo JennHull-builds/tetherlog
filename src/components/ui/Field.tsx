@@ -40,7 +40,7 @@ export interface FieldProps {
    * The luminous rim. OFF by default, and the default is the point.
    *
    * The rim is the capture field's mass signature, not a generic input
-   * treatment. Making it the default put an accent ring on the API key field
+   * treatment. Making it the default put the accent rim on the API key field
    * and the reminder hour, so Settings rested with the one colour per screen
    * appearing three times. Only the capture field asks for it.
    */
@@ -94,7 +94,7 @@ const CONTROL_STYLE: CSSProperties = {
   margin: 0,
   fontFamily: "var(--tl-font-body)",
   // 17px, and NEVER below it. This is the one place a person types while
-  // distracted. An inline style beats a utility class, so this line is what
+  // distracted. A style attribute beats a utility class, so this line is what
   // actually decides the size: setting text-input on the element does nothing
   // while this says otherwise. See docs/LOOK.md.
   fontSize: "var(--tl-text-input)",

@@ -12,8 +12,8 @@ export interface IconButtonProps
   label: string;
   tone?: IconButtonTone;
   /**
-   * A primary control is a ring when there is nothing to do with it and a
-   * filled disc when there is. The ring says "here"; the fill says "now".
+   * A primary control is an outline when there is nothing to do with it and a
+   * filled disc when there is. The outline says "here"; the fill says "now".
    * That way the one colour per screen is present in every state, on the same
    * element, rather than blinking into existence when you start typing.
    */

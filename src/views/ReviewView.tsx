@@ -461,7 +461,7 @@ function TriageState({
     <>
       {/*
         THE THOUGHT IS THIS SCREEN'S HEADLINE, so it is set at the display
-        step. docs/BUILD-SPEC.md's Review blueprint said --text-lg, which was
+        step. The build spec's Review blueprint said --text-lg, which was
         a Depth Field size and does not exist in the live five-step scale; that
         section is marked superseded for exactly this reason. Nothing else on
         the triage state uses the display step, so the one-headline-per-screen
@@ -485,7 +485,7 @@ function TriageState({
         <p className="mt-1 text-small text-muted">{suggestion.suggestedAction}</p>
       )}
       {suggestion.carryForward && (
-        // The fix docs/BUILD-SPEC.md asked for: this was `text-do` at 2.79:1,
+        // The fix the build spec asked for: this was `text-do` at 2.79:1,
         // with the colour carrying the whole meaning. Ink plus a marker.
         <p className="mt-3 flex items-start gap-2 text-small text-ink">
           <BucketDot bucket="do" line="small" />

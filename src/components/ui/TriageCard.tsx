@@ -32,11 +32,11 @@ export interface TriageCardProps {
  *
  * COLOUR IS NEVER THE CARRIER. The bucket hue exists once, as a 4px bar on the
  * leading edge, and the same bucket is written in words beside it. Read the
- * card in greyscale and nothing is missing. See docs/BUILD-SPEC.md Phase 5.
+ * card in greyscale and nothing is missing. See docs/DECISIONS.md D-017.
  *
  * DEPTH IS VALUE, NOT A SHADOW. The card is --tl-field, the nearest surface in
  * the system, sitting on the ground with the next thought's peek one step back
- * on --tl-raised behind it. No border, no shadow: an edge attached to the
+ * on --tl-raised behind it. No border, no box-shadow: an edge attached to the
  * object is the neumorphic move docs/LOOK.md rejects.
  *
  * THE FOOTER IS PINNED. The card is a fixed height whatever is in it, so

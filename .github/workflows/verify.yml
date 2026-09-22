@@ -33,6 +33,11 @@ jobs:
       - name: Token check
         run: npm run tokens:check
 
+      # D-009's mechanical half: every path the docs name must still exist.
+      # See docs/DECISIONS.md D-025.
+      - name: Docs path check
+        run: npm run docs:check
+
       - name: Build
         run: npm run build
 
@@ -46,27 +51,41 @@ jobs:
       - name: Assert the @source guards are present
         run: |
           MISSING=0
-          for SRC in '../*.md' '../docs/**/*.md' '../.cursorrules' '../.github/**'; do
+          for SRC in '../*.md' '../docs/**/*.md' '../.cursorrules' '../.github/**' '../scripts/**'; do
             grep -qF "@source not \"$SRC\"" src/index.css || {
               echo "::error::Missing @source not \"$SRC\" in src/index.css"; MISSING=1; }
           done
           [ "$MISSING" = "0" ] || {
             echo "See docs/DECISIONS.md D-006. Removing these silently ships junk CSS."; exit 1; }
-          echo "All four @source guards present."
+          echo "All five @source guards present."
 
+      # The list below is every utility that has actually leaked here, not a
+      # guess at which words read like prose. The previous list named five
+      # that never leaked and missed all four that did, so it passed green
+      # while .shadow shipped for weeks. See docs/DECISIONS.md D-024.
+      #
+      # `fixed` is deliberately absent: GravityField really does use it.
+      # The match requires the brace immediately after the name, so `rounded`
+      # does not fire on a legitimate `rounded-2xl`.
       - name: Assert no prose-leaked utilities in built CSS
         run: |
           CSS=$(find dist/assets -name '*.css' | head -1)
           echo "Checking $CSS"
           FOUND=0
-          for RULE in 'backdrop-filter' 'rounded-card' 'font-sans' 'invisible' 'bg-\[var'; do
-            if grep -qE "^\.${RULE}|[}]\.${RULE}" "$CSS"; then
+          for RULE in 'inline' 'ring' 'rounded' 'shadow' 'blur' 'static' 'transform' \
+                      'grow' 'invisible' 'font-sans' 'backdrop-filter' 'rounded-card'; do
+            if grep -qE "(^|[},])\.${RULE}\{" "$CSS"; then
               echo "::error::Prose-leaked utility in production CSS: .$RULE"
               FOUND=1
             fi
           done
+          # Arbitrary-value classes quoted in prose, which is how this started.
+          if grep -qE "(^|[},])\.bg-\\\\\[var" "$CSS"; then
+            echo "::error::Prose-leaked arbitrary-value utility in production CSS"
+            FOUND=1
+          fi
           if [ "$FOUND" = "1" ]; then
-            echo "The @source not directives in src/index.css are not holding. See docs/DECISIONS.md D-006."
+            echo "The @source not directives in src/index.css are not holding. See docs/DECISIONS.md D-006 and D-024."
             exit 1
           fi
           echo "No prose-leaked utilities found."

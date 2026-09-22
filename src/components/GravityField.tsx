@@ -29,8 +29,8 @@ import { springs } from "../motion/springs.generated";
  * 3. NO WEBGL IS NOT A FAILURE. Roughly 2% of devices land there. They get the
  *    field on the plain ground and lose nothing functional.
  *
- * 4. DEPTH IS WHAT THE OBJECT DOES TO ITS SURROUNDINGS. There is no shadow
- *    here and there must never be one. The field is not raised and not
+ * 4. DEPTH IS WHAT THE OBJECT DOES TO ITS SURROUNDINGS. There are no cast
+ *    shadows here and there must never be one. The field is not raised and not
  *    recessed. It is heavy.
  */
 
@@ -226,7 +226,7 @@ vec3 sky(vec2 p, vec2 tangent, float stretch) {
 vec3 background(vec2 p) {
   vec2 q = p - uWell;
 
-  // Signed distance to the field's own rounded rectangle, so the warp follows
+  // Signed distance to the field's own round-cornered rectangle, so the warp follows
   // the shape of the object rather than a circle imagined inside it.
   vec2 inner = max(uHalf - vec2(uRadius), vec2(0.0));
   vec2 qq = q - clamp(q, -inner, inner);
@@ -250,7 +250,7 @@ vec3 background(vec2 p) {
   vec3 acc = sky(base, tangent, stretch);
 
   // Space closest to the mass has been swept clear. This is a falloff in the
-  // SURROUNDINGS, not a shadow attached to the field's edge: take it away and
+  // SURROUNDINGS, not a box-shadow attached to the field's edge: take it away and
   // the field is still unmistakably there, which is the test in docs/LOOK.md.
   //
   // A TIGHT collar, and the tightness is the point. The first tuning cleared
@@ -282,7 +282,7 @@ vec3 background(vec2 p) {
 }
 
 // ── the lens body (D-016) ───────────────────────────────────────────────────
-// Signed distance to a rounded box, and the thickness profile built on it.
+// Signed distance to a round-cornered box, and the thickness profile built on it.
 // Ported from the approved reference artifact. sdBox is a standard SDF, not
 // tuned; prof()'s only job is to be finite-differenced into a surface normal
 // below, so its absolute value outside the box does not need to mean anything.
@@ -506,7 +506,7 @@ export function GravityField({ well, focused, commitKey, onReady }: GravityField
   const wellRef = useRef<Well | null>(well);
   const frameRef = useRef(0);
   // Latest callback, read from inside the context effect below without being
-  // one of its dependencies — an inline arrow prop must not re-run WebGL
+  // one of its dependencies — an arrow prop written in the JSX must not re-run WebGL
   // context creation on every render.
   const onReadyRef = useRef(onReady);
   onReadyRef.current = onReady;

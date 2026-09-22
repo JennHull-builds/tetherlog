@@ -22,7 +22,7 @@ import type { Capture } from "../types";
  * digest control is a ghost for the same reason it is on Review: it is the one
  * action here that leaves the device.
  *
- * WHAT MAY BE SHOWN is fixed by docs/BUILD-SPEC.md and it is a product rule
+ * WHAT MAY BE SHOWN is fixed by CLAUDE.md product rule 2 and it is a product rule
  * rather than a layout one. No dial, no gauge, no target, no change arrow, no
  * day-over-day comparison, and `perDay` is never drawn as a sequence. A row of
  * daily bars with gaps in it is a streak display whatever the heading says.
@@ -76,7 +76,7 @@ export function PatternsView() {
       ) : (
         <>
           {/*
-            TWO BY TWO AT EVERY WIDTH. docs/BUILD-SPEC.md asks for a row of
+            TWO BY TWO AT EVERY WIDTH. The build spec asked for a row of
             four at 1280 and that blueprint assumed a full-width page. Every
             screen here is a 32rem column, so a row of four gives each readout
             about 104px, which wraps "TOTAL CAPTURES" onto a second line while

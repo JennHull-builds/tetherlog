@@ -6,7 +6,8 @@ without a new entry saying so.
 This file replaced `docs/UI-OVERHAUL.md` on 2026-09-18. That document had grown to 1,880 lines
 governing a 2,585-line application: an audit of a state that no longer existed, a rip-out plan that
 had already run, and two rejected design directions. The parts still doing work were split here and
-into `docs/BUILD-SPEC.md`. `git log` has the original if it is ever wanted.
+into `docs/BUILD-SPEC.md`, which Phase 7 deleted in turn once the phases it held had all
+landed (D-025). `git log` has both originals if they are ever wanted.
 
 **Where things live now:**
 
@@ -16,10 +17,10 @@ into `docs/BUILD-SPEC.md`. `git log` has the original if it is ever wanted.
 | `PRODUCT.md` | Product spec. Binding. |
 | `docs/LOOK.md` | Visual direction. Binding. |
 | `docs/DECISIONS.md` | This file. What was decided and why. |
-| `docs/BUILD-SPEC.md` | What is specified but not yet built: Phases 3 to 7. |
 | `docs/BACKLOG.md` | Known, measured, deliberately not fixed yet. Nothing there blocks shipping. |
 | `ROADMAP.md` | Feature delivery order, product-level. |
 | `ARCHITECTURE.md` | Code structure. |
+| `scripts/check-docs.mjs` | Asserts every path the docs name still exists. D-009's mechanical half. |
 
 ---
 
@@ -32,7 +33,9 @@ into `docs/BUILD-SPEC.md`. `git log` has the original if it is ever wanted.
 | Phase 4 | **Built 2026-09-18, enhanced 2026-09-22, looked at and approved** as good enough for now. Capture's composition, the lens, the arc, then the lens's own body and the commit sound. The starfield's colour, the sub-line and the sound default moved again in D-019. See D-014, D-015, D-016, D-019. |
 | Phase 5 | **Built, looked at and approved 2026-09-22** as good enough for now. Two states: a full-screen one-card triage ritual, then a separate wrap-up. Structure in D-017, the three questions it left open in D-018. |
 | Phase 6 | **Built 2026-09-22.** Patterns and Settings off the card shell, and one voice for a number across Review and Patterns. See D-021. |
-| Phase 7 | Not started. The sweep. `docs/BACKLOG.md` is its inbox. |
+| Phase 7 | **Built 2026-09-22, awaiting a look.** The sweep: the build spec deleted, every
+document swept against D-009, the prose-leak traced to its real source and guarded. See D-024,
+D-025 and D-026. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -223,8 +226,9 @@ is binding. Read it before any visual work.
 **Depth Field**, and recommended Depth Field: planes at distances with a variable font width axis
 carrying the z-axis. `docs/LOOK.md` superseded all three. **Depth Field is dead**, including its
 width-axis depth cue and its `Plane` primitive. Its contrast-checked palette survives only as
-reference material in `docs/BUILD-SPEC.md`, which is marked accordingly, because the ratios were
-real work even though the mechanism is not the one being built.
+reference material in the build spec, which marked it accordingly, because the ratios were
+real work even though the mechanism is not the one being built. That file is gone as of D-025;
+the live ratios travel in each token's own `$description` in `src/tokens/tokens.json`.
 
 **Three rules from `docs/LOOK.md` that contradict everything written before it:**
 
@@ -339,8 +343,8 @@ against paper.
 **What this unblocks.** Phase 3 can start. The palette, the PWA `theme-color`, the favicon and the
 contrast targets all follow from the ground.
 
-**What it does not settle.** The exact ground value. `docs/BUILD-SPEC.md` section 1 carries a dead
-direction's `#0a0b0e` as reference only; Phase 3 derives the real one from `docs/LOOK.md`.
+**What it does not settle.** The exact ground value. The build spec's section 1 carried a dead
+direction's `#0a0b0e` as reference only; Phase 3 derived the real one from `docs/LOOK.md`.
 
 ## D-012: zod on mini, dexie-react-hooks on 4, TypeScript held
 
@@ -468,7 +472,7 @@ composition. They do not own copy.
 
 ## D-014: Capture's composition, and what six elements became
 
-**2026-09-18. Closed.** This is the clutter brief in `docs/BUILD-SPEC.md` Phase 4, answered. It was
+**2026-09-18. Closed.** This is the clutter brief in the build spec's Phase 4, answered. It was
 answered before any shader work, because a well behind a cluttered screen is still a cluttered
 screen.
 
@@ -732,7 +736,7 @@ not resolved here. Off-by-default is the mitigation for now.
 **JS budget:** 115.71 KB gzipped, up from 114.50 KB before this entry, against the 130 KB ceiling —
 about 14.3 KB of headroom left. CSS 5.32 KB, up marginally from the nine new custom properties.
 
-## D-017: Phase 5's structure — two states, not one scrolling page
+## D-017: Phase 5's structure, two states and not one scrolling page
 
 **2026-09-22. Closed, not built.** `CLAUDE.md` flagged Review's first question as "structural, not
 visual" without ever writing down what the question was — the same shape of gap Phase 4 closed with
@@ -741,7 +745,7 @@ Review.
 
 ### The actual question
 
-`docs/BUILD-SPEC.md`'s Phase 5 acceptance criteria already commit to "one triage card fills the view
+The build spec's Phase 5 acceptance criteria already committed to "one triage card fills the view
 ... not a list," but the current `ReviewView.tsx` renders every suggestion as a flat stack on one
 scrolling page alongside Wins, the backlog toggle, the summary and Hands. That page has never been
 rebuilt against the approved direction. The open question was never "what does the card look like" —
@@ -764,7 +768,7 @@ Capture, rather than treating Review as a different kind of screen by default.
 
 ### What does not change
 
-`docs/BUILD-SPEC.md`'s existing Phase 5 acceptance criteria (bucket colour as a leading-edge bar
+The build spec's Phase 5 acceptance criteria (bucket colour as a leading-edge bar
 never the sole carrier of state, confirm as the one accent per card, the Hands row wrapping at
 390px, "Parked." agreeing with Capture) all still apply — they describe the triage state's own
 card, which this decision does not touch. This entry adds the screen-level architecture around
@@ -799,7 +803,7 @@ Four reasons, none of them taste:
 2. **There is one light event in the whole app and it belongs to Capture's commit.** `CLAUDE.md`
    says commit is where the motion budget goes and that if one moment is exceptional it is the
    handover. A second exceptional moment on Review spends a budget that is already committed.
-3. **Triage is repetitive by design**, so `docs/BUILD-SPEC.md` gives it the shortest motion in the
+3. **Triage is repetitive by design**, so the build spec gave it the shortest motion in the
    system. If the seventh card behaves differently from the sixth, the screen has taught the person
    that finishing is the point, and the point is that the thought is gone.
 4. **The code does not know which card is last.** The queue is derived from the database, so "the
@@ -867,13 +871,13 @@ not be called something else.
 |---|---|
 | **Bucket colour** | A 4px bar on the leading edge, and the bucket written in words beside it. Read the card in greyscale and nothing is missing. |
 | **Depth** | Value and occlusion, no border and no shadow. The card is `--tl-field`, the peek behind it is `--tl-raised` and starts underneath it. The same three cues as Capture's peek stack. |
-| **The one accent** | Confirm, full width. The three overrides are unselected chips at `--tl-ink-muted`, 8.03:1 on the card, receding by value and weight as `docs/BUILD-SPEC.md` asked. |
+| **The one accent** | Confirm, full width. The three overrides are unselected chips at `--tl-ink-muted`, 8.03:1 on the card, receding by value and weight as the build spec asked. |
 | **Element count** | Four per card, down from five. The old card rendered the suggested bucket twice: once as a selected confirm chip and again in the row of all four buckets. |
 | **The footer** | Pinned to the bottom on every card. Triage is the one repetitive action in the app and a target that moves between repetitions has to be found again every time. |
-| **Carry forward** | `--tl-ink` text with a `--tl-bucket-do` marker, which is the fix `docs/BUILD-SPEC.md` asked for. It was `text-do` at 2.79:1 with the colour carrying the whole meaning. |
+| **Carry forward** | `--tl-ink` text with a `--tl-bucket-do` marker, which is the fix the build spec asked for. It was `text-do` at 2.79:1 with the colour carrying the whole meaning. |
 
-**The thought is set at the display step**, which is a departure from the Review blueprint in
-`docs/BUILD-SPEC.md` and worth saying plainly. That blueprint asks for `--text-lg`, a Depth Field
+**The thought is set at the display step**, which is a departure from the build spec's Review
+blueprint and worth saying plainly. That blueprint asked for `--text-lg`, a Depth Field
 size that does not exist in the live five-step scale, and the section is marked superseded for
 exactly that reason. At 17px the thought did not fill a card that fills the view, and the screen
 read as content followed by a hole. At 34px it is the one thing the screen is about, which is what
@@ -1146,7 +1150,7 @@ totals were 15px body text with a marker; Patterns' readouts are 34px in the dis
 are a numeral in the display face with a mono label beneath it, in the same grid. This closes
 `docs/BACKLOG.md` B-003.
 
-**Two by two at every width.** `docs/BUILD-SPEC.md` asks for a 2x2 at 390px opening to a row of four
+**Two by two at every width.** The build spec asked for a 2x2 at 390px opening to a row of four
 at 1280px, and that blueprint assumed a full-width page. Every screen here is a 32rem column, so a
 row of four gives each readout about 104px, which wraps "TOTAL CAPTURES" onto a second line while
 its neighbours stay on one and leaves the row ragged. Rendered, not reasoned about.
@@ -1307,3 +1311,145 @@ the dead area and every future `Field` has the same shape. The shell focuses its
 `mousedown`, skipping the control itself and anything inside a button, and calls `preventDefault` so
 the shell never takes focus for a frame first. That frame is the flicker: it also restarted the
 lens's focus arc, which is most of what "the animation is glitchy" was.
+
+---
+
+## D-024: The prose leak was never in the comments
+
+**2026-09-22. Closed and built.** `docs/BACKLOG.md` B-002 said five junk utilities shipped from
+ordinary English in `src/` comments, and that every fix was a decision. Measured properly, both
+halves of that were wrong, and the correction is the useful part.
+
+### It was four rules, not five
+
+`.fixed` is real. `GravityField` renders the canvas with `className="pointer-events-none fixed
+inset-0 z-0 h-full w-full"`, so that rule is doing its job. The junk was `.inline`, `.ring`,
+`.rounded` and `.shadow`, 560 bytes uncompressed between them.
+
+**Counting a used class as junk is the same error as the leak itself**: a plausible list nobody
+rendered against the markup.
+
+### `.shadow` came from a build script, not a comment
+
+Tailwind's scanner was asked directly, per file, rather than reasoned about. Four of the five
+candidate words did come from comments in `src/`. `shadow` did not:
+
+```js
+if (token.$type === "shadow") {     // scripts/build-tokens.mjs
+```
+
+That is a DTCG type name. **It cannot be reworded**, because it is the token format rather than a
+sentence, so the one fix B-002 offered for it, rewording, could never have worked.
+
+### So the guard could cover it after all
+
+B-002's reasoning was that `src/` cannot be excluded, which is true and was the wrong boundary.
+`scripts/` is not `src/`, renders nothing, and contains no class name. A fifth directive covers it:
+
+```css
+@source not "../scripts/**";
+```
+
+The four comment-sourced words were reworded in the same pass, and the rewording is mild because
+only an **exact** utility name emits: `shadows` is safe, `box-shadow` is safe, `round-cornered` is
+safe. `CLAUDE.md` said no writing rule could avoid these words. Nearly right: no writing rule can
+avoid the *concepts*, and every one of them has a form the scanner does not match.
+
+### Numbers
+
+| | Before | After |
+|---|---|---|
+| Junk rules in production CSS | 4 | **0** |
+| CSS, uncompressed | 23.15 KB | **21.20 KB** |
+| CSS, gzipped | 5.72 KB | **5.44 KB** |
+
+Verified by diffing the rule sets of the two built files: exactly four rules removed, none added,
+and all four unused in any `className`. The extra saving beyond the 560 bytes is the `--tw-*`
+custom-property scaffolding that `.ring` and `.shadow` drag in with them.
+
+### The CI job was green the whole time
+
+`.github/workflows/verify.yml` asserted on `backdrop-filter`, `rounded-card`, `font-sans`,
+`invisible` and `bg-[var`. **Not one of those has ever leaked.** The job passed every run while
+`.shadow` shipped, in an app whose direction is that depth is never an edge treatment.
+
+It now asserts on the utilities that have actually leaked here, and the match requires the brace
+immediately after the name so a real `rounded-2xl` cannot trip it. **It was exercised against the
+leaky build before being trusted**: it fails on the old CSS and passes on the new one. An assertion
+that has never been seen to fail is not evidence of anything, which is the whole lesson of this
+entry.
+
+## D-025: The build spec is deleted, and the docs are swept
+
+**2026-09-22. Closed.** Phase 7's job, and D-009's rule enforced rather than restated: a document
+describing a state the code has left is worse than no document, because it reads as current.
+
+### `docs/BUILD-SPEC.md` is gone
+
+It said so itself: "When a phase completes, its section here is deleted and replaced by a decision
+entry. This file should shrink to nothing." Phases 3 to 6 have all landed, so it shrank to nothing.
+727 lines, of which section 1 was a dead palette for a dead direction, sections 3's phases were all
+built, and section 4 duplicated `CLAUDE.md`. `git log` has it.
+
+**What was live in it and where it went.** Only one thing did not already exist elsewhere: the rule
+about what Patterns may show. It is a product rule that stops a streak display appearing under an
+innocent heading, `PatternsView` cites it, and `PRODUCT.md` actively invites the mistake by listing
+"capture velocity trend". It is now in `CLAUDE.md` with the other product rules.
+
+Everything else was already carried: the contrast ratios live in each token's `$description`, the
+spring physics in `src/tokens/tokens.json`, the constraints in `CLAUDE.md`, and each phase's outcome
+in its own entry here.
+
+### What the sweep found
+
+Seven documents named a state the code had left. The worst were not in the build spec:
+
+| Where | Said | Actually |
+|---|---|---|
+| `ROADMAP.md` | Visual direction is "light filed", paper off-white and charcoal ink | The ground has been dark since D-011 and the direction is the gravity well |
+| `ROADMAP.md` | "Phase 7: voice (NEXT)", "Voice: NEXT" | Voice is built and wired into Capture. Its own checklist ticks it off, in the same file |
+| `ROADMAP.md` | `CURSORRULES.md` | Has never existed, in any form. The third shape this ghost has taken |
+| `ROADMAP.md` | "LogStack behind capture hero", ticked | `LogStack` was deleted in D-009. `PeekStack` replaced it |
+| The build spec | Capture's field floor is 18px | The token is 17px. The doc was never right |
+| The build spec | Review is "wins, then triage, then summary, then Hands" | Two states since D-017 |
+| The build spec | Capture's order includes a sub-line | Removed in D-019 |
+
+**`ROADMAP.md` carried the two most dangerous lines in the repo**, because both read as current
+direction and one of them contradicted a ticked checklist eleven lines below it.
+
+### The mechanical half of D-009, finally built
+
+D-009 called this check "cheap and worth keeping" and then nobody wrote it, which is how the build
+spec's own dead references survived to be found here. `scripts/check-docs.mjs` asserts that every
+backticked repo path in every markdown file resolves, and it runs in `npm run verify`.
+
+It is deliberately narrow: it resolves a bare basename against the tracked file list, because docs
+say `hands.ts` and mean `src/lib/hands.ts` and that is shorthand rather than rot. Files that are
+gone **on purpose** and discussed as gone are listed in the script with a reason. A false pass is
+acceptable; a false failure would get the check deleted, which is how the last one died.
+
+It found three real stale paths on its first run, and it is off the deploy path with every other
+check, per D-008. Never in `npm run build`.
+
+## D-026: Settings separates on space, like everything else
+
+**2026-09-22. Closed and built.** `docs/BACKLOG.md` B-003b, picked by Phase 7 as that entry asked.
+
+Settings separated its sections with a 1px `--tl-rule`; Review's wrap-up did the same job with space
+alone. Both were defensible and they disagreed, visibly, if you moved between the two screens.
+
+**Patterns broke the tie.** It separates "Time of day" from "Weekly digest" with space and no rule,
+using the same section-heading treatment as the other two: body size, weight 500, full ink. Two
+screens of three already agreed, so Settings was the outlier rather than the standard.
+
+**The heading is the separator.** Every section on all three screens opens with a full-ink heading,
+and a line under it is a second signal for a boundary nobody was going to miss. It also put the one
+edge-attached line in the app on the screen `docs/LOOK.md` calls the quietest, in a direction whose
+first rule is that depth is never an edge treatment.
+
+**The spacing did not change**, only the line. The gap between sections is still double the gap
+inside one, so the grouping a settings form depends on is carried by exactly what carried it before.
+Rendered at 390px before and after: four rules gone, nothing regrouped.
+
+`--tl-rule` keeps its job and its `CLAUDE.md` contract. A boundary a user genuinely needs to see
+still uses it, never the hairline; between two labelled sections, no boundary needed seeing.

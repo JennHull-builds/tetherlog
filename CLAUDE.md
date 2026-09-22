@@ -38,9 +38,11 @@ historical phase prompts reference it; it was never committed. This file is the 
 The `@source not "../.cursorrules"` line in `src/index.css` is kept deliberately, so the guard is
 already in place if one is ever added.
 
-**The current work is the UI overhaul.** What is decided is in `docs/DECISIONS.md`; what is
-specified but unbuilt is in `docs/BUILD-SPEC.md`. Start with `docs/DECISIONS.md`, which opens with a
-status table and a map of which file does what.
+**The current work is the UI overhaul, and all seven of its phases are built.** What is decided is
+in `docs/DECISIONS.md`. Start there: it opens with a status table and a map of which file does what.
+**`docs/BUILD-SPEC.md` no longer exists.** It held the phases and was deleted by Phase 7 once they
+had all landed, exactly as it said it would be; `git log` has it and D-025 records what moved where.
+Any instruction that sends you to it is out of date.
 
 **`docs/LOOK.md` is the visual direction and it is binding.** It was derived from reference images
 rather than adjectives, which is the third attempt and the first one grounded in pictures. Read it
@@ -55,7 +57,10 @@ Phases 1 to 6 are **done, looked at, approved as good enough for now, and pushed
 elements at rest with the gravity lens behind it; the composition is in `docs/DECISIONS.md` D-014
 and D-019, and the lens is in D-015, D-016 and D-019. **Review is two states**: a full-screen
 one-card triage ritual, then a separate wrap-up. The structure is D-017 and the hand-off, the
-navigation and the wrap-up's layout are D-018. **Phase 7 is the sweep, and `docs/BACKLOG.md` is its inbox.**
+navigation and the wrap-up's layout are D-018. **Phase 7, the sweep, is built and awaiting a look**:
+the build spec deleted, every document swept against D-009, the prose leak traced to its real source
+and guarded, and Settings moved onto space separators like the other two screens. See D-024, D-025
+and D-026. `docs/BACKLOG.md` was its inbox and two entries are still open there.
 
 **`docs/BACKLOG.md` is where a finding goes when it is real and the fix is a decision.** Read it
 before starting a phase and add to it in the same session something is found. **A finding does not
@@ -72,8 +77,9 @@ what you were doing. Review happens in the evening. Public, MIT, client-only, £
 `PRODUCT.md` is the product spec and it is binding. `ROADMAP.md` is the delivery order.
 
 **`DESIGN.md` and `docs/UI-OVERHAUL.md` were deleted on 2026-09-18.** Both described states the code
-had already left. Their live content is in `docs/DECISIONS.md` and `docs/BUILD-SPEC.md`; `git log`
-has the originals. Any instruction referencing either file is out of date.
+had already left. Their live content is in `docs/DECISIONS.md`; `git log` has the originals. Any
+instruction referencing either file is out of date. **`docs/BUILD-SPEC.md` went the same way on
+2026-09-22**, for the same reason and by its own instruction. See D-025.
 
 ---
 
@@ -85,6 +91,15 @@ has the originals. Any instruction referencing either file is out of date.
    them.
 2. **No streaks, no guilt.** No overdue badges, no "you missed yesterday", no celebration, no
    confetti, no targets, no goals, no day-over-day comparison. Untriaged is parked, not failure.
+
+   **On Patterns this has a specific shape, and it is the one rule the build spec carried that
+   lived nowhere else.** Only the readouts `PatternsView` already computes may be shown: total
+   captures, active days, busiest hour, stuck items, the 24-slot hour distribution and repeats. No
+   dials, no gauges, no targets, no change arrows, no day-over-day comparison, and `perDay` is
+   rendered as a distribution and **never as a sequence**. A row of daily bars with gaps in it is a
+   streak display whatever the heading says. `PRODUCT.md` lists "capture velocity trend" and
+   "captures per day / week chart" under Patterns, which is exactly how this gets built by accident:
+   this rule narrows both. See `docs/DECISIONS.md` D-025.
 3. **Four screens.** Capture, Review, Patterns, Settings. Never a fifth.
 4. **Data stays on device.** Dexie and IndexedDB. No accounts in v1. BYOK for the agent, client-side
    only, key in localStorage, never on a server.
@@ -108,18 +123,20 @@ bracket. This repo is public and the em dash is the current tell for AI-written 
 `grep -c '—' <file>` before committing. En dashes in numeric ranges (`2–3 lines`) are correct and
 are not the same character.
 
-**State as of 2026-09-18:** `ROADMAP.md`, `ARCHITECTURE.md`, `docs/` and the new files are at zero.
-**Still outstanding, and deliberately not swept without a decision:**
+**State re-measured 2026-09-22 in Phase 7.** `ROADMAP.md`, `ARCHITECTURE.md` and `docs/LOOK.md` are
+at zero, and every heading in the repo is clean.
 
-| Where | Count | Why it was left |
+| Where | Count | Standing |
 |---|---|---|
-| Shipped UI copy in `src/` | 16 | User-visible. Folded into Phase 3's copy pass. |
-| `src/lib/agent.ts`, `src/lib/hands.ts` | 9 of those 16 | Both on the do-not-touch list above. |
-| `PRODUCT.md` | 46 | Binding spec; rewording risks changing meaning. |
-| Code comments in `src/` | 11 | Not user-visible, not the tell. Leave them. |
+| Shipped UI copy in `src/` | **0** | Was 16. Phases 4 to 6 rebuilt the views and the strings went with them. |
+| `src/lib/agent.ts`, `src/lib/hands.ts` | **0** | Was 9, and these were the ones that mattered: they leave the app in the export, the do list and the mailto subject. Gone without anyone tracking it. |
+| Code comments in `src/` | 19 | Not user-visible, not the tell. Leave them. |
+| `src/tokens/tokens.json` | 4 | All in `$description` text, which reaches a CSS comment and no screen. |
+| `PRODUCT.md` | 45 | Binding spec; rewording risks changing meaning. Still deliberately unswept. |
+| `docs/DECISIONS.md` | 18 | Prose only. Over the one-per-document rule and logged as B-005, not swept here: it is a binding document and 18 rewordings is a decision, not a change. |
 
-The `hands.ts` ones matter most: they are in the markdown export, the do list and the mailto
-subject, so they leave the app and land in someone else's notes or inbox.
+**Nothing user-visible carries one any more**, which is the part that was worth fixing and is now
+worth protecting: check a new UI string before it ships rather than sweeping later.
 
 ---
 
@@ -318,24 +335,36 @@ names needs a `@source not` line before it lands.**
 Verified on `tailwindcss@4.3.3`. If those lines ever disappear, the leak comes straight back and
 nothing will warn you: the rules are valid CSS, they just are not yours.
 
-**And the guard does not cover everything, which was found on 2026-09-22 while measuring Phase 5.**
-Five rules are shipping today, 582 bytes uncompressed, and none of them came from a markdown file:
+**A fifth directive covers `scripts/`, and finding out why is the useful part.** Phase 5 reported
+five junk rules leaking from prose in `src/` comments and concluded no guard could reach them.
+Phase 7 measured it properly and both halves were wrong. Fixed 2026-09-22, written up in D-024.
 
+**Ask the scanner, do not reason about it.** `@tailwindcss/oxide` exports `Scanner`, and running it
+per file names the exact source of every candidate in about a second. Guessing which English words
+look like class names is how the wrong five got listed:
+
+```js
+import { Scanner } from "@tailwindcss/oxide";
+new Scanner({ sources: [{ base: process.cwd(), pattern: file, negated: false }] }).scan();
 ```
-.fixed   .inline   .ring   .rounded   .shadow
-```
 
-They come from **prose in source-file comments**: `GravityField.tsx`, `Field.tsx`, `TriageCard.tsx`,
-the comments in `src/index.css` and `tokens.json`. `src/` cannot be added to the `@source not` list,
-because `src/` is where the real class names live, so the four directives are intact and working and
-the leak is coming in behind them. `.shadow` is in the production CSS of an app whose direction is
-that depth is never a shadow attached to an edge.
+**Only an exact utility name emits.** `shadows` is safe, `box-shadow` is safe, `round-cornered` is
+safe, `Rounded` is safe. This file used to say no writing rule could avoid the words "shadow",
+"blur", "fixed", "inline" and "static". That is nearly right and the gap matters: no writing rule
+can avoid the **concepts**, and every one of them has a form the scanner does not match.
 
-**It predates Phase 5 and is not fixed here**, because every available fix is a decision rather than
-a change: reword the comments across files this phase did not own, or post-process the built CSS,
-and a build script is what broke every Vercel deployment on 2026-09-18. **Flagged for Phase 7.**
-Meanwhile the CI assertion in `.github/workflows/verify.yml` names five different utilities and has
-been silent throughout, so widening that list is the cheap half of the fix.
+**`.fixed` is a real class**, used by `GravityField` on the canvas. It was on the junk list, which
+is the same failure as the leak: a plausible list nobody checked against the markup. Never add
+`fixed` to the CI assertion.
+
+**`.shadow` came from `scripts/build-tokens.mjs`, not from a comment**, where `$type === "shadow"`
+is a DTCG type name and cannot be reworded. `src/` genuinely cannot join the `@source not` list.
+`scripts/` is not `src/`: it renders nothing and holds no class name, so it can, and does.
+
+**The CI assertion was green throughout.** It named five utilities, not one of which has ever
+leaked, while `.shadow` shipped for weeks. It now names the ones that have actually leaked here,
+and **it was run against the leaky build before being trusted.** An assertion nobody has seen fail
+is not evidence.
 
 ### Never add an unlayered global reset
 
@@ -472,12 +501,20 @@ can go back into `build`.
 
 - **Zero runtime.** Springs are solved at build time into CSS `linear()` easings. No animation
   library is installed and none should be without a decision recorded in `docs/DECISIONS.md`.
-- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Currently **117.99
-  KB JS and 5.71 KB CSS**, so roughly 12 KB of headroom. Phase 5 cost 1.08 KB of JS, D-019 and D-020
-  0.72 KB between them, and Phase 6 0.30 KB; the jump from the 113.07 KB this line used to claim
-  happened in `f1acb3d` and was not recorded then. The lens is 4.84 KB of that, measured by
-  building with and without it. Two deliberate holds protect the rest: React is pinned at 19.2.8
-  (D-010) and zod uses the `mini` export (D-012). Record the numbers in the commit when they move.
+- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Measured at Phase 7:
+  **118.13 KB JS, 5.44 KB CSS, 44.5 KB fonts.** Roughly 12 KB of JS headroom and 6.5 KB of CSS.
+  Phase 5 cost 1.08 KB of JS, D-019 and D-020 0.72 KB between them, and Phase 6 0.30 KB; the jump
+  from the 113.07 KB this line used to claim happened in `f1acb3d` and was not recorded then. The
+  lens is 4.84 KB of that, measured by building with and without it.
+
+  **Phase 7 gave 0.28 KB of CSS back** by closing the prose leak (D-024), and left JS unmoved. This
+  line said 117.99 KB JS and 5.71 KB CSS, which was never quite right: the tree at that commit built
+  118.14 and 5.72. Small, and the point of writing it down is that it drifts silently otherwise.
+  **Fonts are 44.5 KB, not the 89 KB a naive `du` reports**, because the same two files sit in
+  `public/fonts/` and are copied into `dist/fonts/`. Count one of them.
+
+  Two deliberate holds protect the rest: React is pinned at 19.2.8 (D-010) and zod uses the `mini`
+  export (D-012). Record the numbers in the commit when they move.
 - **Commit is where the budget goes.** If one moment is exceptional it is the handover. There is
   exactly one light event in the entire app and it lives here: 320ms, peak 0.22 alpha, and it does
   not fire under reduced motion because a flash with no travel is a strobe. It is the
@@ -511,8 +548,9 @@ Not part of the design system work, and changing them is out of scope unless ask
 
 ## Delivery
 
-- **One phase at a time.** `docs/BUILD-SPEC.md` section 3 has the phases and their acceptance
-  criteria.
+- **One phase at a time.** The seven overhaul phases are done; each one's outcome and acceptance
+  evidence is its own entry in `docs/DECISIONS.md`. `ROADMAP.md` carries what is next at the
+  product level, which is a separate numbering and always has been.
 - **A phase is done when someone has looked at it**, not when the build passed. Screenshot at 390px
   and 1280px against that phase's criteria before starting the next one.
 - Imperative commit messages: "Add capture keyboard focus", "Wire semantic colour tokens".

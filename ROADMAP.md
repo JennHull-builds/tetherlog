@@ -1,10 +1,16 @@
 # TetherLog: roadmap to done
 
 **Refer here for delivery order only.** Spec is `PRODUCT.md`. Look is `docs/LOOK.md`. Binding rules
-are `CLAUDE.md`. What is decided is `docs/DECISIONS.md`; what is specified but unbuilt is
-`docs/BUILD-SPEC.md`.
+are `CLAUDE.md`. What is decided is `docs/DECISIONS.md`.
 
-Updated 2026-08-25. Visual: **light filed** (paper off-white, charcoal ink, abstract filing tabs, category colour on tags/buckets).
+Updated 2026-09-22. Visual: **the gravity well on a dark ground**, approved 2026-09-18 and specified
+in `docs/LOOK.md`. This line said "light filed", paper off-white and charcoal ink, for four days
+after the ground went dark. See `docs/DECISIONS.md` D-007 and D-011.
+
+> **Two numbering systems meet in this file and they are not the same.** The phases below are
+> **product delivery**, and this one is Phase 7: voice. The seven **UI overhaul** phases are a
+> separate sequence, all of them built, recorded in `docs/DECISIONS.md`. "Phase 7" means the sweep
+> there and voice here. Say which you mean.
 
 Work **in the tetherlog repo**. New chat per phase. `@` the files, paste the prompt, one phase, commit.
 
@@ -22,11 +28,16 @@ Work **in the tetherlog repo**. New chat per phase. `@` the files, paste the pro
 
 **Agentic Review loop: done** (see [Done means](#done-means-agentic-review-loop) below). Capture → rule or Gemini triage (Zod) → confirm/override → summary + carry-forward → Hands. Wins persist. BYOK honest; no key still works.
 
-**UI craft: superseded by the UI overhaul.** Tokens/primitives and Capture craft largely shipped
-(`/`, haptic, file-into-stack, 2–3 line expand). The peek stack component was removed on 2026-09-18
-as unused; Phase 4 in `docs/BUILD-SPEC.md` rebuilds it under the chosen direction. Review/Patterns/Settings visual polish and remaining Phase 5 non-PWA gaps (Obsidian, chart extras) are not this slice. Do not restyle until priorities say so.
+**UI craft: the overhaul is done.** All seven of its phases are built and its Phases 3 to 6 have
+been looked at and approved as good enough for now. Tokens, primitives and Capture craft shipped
+(`/`, haptic, 2–3 line expand); the peek stack was removed on 2026-09-18 as unused and rebuilt under
+the gravity well direction. Capture, Review, Patterns and Settings have all been repainted. What is
+left is in `docs/BACKLOG.md`, and nothing there blocks shipping.
 
-**Voice: NEXT.** PRODUCT.md locks voice + transcript as fundamental, writing lane second, Android-first PWA third. Phase 7A (this plan) is done. Build [7B, Voice MVP](#7b-voice-mvp-slice-1) next. Do not wait for full UI polish.
+**Voice: built, not next.** Audio park and transcript are wired into Capture through
+`src/lib/voice.ts`, and the feature checklist below ticks both 7B items. This line read "Voice:
+NEXT" until 2026-09-22 while the checklist eleven lines down said done. **7C, transcript
+reliability, has not been done** and is the real next slice here.
 
 **Do not:** salvage UI from another project, and do not borrow another project's lime accent. Do not install shadcn: four screens need 5 primitives, not a kit.
 
@@ -35,7 +46,8 @@ as unused; Phase 4 in `docs/BUILD-SPEC.md` rebuilds it under the chosen directio
 ## How to talk to the UI agent
 
 1. File → Open Folder → `tetherlog`
-2. ~~Copy `CURSORRULES.md` to `.cursorrules`~~ Never done. `CLAUDE.md` is the only rule file.
+2. ~~Copy a rules file to `.cursorrules`~~ Never done, and no such file has ever existed in
+   this repo under any name. `CLAUDE.md` is the only rule file.
 3. New chat. `@` the files listed. Paste the prompt. One phase. Commit.
 4. Look, then tune. Do not let it restyle every screen in one go.
 
@@ -55,8 +67,8 @@ These files now live in this repo and are edited here. The copy-in workflow is r
 
 > **These prompts already ran.** Phases 1 to 6 are built. They are kept as a record of what was
 > asked for, not as instructions to paste. Anything referencing `DESIGN.md` predates its deletion on
-> 2026-09-18; the current visual contract is `docs/LOOK.md` and the current build spec is
-> `docs/BUILD-SPEC.md`.
+> 2026-09-18, and anything referencing `docs/BUILD-SPEC.md` predates its deletion on 2026-09-22.
+> The current visual contract is `docs/LOOK.md`; what was decided is in `docs/DECISIONS.md`.
 
 ### 1. Tokens + primitives
 
@@ -108,7 +120,7 @@ Ensure the GitHub repo is public. Vercel from `main`. Screenshot in README. Tick
 
 ---
 
-## Phase 7: voice (NEXT)
+## Phase 7: voice (7B built, 7C outstanding)
 
 Front-load the thinnest path to: **recording works on an Android phone today.** Writing lane and full PWA come after a usable recorder.
 
@@ -223,7 +235,9 @@ UK English. Commit.
 
 - `vite-plugin-pwa` + offline shell (text park offline; audio parks offline; transcript may need network)
 - Android Chrome Install / Add to Home Screen path (document in README)
-- Manifest colours match light filed (not old dark `#12121a`)
+- Manifest colours stay in step with the live ground. They are `#08090c` today, in
+  `public/manifest.webmanifest`, `index.html` and `public/favicon.svg`, and they already match.
+  **This line used to say "match light filed", which would have undone D-011.**
 - Service-worker evening reminder (replace Settings `setTimeout`)
 - Public HTTPS deploy already assumed from Phase 6, needed for mic + Install
 
@@ -251,7 +265,7 @@ Do not restyle screens. No App Store. UK English. Commit. Document Install + HTT
 - [x] Optional 2–3 line expand
 - [x] Haptic if available
 - [x] File-into-stack motion on Park
-- [x] LogStack behind capture hero
+- [x] Peek stack behind capture hero (`LogStack` was deleted in D-009; `PeekStack` replaced it)
 - [ ] Offline PWA shell → **Phase 9**
 - [x] **Voice** quick park (mic → stop → audio + transcript when ready) → **7B**
 - [x] **Voice** long dump (10+ min safe; audio local first) → **7B**
@@ -291,9 +305,10 @@ Do not restyle screens. No App Store. UK English. Commit. Document Install + HTT
 - [ ] Theme clustering (BYOK, flex)
 
 ### Ship
-- [x] Tokens via `@theme` + primitives (light filed)
-- [x] FileCard + LogStack
-- [ ] Capture / Review / Patterns craft (Capture largely done; Review/Patterns parked)
+- [x] Tokens via `@theme` + primitives (the gravity well, dark ground)
+- [x] Card and stack primitives (`FileCard` and `LogStack` are both gone; `TriageCard` and
+      `PeekStack` replaced them)
+- [x] Capture / Review / Patterns craft (all four screens repainted in the UI overhaul)
 - [x] `.cursorrules` in app repo
 - [ ] Public GitHub + Vercel (HTTPS, needed for Android mic + Install)
 - [ ] README screenshot

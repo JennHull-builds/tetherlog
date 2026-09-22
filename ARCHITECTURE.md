@@ -77,4 +77,5 @@ one-tap phone install and the service-worker nudge are specced and unbuilt. See
 `ROADMAP.md`.
 
 Product intent and the full rule set: `PRODUCT.md`. Visual contract: `docs/LOOK.md`.
-What is decided: `docs/DECISIONS.md`. What is specified but unbuilt: `docs/BUILD-SPEC.md`.
+What is decided: `docs/DECISIONS.md`. What is known, measured and not fixed yet:
+`docs/BACKLOG.md`.
