@@ -17,6 +17,7 @@ into `docs/BUILD-SPEC.md`. `git log` has the original if it is ever wanted.
 | `docs/LOOK.md` | Visual direction. Binding. |
 | `docs/DECISIONS.md` | This file. What was decided and why. |
 | `docs/BUILD-SPEC.md` | What is specified but not yet built: Phases 3 to 7. |
+| `docs/BACKLOG.md` | Known, measured, deliberately not fixed yet. Nothing there blocks shipping. |
 | `ROADMAP.md` | Feature delivery order, product-level. |
 | `ARCHITECTURE.md` | Code structure. |
 
@@ -27,9 +28,9 @@ into `docs/BUILD-SPEC.md`. `git log` has the original if it is ever wanted.
 | | |
 |---|---|
 | Phases 1 and 2 | Done and pushed, 2026-09-18 |
-| Phase 3 | **Built 2026-09-18**, awaiting a look. The ground, the type and the PWA chrome. |
-| Phase 4 | **Built 2026-09-18, enhanced 2026-09-22.** Capture's composition, the lens, the arc, then the lens's own body (refraction, dispersion, specular, rim) and the commit sound. See D-014, D-015, D-016. |
-| Phase 5 | **Built 2026-09-22.** Two states: a full-screen one-card triage ritual, then a separate wrap-up. Structure in D-017, the three questions it left open in D-018. |
+| Phase 3 | **Built 2026-09-18, looked at and approved 2026-09-22** as good enough for now. The ground, the type and the PWA chrome. |
+| Phase 4 | **Built 2026-09-18, enhanced 2026-09-22, looked at and approved** as good enough for now. Capture's composition, the lens, the arc, then the lens's own body and the commit sound. The starfield's colour, the sub-line and the sound default moved again in D-019. See D-014, D-015, D-016, D-019. |
+| Phase 5 | **Built, looked at and approved 2026-09-22** as good enough for now. Two states: a full-screen one-card triage ritual, then a separate wrap-up. Structure in D-017, the three questions it left open in D-018. |
 | Phases 6 and 7 | Not started. Patterns and Settings, then the sweep. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
@@ -490,7 +491,9 @@ option rather than a gate. No transition, because nothing animates in response t
 
 **Does the sub-line persist?** Yes, unchanged. `docs/LOOK.md` defends it explicitly: it tells you to
 let go and it tells you what happens next, which is the thing that makes letting go safe. It is one
-13px line and it earns its place.
+13px line and it earns its place. **SUPERSEDED 2026-09-22 by D-019: the sub-line is removed.** The
+half of its job that made it earn its place, telling you what happens next, said "tonight".
+Capture rests on two elements now, not three.
 
 **What is Park for on desktop if Enter parks?** It is the target. The disc is a ring when the field
 is empty and fills with accent when there is something to park, so **the one colour per screen is
@@ -938,3 +941,105 @@ in `f1acb3d`. Both lines are now the measured figures.
 The wrap-up's four summary counts are body-sized text with a marker each. Patterns is where numerals
 do their real work in the display face, and Phase 6 may well want the summary to agree with whatever
 it settles. It is not changed here because Phase 6 owns that question.
+
+## D-019: The starfield gets its colour, the sub-line goes, and the sound comes on
+
+**2026-09-22. Closed and built.** Three changes decided in one sitting, and the middle one is the
+reason the first one could ship.
+
+### The starfield is cool blue-white and warm cream, per star
+
+It was one flat tint, `--tl-ink-faint`, a grey-slate dimmed in D-015 to keep the copy in front of it
+readable. The approved reference artifact does something different: it mixes every star between a
+cool blue-white and a warm cream, per cell, so the field has a colour temperature rather than a
+tint. That mix is most of why its sky reads as stars instead of as noise.
+
+Two new tokens carry the artifact's own values, converted from its GLSL rather than picked by eye:
+`star.cool` `#b8ccff` from `vec3(0.72, 0.80, 1.0)` and `star.warm` `#fff0db` from
+`vec3(1.0, 0.94, 0.86)`. `starLayer` returns a tinted colour now instead of a scalar, and `sky()`
+sums colours.
+
+**The lens rim was reading the same uniform as the stars, and no longer does.** It has its own,
+`uRim`, still on `--tl-ink-faint`. They were never the same job: the stars are decoration whose
+brightness is capped by the copy in front of them, and the rim is a boundary a user has to be able
+to see under WCAG 1.4.11. Re-tinting the sky must never move that line, and until this change it
+would have.
+
+### The sub-line is gone, and the product reason came first
+
+It read "Park it. Sort it tonight." D-014 kept it and `docs/LOOK.md` defended it: two jobs in five
+words, telling you to let go and telling you what happens next, which is what makes letting go safe.
+
+**The second job is what killed it. "Sort it tonight" tells a person to do their review at night**,
+and nothing in this product should push anyone to act at a particular hour. That is the same family
+as a streak or an overdue badge: a instruction about when, aimed at someone whose evenings are not
+reliably available. `PRODUCT.md` forbids the badge and was silent on the sentence.
+
+**Capture rests on two elements now: the headline and the field.** Six before Phase 4, three after
+it, two now.
+
+It was also, by a distance, the worst-measuring text in the application, and removing it is what
+let the brighter starfield ship. That was a happy coincidence and not the argument.
+
+### The commit sound is on by default
+
+D-016 shipped it off. It is on now. It reaches exactly the people who have never opened Settings,
+because those are the people with no stored settings row; anyone who has already turned it off has
+an explicit `false` saved and keeps it.
+
+It stays what it was: one tone, at commit only, never in response to typing, and never a reward
+chime. **`PRODUCT.md`'s rule that nothing animates in response to typing covers sound too.**
+
+### What it measures, and what was accepted
+
+Worst case over nine viewport sizes and four states, sampled off rendered frames against the actual
+glyph mask, so a star in the whitespace at the end of a line is not counted.
+
+| On the bare starfield | Needs | Before | After |
+|---|---|---|---|
+| Headline, 34px | 3.0 | 6.62 | 2.97 |
+| Parked count, 11px mono | 4.5 | 3.61 | 1.43 |
+| Confirm word, 15px | 4.5 | 4.57 | 2.80 |
+| Tag chip label, 13px | 4.5 | 4.57 | 3.54 |
+| Sub-line, 13px | 4.5 | 3.56 | gone |
+
+**Accepted as good enough for now and carried to `docs/BACKLOG.md` B-001**, to be revisited after
+Phase 7. The call was the owner's, made against these numbers and not against a summary of them.
+Two of the failures predate this change: the parked count and the sub-line were already under AA on
+the grey starfield that shipped from Phase 4.
+
+**The sub-line was not the whole problem and removing it did not solve it.** It was reported as the
+worst offender on the strength of a two-element measurement; a four-element sweep found three more.
+Whether a bright star lands behind an 11px glyph is luck of the star grid, so this is
+viewport-dependent rather than constant, which is why it does not look as bad as the numbers read.
+
+### Two measurement mistakes, both caught by looking
+
+1. **A two-viewport probe is not a worst case.** The first pass measured 390 and 1280 and reported
+   the parked count at 6.42:1 and 8.45:1, comfortably passing. At 414x896 it is 1.43:1. D-015's
+   recorded 4.71:1 for the sub-line has the same flaw and is the reason a live failure sat
+   unnoticed since Phase 4. **Sweep sizes. One viewport measures one star placement.**
+2. **A probe that does not hide what it thinks it hides measures furniture.** The tag chip was
+   reported failing at 2.67:1 against a background of rgb(88, 98, 113), identical on both builds to
+   three significant figures. That is exactly `--tl-rule`: the chip's own border. The probe set
+   `color` on the button and `Chip` sets it inline on an inner span, so the label never hid and the
+   mask found the border instead. Measured properly the chip is 3.54:1. **A number that does not
+   move when the thing under test moves is not measuring the thing under test.**
+
+### The rest of the contract, checked
+
+Zero `requestAnimationFrame` calls at rest, while focused and idle, and after an arc has settled, in
+both motion modes, with one WebGL context. The commit sound handles a suspended `AudioContext` and
+park is itself the user gesture, so there is no autoplay gate to work around now that it is on by
+default. `npm run verify` clean.
+
+| | Before | After | Budget |
+|---|---|---|---|
+| JS gzipped | 116.79 KB | 117.26 KB | 130 KB |
+| CSS gzipped | 5.55 KB | 5.57 KB | 12 KB |
+
+### Copy this change touched
+
+| What | Why |
+|---|---|
+| **Removed:** "Park it. Sort it tonight." | It told a person when to do their review. Nothing here should. |

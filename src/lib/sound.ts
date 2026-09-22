@@ -1,8 +1,9 @@
 /**
  * The one sound in the app: a commit acknowledgment (D-016). Synthesized with
  * Web Audio, not a shipped file — zero binary weight, zero network request,
- * consistent with self-hosting everything else here. Off by default
- * (AppSettings.soundEnabled); CaptureView is the only caller.
+ * consistent with self-hosting everything else here. On by default since
+ * D-019 (AppSettings.soundEnabled); CaptureView is the only caller, and it
+ * fires on commit only: nothing here responds to typing.
  *
  * Reads its shape from tokens.json's "sound" group and reuses the existing
  * commit spring's duration rather than a new hardcoded one, so the sound and

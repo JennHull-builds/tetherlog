@@ -1,0 +1,97 @@
+# Backlog
+
+**Known, measured, deliberately not fixed yet.** This file exists so a finding does not have to stop
+a build. Something lands here when it is real, has a number, and the fix is a decision rather than a
+change. Nothing here is a bug report from a user: every entry was found by measuring.
+
+Added to in the same session a thing is found. Reviewed when a phase closes. **Nothing here blocks
+shipping unless it says so.**
+
+| | |
+|---|---|
+| Owner of the call | Always the repo owner, never the agent that found it |
+| Format | What, the number, what it would take, and what it is waiting on |
+
+---
+
+## B-001: Text on the bare starfield fails AA at some viewports
+
+**Found 2026-09-22 measuring D-019. Accepted as good enough for now, revisit after Phase 7.**
+
+Capture's remaining copy sits on the starfield with no surface under it, so the brightest star is
+its background wherever one lands behind a glyph. Whether one does is luck of the star grid, so this
+is viewport-dependent rather than constant: on most screen sizes most of the text is clean.
+
+Worst case over nine viewport sizes and four states, sampled off rendered frames against the actual
+glyph mask:
+
+| Element | Needs | Before D-019 | After D-019 |
+|---|---|---|---|
+| Headline, 34px | 3.0 | 6.62 | **2.97** |
+| Parked count, 11px mono | 4.5 | **3.61** | **1.43** |
+| Confirm word, 15px | 4.5 | 4.57 | **2.80** |
+| Tag chip label, 13px | 4.5 | 4.57 | **3.54** |
+| Sub-line, 13px | 4.5 | **3.56** | removed in D-019 |
+
+**Two of these predate the new star tint.** The parked count and the sub-line were already under AA
+on the grey starfield that shipped from Phase 4. D-015 recorded 4.71:1 for the sub-line and that was
+one viewport, not the worst case; the number to trust is the sweep, not that entry.
+
+**What it would take, measured, not guessed:**
+
+| Option | Effect | Cost |
+|---|---|---|
+| Dim the stars | `sky()` gains 0.42 / 0.64 drop to about 0.19 / 0.29 | The brightest cool star then sits below the grey field's old peak. The colour survives and the crispness does not. |
+| A surface under the copy | Stars keep full brightness | `docs/LOOK.md` has this copy on bare sky, and the reference it came from does too. A different composition, not a tuning. |
+| Move the copy off the starfield | The only option that lets the stars get brighter | Reopens Capture's composition, which D-014 settled. |
+| Brighten the ink | None | **Arithmetically impossible.** Clearing 4.5:1 against the brightest star needs an ink lighter than pure white. |
+| Shrink the bloom | Headline only | Measured at bloom 0: the count and the confirm word still fail. Part of a combination, never the fix. |
+| Resize the copy | None | Large text only lowers the bar to 3.0:1 and these sit below that. |
+
+**Reproduce it:** the sweep script is not committed, deliberately, because it depends on a browser
+driver this repo does not take as a dependency. The method is the one D-015 used and is worth
+repeating rather than trusting: render the screen, hide the text, sample only the pixels the glyphs
+covered, take the brightest, compute the ratio. Sweep viewport sizes; a single one will miss it.
+
+---
+
+## B-002: Prose in source-file comments leaks utilities into production CSS
+
+**Found 2026-09-22 measuring Phase 5. Flagged for Phase 7.**
+
+Five rules ship today, 582 bytes uncompressed, and none came from a markdown file:
+
+```
+.fixed   .inline   .ring   .rounded   .shadow
+```
+
+They come from ordinary English in `src/` comments. The four `@source not` directives are intact and
+working; `src/` cannot join them, because `src/` is where the real class names live. `.shadow` is in
+the production CSS of an app whose direction is that depth is never a shadow attached to an edge.
+
+Every fix is a decision: reword comments across the codebase, or post-process the built CSS, and a
+build script is what broke every Vercel deployment on 2026-09-18. The CI assertion in
+`.github/workflows/verify.yml` names five different utilities and has been silent throughout, so
+widening that list is the cheap half and does not need a decision.
+
+---
+
+## B-003: Review's summary counts may belong in the display face
+
+**Raised 2026-09-22 building Phase 5. Waiting on Phase 6.**
+
+The wrap-up's four bucket totals are 15px body text with a bucket-coloured marker each. Patterns is
+the screen where numerals do their real work, in the display face at 34px. If Phase 6 sets a house
+style for "a number you read at a glance", Review's totals should follow it rather than keep their
+own. Not changed in Phase 5 because Phase 6 owns that question.
+
+---
+
+## B-004: The recording timer announces four times a second
+
+**Carried from D-014, still open.**
+
+The voice recording timer carries `aria-live="polite"` and updates every 250ms, which is four
+announcements a second on a screen reader. It shipped that way and no phase has changed it, because
+it is not a composition question and should not be guessed at without testing on a real screen
+reader.

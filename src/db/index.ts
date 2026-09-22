@@ -127,7 +127,10 @@ const DEFAULT_SETTINGS: AppSettings = {
   id: "settings",
   reviewReminderEnabled: false,
   reviewReminderHour: 20,
-  soundEnabled: false,
+  // ON by default, decided 2026-09-22 (D-019). It reaches anyone who has never
+  // opened Settings, because that is exactly who has no stored row; a person
+  // who has already turned it off has an explicit false saved and keeps it.
+  soundEnabled: true,
 };
 
 export async function getSettings(): Promise<AppSettings> {

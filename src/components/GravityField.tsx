@@ -138,7 +138,9 @@ uniform float uMass;
 uniform float uLight;
 uniform float uScale;     // device pixel ratio: stars stay a constant CSS size
 uniform vec3 uGround;
-uniform vec3 uStar;
+uniform vec3 uStarCool;   // the two ends of the starfield's colour temperature
+uniform vec3 uStarWarm;
+uniform vec3 uRim;        // the field's own boundary. NOT a star: see below.
 uniform vec3 uGlow;
 
 // Tier 1 (docs/DECISIONS.md D-016): the field's own body as a lit, refractive
@@ -167,13 +169,13 @@ float hash21(vec2 p) {
  * or so to avoid drawing three separate dots, which is roughly twenty samples
  * per pixel at full stretch.
  */
-float starLayer(
+vec3 starLayer(
   vec2 p, vec2 tangent, float stretch,
   float cell, float size, float seed, float gain, float density
 ) {
   vec2 g = p / cell + seed;
   float h = hash21(floor(g));
-  if (h < density) return 0.0;
+  if (h < density) return vec3(0.0);
 
   vec2 pos = vec2(fract(h * 71.3), fract(h * 197.1)) * 0.6 + 0.2;
   vec2 o = (fract(g) - pos) * cell;
@@ -181,21 +183,34 @@ float starLayer(
   vec2 elliptical = vec2(dot(o, tangent) / (1.0 + stretch), dot(o, across));
 
   float bright = 0.30 + 0.70 * fract(h * 43.7);
-  return gain * bright * (1.0 - smoothstep(0.0, size, length(elliptical)));
+  float amount = gain * bright * (1.0 - smoothstep(0.0, size, length(elliptical)));
+
+  // Colour TEMPERATURE per cell, not one tint for the whole sky. Cool
+  // blue-white and warm cream, mixed by a second hash of the same cell so a
+  // star's colour is stable and uncorrelated with its brightness. This is the
+  // approved reference artifact's move, and it is what makes the field read as
+  // stars rather than as grey noise.
+  vec3 tint = mix(uStarCool, uStarWarm, fract(h * 21.7));
+  return tint * amount;
 }
 
 /**
  * Two layers, and the gains are a CONTRAST decision as much as a visual one.
- * The headline and the sub-line sit on this field with no surface under them,
- * so the brightest star IS their background wherever one lands behind a glyph.
+ * Capture's copy sits on this field with no surface under it, so the brightest
+ * star IS its background wherever one lands behind a glyph.
  *
- * Measured off a rendered frame, not calculated: at gain 1.0 the brightest
- * painted star was rgb(76, 82, 94) and put --tl-ink-muted at 3.62:1, under AA.
- * At 0.64 the brightest is rgb(57, 62, 72), which clears 4.5:1 for every ink
- * on the scale. Raising these numbers puts 13px muted copy below AA over the
- * brightest stars, so they are a contrast constraint wearing a visual hat.
+ * THESE GAINS ARE CURRENTLY OVER BUDGET AND IT IS A KNOWN, ACCEPTED STATE.
+ * Since the starfield was re-tinted (D-019) the worst case is the headline at
+ * 2.97:1 against a 3.0 floor and the 11px parked count at 1.43:1 against 4.5,
+ * measured over nine viewports and four states. docs/BACKLOG.md B-001 carries
+ * the numbers and every option with its cost. Do not quietly "fix" it here:
+ * dimming the sky is one of five candidates and the choice is the owner's.
+ *
+ * Whatever changes, measure it the same way and SWEEP VIEWPORT SIZES. A single
+ * viewport measures a single star placement, which is how a live failure sat
+ * unnoticed from Phase 4 until 2026-09-22.
  */
-float sky(vec2 p, vec2 tangent, float stretch) {
+vec3 sky(vec2 p, vec2 tangent, float stretch) {
   return starLayer(p, tangent, stretch, 31.0 * uScale, 1.5 * uScale, 0.0, 0.42, 0.52)
        + starLayer(p, tangent, stretch, 67.0 * uScale, 2.4 * uScale, 11.3, 0.64, 0.58);
 }
@@ -230,7 +245,7 @@ vec3 background(vec2 p) {
   vec2 base = p + dir * (g * uInfluence * 0.50) + tangent * (g * uInfluence * 0.22);
   float stretch = 3.5 * g / (g + 1.0);
 
-  float acc = sky(base, tangent, stretch);
+  vec3 acc = sky(base, tangent, stretch);
 
   // Space closest to the mass has been swept clear. This is a falloff in the
   // SURROUNDINGS, not a shadow attached to the field's edge: take it away and
@@ -243,7 +258,7 @@ vec3 background(vec2 p) {
   // where the arcs begin.
   acc *= 1.0 - 0.82 * exp(-dist / (uInfluence * 0.28));
 
-  vec3 col = uGround + uStar * acc;
+  vec3 col = uGround + acc;
 
   // A soft glow behind the field so refraction (below) has something worth
   // bending. Small and tight to the well on purpose: this is a token
@@ -325,8 +340,13 @@ void main() {
     // The rim: the field's visible boundary now that its CSS border is gone
     // in glass mode (Field.tsx, prop glass). Carries the same WCAG-1.4.11
     // boundary duty the CSS rim token carried before.
+    // It reads --tl-ink-faint and it is deliberately NOT tied to the star
+    // colour, although one uniform served both until 2026-09-22. They are
+    // different jobs: the stars are decoration whose brightness is capped by
+    // the contrast of the copy in front of them, and this is a boundary a user
+    // has to be able to see. Re-tinting the sky must never move this line.
     float rim = smoothstep(2.2, 0.0, abs(d));
-    body += uStar * rim * uRimStrength * (0.5 + uThick * 0.7);
+    body += uRim * rim * uRimStrength * (0.5 + uThick * 0.7);
 
     col = mix(col, body, inside);
   }
@@ -358,7 +378,9 @@ interface Lens {
   gl: WebGLRenderingContext;
   u: Uniforms;
   ground: [number, number, number];
-  star: [number, number, number];
+  starCool: [number, number, number];
+  starWarm: [number, number, number];
+  rim: [number, number, number];
   glow: [number, number, number];
   lightPeak: number;
   /** Tier 1 (D-016), all read once from tokens.json's "lens" group. */
@@ -430,7 +452,8 @@ function createLens(canvas: HTMLCanvasElement): Lens | null {
   const u: Uniforms = {};
   for (const name of [
     "uWell", "uHalf", "uRadius", "uInfluence",
-    "uMass", "uLight", "uScale", "uGround", "uStar", "uGlow",
+    "uMass", "uLight", "uScale", "uGround",
+    "uStarCool", "uStarWarm", "uRim", "uGlow",
     "uThick", "uDispersion", "uSpecular", "uRimStrength", "uBloomStrength",
   ]) {
     u[name] = gl.getUniformLocation(program, name);
@@ -438,14 +461,18 @@ function createLens(canvas: HTMLCanvasElement): Lens | null {
 
   // Read once. The palette does not change at runtime: there is one ground.
   const [gr, gg, gb] = readColour("--tl-ground");
-  const [sr, sg, sb] = readColour("--tl-ink-faint");
+  const [cr, cg, cb] = readColour("--tl-star-cool");
+  const [wr, wg, wb] = readColour("--tl-star-warm");
+  const [rr, rg, rb] = readColour("--tl-ink-faint");
   const [lr, lg, lb] = readColour("--tl-mark-high");
 
   return {
     gl,
     u,
     ground: [gr, gg, gb],
-    star: [sr, sg, sb],
+    starCool: [cr, cg, cb],
+    starWarm: [wr, wg, wb],
+    rim: [rr, rg, rb],
     glow: [lr, lg, lb],
     lightPeak: readNumber("--tl-light-commit-peak", 0),
     thicknessRest: readNumber("--tl-lens-thickness-rest", 0.42),
@@ -509,7 +536,9 @@ export function GravityField({ well, focused, commitKey, onReady }: GravityField
     gl.uniform1f(u.uLight, light);
     gl.uniform1f(u.uScale, dpr);
     gl.uniform3fv(u.uGround, lens.ground);
-    gl.uniform3fv(u.uStar, lens.star);
+    gl.uniform3fv(u.uStarCool, lens.starCool);
+    gl.uniform3fv(u.uStarWarm, lens.starWarm);
+    gl.uniform3fv(u.uRim, lens.rim);
     gl.uniform3fv(u.uGlow, lens.glow);
 
     // Thickness rides the existing mass arc rather than a second timer, so

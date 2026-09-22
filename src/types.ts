@@ -68,7 +68,7 @@ export interface AppSettings {
   geminiApiKey?: string;
   reviewReminderHour?: number;
   reviewReminderEnabled?: boolean;
-  /** The commit acknowledgment tone (D-016). Off by default. */
+  /** The commit acknowledgment tone (D-016). On by default since D-019. */
   soundEnabled?: boolean;
 }
 

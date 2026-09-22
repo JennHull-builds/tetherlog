@@ -51,11 +51,16 @@ before any visual work. Three rules from it that contradict everything written b
 - **Never same-colour-as-ground plus two soft shadows.** That is neumorphism and it is the one thing
   explicitly rejected.
 
-Phases 1 and 2 are **done and pushed**. **Phases 3, 4 and 5 are built and awaiting a look.** Capture
-is three elements at rest with the gravity lens behind it; the composition is in `docs/DECISIONS.md`
-D-014 and the lens is in D-015 and D-016. **Review is two states**: a full-screen one-card triage
-ritual, then a separate wrap-up. The structure is D-017 and the hand-off, the navigation and the
-wrap-up's layout are D-018. **Phase 6 is Patterns and Settings.**
+Phases 1 to 5 are **done, looked at, approved as good enough for now, and pushed.** Capture is two
+elements at rest with the gravity lens behind it; the composition is in `docs/DECISIONS.md` D-014
+and D-019, and the lens is in D-015, D-016 and D-019. **Review is two states**: a full-screen
+one-card triage ritual, then a separate wrap-up. The structure is D-017 and the hand-off, the
+navigation and the wrap-up's layout are D-018. **Phase 6 is Patterns and Settings.**
+
+**`docs/BACKLOG.md` is where a finding goes when it is real and the fix is a decision.** Read it
+before starting a phase and add to it in the same session something is found. **A finding does not
+stop a build.** Log it, say so, carry on; the owner decides when it gets fixed. Four entries are
+open, including two contrast failures that predate the current design and one live CSS leak.
 
 ---
 
@@ -192,13 +197,21 @@ to three quarters of the influence radius; it is now a tight collar.
 
 ### Star brightness in the lens is a contrast constraint, not a taste knob
 
-The headline and the sub-line sit on the starfield with no surface under them, so **the brightest
-star is their background** wherever one lands behind a glyph. Measured off rendered frames: at a
-near-layer gain of 1.0 the brightest painted star put `--tl-ink-muted` at 3.62:1, which fails AA. It
-ships at 0.64, where the worst case is 9.91:1 for `--tl-ink` and 4.71:1 for `--tl-ink-muted`.
+Capture's copy sits on the starfield with no surface under it, so **the brightest star is its
+background** wherever one lands behind a glyph. **This is currently failing and it is a known,
+accepted state: `docs/BACKLOG.md` B-001 has the numbers and the options.** Worst case after D-019:
+the headline at 2.97:1 against a 3.0 floor, the 11px parked count at 1.43:1 against 4.5.
 
-**Raising those gains puts 13px muted copy under AA.** If the starfield ever needs to be brighter,
-the muted copy has to move off it first.
+**Two rules came out of getting this wrong twice, and they are the useful part:**
+
+1. **Sweep viewport sizes. One viewport measures one star placement.** D-015 recorded 4.71:1 from a
+   single viewport and a live failure sat unnoticed from Phase 4 until 2026-09-22. The same probe
+   reported the parked count at 6.42:1 and it is 1.43:1 at 414x896.
+2. **Measure every run of text on the sky, not the one you expect to be worst.** The sub-line was
+   removed as the worst offender on the strength of a two-element sweep. Three more were failing.
+
+**Raising the gains puts small muted copy further under AA.** If the starfield ever needs to be
+brighter, the muted copy has to move off it first.
 
 ### Nothing on Capture may change the layout
 
@@ -428,10 +441,10 @@ can go back into `build`.
 
 - **Zero runtime.** Springs are solved at build time into CSS `linear()` easings. No animation
   library is installed and none should be without a decision recorded in `docs/DECISIONS.md`.
-- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Currently **116.79
-  KB JS and 5.55 KB CSS**, so roughly 13 KB of headroom. Phase 5 cost 1.08 KB of JS and 0.23 KB of
-  CSS; the jump from the 113.07 KB this line used to claim happened in `f1acb3d` and was not
-  recorded then. The lens is 4.84 KB of that, measured by
+- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Currently **117.26
+  KB JS and 5.57 KB CSS**, so roughly 13 KB of headroom. Phase 5 cost 1.08 KB of JS and 0.23 KB of
+  CSS and D-019 cost 0.47 KB more; the jump from the 113.07 KB this line used to claim happened in
+  `f1acb3d` and was not recorded then. The lens is 4.84 KB of that, measured by
   building with and without it. Two deliberate holds protect the rest: React is pinned at 19.2.8
   (D-010) and zod uses the `mini` export (D-012). Record the numbers in the commit when they move.
 - **Commit is where the budget goes.** If one moment is exceptional it is the handover. There is

@@ -59,11 +59,12 @@ function hapticPark(): void {
 /**
  * Capture.
  *
- * THREE ELEMENTS AT REST: the headline, the sub-line, and the field. Mic and
- * Park live inside the field as glyphs, the tag chips do not exist until there
- * is something to tag, and the one reserved line under the field carries the
- * chips or the confirm word but never both at once, so nothing on this screen
- * ever shifts. It was six elements before Phase 4. See docs/DECISIONS.md D-014.
+ * TWO ELEMENTS AT REST: the headline and the field. Mic and Park live inside
+ * the field as glyphs, the tag chips do not exist until there is something to
+ * tag, and the one reserved line under the field carries the chips or the
+ * confirm word but never both at once, so nothing on this screen ever shifts.
+ * Six before Phase 4, three after it (D-014), two since the sub-line went
+ * (D-019).
  *
  * THE PARK IS OPTIMISTIC AND THE ORDER IS THE WHOLE THING: hold, release,
  * settle, recover. Nothing between the hold and the release may be async.
@@ -395,11 +396,21 @@ export function CaptureView({ onParked }: CaptureViewProps) {
       />
 
       <div className="relative z-10 flex flex-1 flex-col justify-center gap-8">
-        <header className="space-y-2">
+        {/*
+          TWO ELEMENTS AT REST NOW: the headline and the field. The sub-line
+          ("Park it. Sort it tonight.") is gone, decided 2026-09-22, and it went
+          for a product reason before a contrast one: it told a person to sort
+          it tonight, and the app does not push anyone to do their review at
+          night. D-014 kept it and docs/LOOK.md defended it; both are superseded
+          on this point by D-019.
+
+          It also happened to be the worst-measuring text in the app, because
+          13px muted copy sat on the bare starfield with no surface under it.
+        */}
+        <header>
           <h1 className="text-display font-light tracking-display text-ink">
             What's pulling you?
           </h1>
-          <p className="text-small text-muted">Park it. Sort it tonight.</p>
         </header>
 
         <form

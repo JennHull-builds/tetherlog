@@ -9,7 +9,7 @@ export function SettingsView() {
   const [apiKey, setApiKey] = useState("");
   const [reminderHour, setReminderHour] = useState(20);
   const [reminderEnabled, setReminderEnabled] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [saved, setSaved] = useState(false);
 
   // Settings arrive from Dexie asynchronously and re-emit after every save.
@@ -22,7 +22,7 @@ export function SettingsView() {
     setApiKey(settings.geminiApiKey ?? "");
     setReminderHour(settings.reviewReminderHour ?? 20);
     setReminderEnabled(settings.reviewReminderEnabled ?? false);
-    setSoundEnabled(settings.soundEnabled ?? false);
+    setSoundEnabled(settings.soundEnabled ?? true);
   }
 
   async function handleSave() {

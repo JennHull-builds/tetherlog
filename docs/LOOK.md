@@ -173,7 +173,7 @@ declared once as custom properties and everything reads from it.
 | Token | Size | Job |
 |---|---|---|
 | `--t-micro` | 11px | Mono labels only: the parked count, the navigation |
-| `--t-small` | 13px | The sub-line, chip labels |
+| `--t-small` | 13px | Chip labels |
 | `--t-body` | 15px | Parked items in the log |
 | `--t-input` | 17px | The capture field. **Never smaller.** |
 | `--t-display` | 34px | The one headline per screen |
@@ -203,11 +203,16 @@ The confirm word is **"Parked."** `PRODUCT.md` has always specified this. The sh
 | Element | Copy |
 |---|---|
 | Headline | What's pulling you? |
-| Sub-line | Park it. Sort it tonight. |
 | Placeholder | One line is enough |
 | Confirm | Parked. |
 | Count | 3 parked today |
 
-The sub-line does two jobs in five words: it tells you to let go, and it tells you what happens next,
-which is the thing that makes letting go safe. Voice stays warm, literal, spare, UK English. No
-streaks, no praise, nothing that rewards coming back to look.
+**The sub-line is gone, decided 2026-09-22.** It read "Park it. Sort it tonight." and this file used
+to defend it: two jobs in five words, telling you to let go and telling you what happens next. The
+second job is what killed it. **"Sort it tonight" tells a person to do their review at night**, and
+nothing in this product pushes anyone to act at a particular hour. It also happened to be the
+worst-measuring text in the app, 13px muted copy on the bare starfield with no surface under it, but
+the product reason came first. See `docs/DECISIONS.md` D-019.
+
+Voice stays warm, literal, spare, UK English. No streaks, no praise, nothing that rewards coming
+back to look.
