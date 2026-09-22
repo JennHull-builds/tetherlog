@@ -222,7 +222,7 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     onParked();
     inputRef.current?.focus();
     hapticPark();
-    // Commit only, off by default (D-016): nothing responds to typing, and
+    // Commit only, on by default since D-019: nothing responds to typing, and
     // this is acknowledgment, not a reward chime, so it stays quiet.
     if (settings?.soundEnabled) playParkSound();
 
