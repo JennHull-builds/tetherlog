@@ -31,7 +31,8 @@ into `docs/BUILD-SPEC.md`. `git log` has the original if it is ever wanted.
 | Phase 3 | **Built 2026-09-18, looked at and approved 2026-09-22** as good enough for now. The ground, the type and the PWA chrome. |
 | Phase 4 | **Built 2026-09-18, enhanced 2026-09-22, looked at and approved** as good enough for now. Capture's composition, the lens, the arc, then the lens's own body and the commit sound. The starfield's colour, the sub-line and the sound default moved again in D-019. See D-014, D-015, D-016, D-019. |
 | Phase 5 | **Built, looked at and approved 2026-09-22** as good enough for now. Two states: a full-screen one-card triage ritual, then a separate wrap-up. Structure in D-017, the three questions it left open in D-018. |
-| Phases 6 and 7 | Not started. Patterns and Settings, then the sweep. |
+| Phase 6 | **Built 2026-09-22.** Patterns and Settings off the card shell, and one voice for a number across Review and Patterns. See D-021. |
+| Phase 7 | Not started. The sweep. `docs/BACKLOG.md` is its inbox. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -1131,3 +1132,85 @@ product. `docs/LOOK.md`'s rule 3 survives unchanged.
 it, D-016 did it, and both recorded a comfortable margin that a sweep later contradicted. The
 correction is in `CLAUDE.md` beside the gain it protects: sweep sizes, sweep states, and measure
 every run of text rather than the one you expect to be worst.
+
+## D-021: Patterns and Settings, and one voice for a number
+
+**2026-09-22. Closed and built.** Phase 6. Both screens were the last two still wearing the card
+shell from before the overhaul.
+
+### A number looks the same wherever it appears
+
+**Review's summary counts moved to the display step**, answered by the owner and the reason is
+worth keeping: two screens that both answer "how many" should answer it in the same voice. Review's
+totals were 15px body text with a marker; Patterns' readouts are 34px in the display face. Now both
+are a numeral in the display face with a mono label beneath it, in the same grid. This closes
+`docs/BACKLOG.md` B-003.
+
+**Two by two at every width.** `docs/BUILD-SPEC.md` asks for a 2x2 at 390px opening to a row of four
+at 1280px, and that blueprint assumed a full-width page. Every screen here is a 32rem column, so a
+row of four gives each readout about 104px, which wraps "TOTAL CAPTURES" onto a second line while
+its neighbours stay on one and leaves the row ragged. Rendered, not reasoned about.
+
+### Patterns
+
+**The number sits in the page.** No cards, no borders, nothing drawn around a readout: a display
+numeral on the bare ground with space between them. The blueprint's "ruled ground" came from the
+rejected Monolith direction, and the only rule-weight token quiet enough to be texture is the
+hairline at 1.08:1, which is not faint but invisible. **No ground texture at all**, which is a
+choice rather than an omission.
+
+**No colour on this screen, and that is also a choice.** `docs/LOOK.md` gives the one colour per
+screen to the primary action, and a screen you arrive at to read has none. The bars are ink, because
+data is not decoration. The digest control is a ghost for the same reason it is a ghost on Review:
+it is the one action here that leaves the device, and it should not be the brightest thing on the
+page.
+
+**An empty hour is visible as empty rather than absent.** It used to be a zero-height bar at 0.15
+opacity, which is nothing at all: the day appeared to have fewer hours in it than it has. Every
+hour now draws at least a 2px mark on the baseline in the structural rule token at 3.22:1. Same
+finding as the blank third row in Capture's peek stack, and the third time this repo has paid for
+it: **rendering something nobody can see is worse than rendering nothing, because it reads as done.**
+
+**Motion:** the bars grow once on arrival, `--ease-settle`, staggered 8ms, and then the screen is
+still. Verified rather than asserted: 24 bars animating 60ms in with the first at `scaleY(0.353)`,
+zero animations running once settled, and zero `requestAnimationFrame` calls while idle. Under
+reduced motion the animation is removed outright rather than shortened, because a 1ms animation
+staggered across 184ms still arrives as a ripple; measured, the bars have no transform at all and
+nothing runs.
+
+### Settings
+
+**Rules, not cards**, using the structural token at 3.22:1. Review's wrap-up does the same grouping
+job with space alone. The two disagree and **Phase 7 owns picking one**; this entry does not, because
+Review is already approved and repainting it here would be scope creep in a phase that does not own
+it.
+
+**The BYOK paragraph is full-strength ink** while every other body line on the screen is muted. It is
+a promise about where a key goes, and muted text reads as fine print.
+
+**Import JSON is a real button now.** It was a `<label>` hand-painted with the `Button` component's
+border, padding and radius, which drifts from the real thing the moment either moves. It is a
+`Button` that opens a hidden file input.
+
+**The checkbox accent was the interesting one.** A checked native checkbox paints itself in the
+*browser's* accent, a blue belonging to nobody here, so it needed a token. Handing it `--tl-mark`
+looked good, which is the trap: with two checkboxes and Save, the one colour per screen then
+appeared three times on the screen `docs/LOOK.md` calls the quietest. **That is D-014's finding
+exactly**, when the luminous rim was briefly every field's default. It reads `--tl-ink`: not a
+colour, unmistakably on, and Save keeps the accent.
+
+### Copy this phase touched
+
+Phase 6 does not own copy. Three things changed and are listed here rather than buried.
+
+| What | Why |
+|---|---|
+| **Corrected:** "Off by default." to "On by default." | The sound default flipped in D-019 and this line was left behind. It was not a rewording, it was false. |
+| **Removed:** the "Patterns" and "Settings" eyebrows above the headlines | Review dropped its equivalent in Phase 5 and the navigation already says which screen you are on. |
+| **Format:** the busiest hour is zero-padded, `00:00` | It agreed with neither the hour labels under the distribution nor itself, and midnight read as an unfilled placeholder rather than a time. |
+
+### Left alone
+
+`PatternsView` still renders the weekly digest, and `CLAUDE.md` said "the agent runs on Review only",
+which would have had someone delete it. `PRODUCT.md` sanctions it in three places and it is a shipped
+feature; the shorthand was wrong and is corrected rather than the code.

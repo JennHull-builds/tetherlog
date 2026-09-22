@@ -1,8 +1,42 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Button, Card, Field } from "../components/ui";
+import { Button, Field } from "../components/ui";
 import { exportAllData, getSettings, importAllData, saveSettings } from "../db";
 import { downloadFile } from "../lib/hands";
+import { readDurationMs } from "../lib/motion";
+
+/**
+ * Settings. The quietest screen: nothing here needs character, it needs to be
+ * unambiguous.
+ *
+ * RULES, NOT CARDS. Sections are separated by a 1px --tl-rule, the structural
+ * token at 3.22:1. Not the hairline, which measures 1.08:1 on this ground and
+ * is not faint but invisible. Review's wrap-up does the same job with space
+ * alone; the two should agree and Phase 7 owns that.
+ *
+ * THE BYOK PARAGRAPH IS FULL-STRENGTH INK, deliberately, while every other
+ * body line here is muted. It is a promise about where a key goes, and muted
+ * text reads as fine print.
+ */
+/**
+ * A checked native checkbox paints itself in the BROWSER's accent, a blue that
+ * belongs to nobody here and put a foreign colour on the one screen
+ * docs/LOOK.md calls the quietest. accent-color hands it back to a token.
+ *
+ * INK, NOT THE ACCENT. Handing it --tl-mark was tried first and it looked
+ * good, which is the trap: with two checkboxes and Save, the one colour per
+ * screen then appeared three times on Settings, which is the exact finding
+ * D-014 paid for when the luminous rim was briefly every field's default. Ink
+ * is not a colour, it is unmistakably on, and Save keeps the screen's accent.
+ *
+ * The control stays native. It is the real thing with the real keyboard
+ * behaviour, and a hand-built replacement would be a worse switch.
+ */
+const CHECKBOX: React.CSSProperties = {
+  accentColor: "var(--tl-ink)",
+  width: "1rem",
+  height: "1rem",
+};
 
 export function SettingsView() {
   const settings = useLiveQuery(getSettings, [], null);
@@ -11,6 +45,7 @@ export function SettingsView() {
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [saved, setSaved] = useState(false);
+  const importRef = useRef<HTMLInputElement | null>(null);
 
   // Settings arrive from Dexie asynchronously and re-emit after every save.
   // Adjusting state during render is React's documented pattern for syncing
@@ -33,7 +68,9 @@ export function SettingsView() {
       soundEnabled,
     });
     setSaved(true);
-    window.setTimeout(() => setSaved(false), 1500);
+    // The same token "Parked." uses, so the two confirmations agree, including
+    // the longer hold under reduced motion.
+    window.setTimeout(() => setSaved(false), readDurationMs("--tl-duration-confirm", 600));
 
     if (reminderEnabled && "Notification" in window) {
       const permission = await Notification.requestPermission();
@@ -62,15 +99,19 @@ export function SettingsView() {
   }
 
   return (
-    <section className="space-y-6 px-4 py-8">
-      <div>
-        <p className="text-body text-muted">Settings</p>
-        <h1 className="mt-1 text-display font-light tracking-display text-ink">Your device only</h1>
-      </div>
+    <section
+      style={{
+        paddingInline: "var(--tl-gutter)",
+        paddingBlock: "var(--tl-space-lg)",
+      }}
+    >
+      <h1 className="text-display font-light leading-display tracking-display text-ink">
+        Your device only
+      </h1>
 
-      <Card className="space-y-3">
-        <h2 className="font-medium text-ink">Gemini API key (BYOK)</h2>
-        <p className="text-body text-muted">
+      <Section first>
+        <h2 className="text-body font-medium text-ink">Gemini API key (BYOK)</h2>
+        <p className="text-small text-ink">
           Your key stays on this device. We never see it. Without a key, capture,
           patterns, and rule-based review still work. AI triage and digest stay off.
         </p>
@@ -80,19 +121,20 @@ export function SettingsView() {
           onChange={setApiKey}
           placeholder="Paste key from Google AI Studio"
         />
-      </Card>
+      </Section>
 
-      <Card className="space-y-3">
-        <h2 className="font-medium text-ink">Evening review reminder</h2>
-        <label className="flex items-center gap-2 text-body text-ink">
+      <Section>
+        <h2 className="text-body font-medium text-ink">Evening review reminder</h2>
+        <label className="flex items-center gap-3 text-body text-ink">
           <input
             type="checkbox"
             checked={reminderEnabled}
             onChange={(event) => setReminderEnabled(event.target.checked)}
+            style={CHECKBOX}
           />
           Remind me to review
         </label>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <div className="w-24">
             <Field
               type="number"
@@ -102,51 +144,89 @@ export function SettingsView() {
               onChange={(value) => setReminderHour(Number(value))}
             />
           </div>
-          <span className="text-body text-muted">Hour (0–23)</span>
+          <span className="text-small text-muted">Hour (0&ndash;23)</span>
         </div>
-      </Card>
+      </Section>
 
-      <Card className="space-y-3">
-        <h2 className="font-medium text-ink">Sound</h2>
-        <label className="flex items-center gap-2 text-body text-ink">
+      <Section>
+        <h2 className="text-body font-medium text-ink">Sound</h2>
+        <label className="flex items-center gap-3 text-body text-ink">
           <input
             type="checkbox"
             checked={soundEnabled}
             onChange={(event) => setSoundEnabled(event.target.checked)}
+            style={CHECKBOX}
           />
           Play a sound when you park
         </label>
-        <p className="text-body text-muted">
-          One quiet tone, only when a thought lands. Off by default.
+        <p className="text-small text-muted">
+          One quiet tone, only when a thought lands. On by default.
         </p>
-      </Card>
+      </Section>
 
-      <Card className="space-y-3">
-        <h2 className="font-medium text-ink">Backup</h2>
+      <Section>
+        <h2 className="text-body font-medium text-ink">Backup</h2>
         <div className="flex flex-wrap gap-2">
           <Button variant="ghost" className="py-2" onClick={() => void handleExport()}>
             Export JSON
           </Button>
-          <label
-            className="cursor-pointer border-2 border-line bg-raised px-4 py-2 text-body font-medium text-ink"
-            style={{ borderRadius: "var(--tl-radius)" }}
-          >
+          {/*
+            A real button that opens the picker, not a <label> painted to look
+            like one. The old version hand-rolled the Button's border, padding
+            and radius on a label and drifted from it the moment either moved.
+          */}
+          <Button variant="ghost" className="py-2" onClick={() => importRef.current?.click()}>
             Import JSON
-            <input type="file" accept="application/json" className="hidden" onChange={handleImport} />
-          </label>
+          </Button>
+          <input
+            ref={importRef}
+            type="file"
+            accept="application/json"
+            className="hidden"
+            onChange={handleImport}
+            tabIndex={-1}
+            aria-hidden
+          />
         </div>
-      </Card>
+      </Section>
 
-      <Button fullWidth onClick={() => void handleSave()}>
-        Save settings
-      </Button>
-
-      {saved && (
-        <p className="text-center text-body text-mark" aria-live="polite">
-          Saved.
-        </p>
-      )}
+      <div className="mt-10 space-y-3">
+        <Button fullWidth onClick={() => void handleSave()}>
+          Save settings
+        </Button>
+        {/* A reserved line, so confirming never moves the button above it. */}
+        <div className="flex h-6 items-center justify-center">
+          <p className="text-body text-muted" aria-live="polite" aria-atomic="true">
+            {saved ? "Saved." : ""}
+          </p>
+        </div>
+      </div>
     </section>
+  );
+}
+
+/**
+ * One setting, with a rule above it. The rule is the structural token: a
+ * boundary a person needs to see is never the decorative hairline.
+ */
+function Section({
+  first = false,
+  children,
+}: {
+  first?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="space-y-3"
+      style={{
+        marginTop: "var(--tl-space-lg)",
+        paddingTop: first ? 0 : "var(--tl-space-lg)",
+        borderTop: first ? undefined : "var(--tl-border-width) solid var(--tl-rule)",
+      }}
+    >
+      {children}
+    </div>
   );
 }
 

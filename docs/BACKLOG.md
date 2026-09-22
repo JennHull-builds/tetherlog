@@ -88,12 +88,17 @@ widening that list is the cheap half and does not need a decision.
 
 ## B-003: Review's summary counts may belong in the display face
 
-**Raised 2026-09-22 building Phase 5. Waiting on Phase 6.**
+**CLOSED 2026-09-22 in Phase 6. Answered yes.** Review's four bucket totals are now a display-face
+numeral with a mono label beneath, in the same grid Patterns uses for its readouts, because two
+screens that both answer "how many" should answer it in the same voice. See `docs/DECISIONS.md`
+D-021.
 
-The wrap-up's four bucket totals are 15px body text with a bucket-coloured marker each. Patterns is
-the screen where numerals do their real work, in the display face at 34px. If Phase 6 sets a house
-style for "a number you read at a glance", Review's totals should follow it rather than keep their
-own. Not changed in Phase 5 because Phase 6 owns that question.
+### A new one, in its place
+
+**Review's wrap-up separates its sections with space; Settings separates its with a 1px
+`--tl-rule`.** Both are defensible and they disagree, and the disagreement is visible if you move
+between the two screens. Phase 7 picks one. Not settled in Phase 6 because Review was already
+approved and repainting it there would be scope creep in a phase that does not own it.
 
 ---
 

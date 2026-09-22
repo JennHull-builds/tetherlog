@@ -624,9 +624,16 @@ wrap-up state's own layout and the hand-off moment for this build session to set
 
 ---
 
-**Phase 6: Patterns and Settings**
+**Phase 6: Patterns and Settings** BUILT 2026-09-22
 
-*Files:* `src/views/PatternsView.tsx`, `src/views/SettingsView.tsx`
+*Files:* `src/views/PatternsView.tsx`, `src/views/SettingsView.tsx`, `src/views/ReviewView.tsx`,
+`src/index.css`
+
+**Everything below was met, and `docs/DECISIONS.md` D-021 has the evidence.** One departure is
+recorded there and is deliberate: the readouts are a 2x2 at every width rather than a row of four
+at 1280px, because every screen here is a 32rem column and a row of four leaves the labels ragged.
+Review's summary counts moved to the same readout in the same change, which closes
+`docs/BACKLOG.md` B-003.
 
 *Acceptance:*
 - Patterns numerals are in the display face at the 34px display step, legible from arm's length in

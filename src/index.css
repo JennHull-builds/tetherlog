@@ -231,6 +231,44 @@
 }
 
 /*
+ * The hour distribution growing once on arrival. Patterns is the ONE place in
+ * the app with decorative motion, and it is defensible because this is a
+ * screen you arrive at deliberately to read rather than one you pass through
+ * while distracted. It runs once on mount and then the screen is still: no
+ * loop, nothing to re-trigger, nothing that rewards coming back to look.
+ *
+ * transform-origin is the baseline, so a bar grows up out of the axis rather
+ * than expanding from its middle. scaleY only, which is a compositor property.
+ */
+@keyframes tl-bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.tl-bar-grow {
+  transform-origin: bottom;
+  animation: tl-bar-grow var(--tl-spring-settle-duration)
+    var(--tl-spring-settle-ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /*
+   * "Bars are drawn at full height. No stagger." The animation-delay on each
+   * bar is an inline style and cannot be overridden from here, so the
+   * animation is removed outright rather than shortened: a 1ms animation
+   * staggered across 184ms would still arrive as a ripple.
+   */
+  .tl-bar-grow {
+    animation: none;
+    transform: none;
+  }
+}
+
+/*
  * NIL's core.css painted the body. Tailwind's preflight sets no background or
  * colour, and App.tsx only paints its own max-w-lg wrapper, so without this the
  * page gutters go white on any screen wider than lg.

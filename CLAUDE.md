@@ -51,11 +51,11 @@ before any visual work. Three rules from it that contradict everything written b
 - **Never same-colour-as-ground plus two soft shadows.** That is neumorphism and it is the one thing
   explicitly rejected.
 
-Phases 1 to 5 are **done, looked at, approved as good enough for now, and pushed.** Capture is two
+Phases 1 to 6 are **done, looked at, approved as good enough for now, and pushed.** Capture is two
 elements at rest with the gravity lens behind it; the composition is in `docs/DECISIONS.md` D-014
 and D-019, and the lens is in D-015, D-016 and D-019. **Review is two states**: a full-screen
 one-card triage ritual, then a separate wrap-up. The structure is D-017 and the hand-off, the
-navigation and the wrap-up's layout are D-018. **Phase 6 is Patterns and Settings.**
+navigation and the wrap-up's layout are D-018. **Phase 7 is the sweep, and `docs/BACKLOG.md` is its inbox.**
 
 **`docs/BACKLOG.md` is where a finding goes when it is real and the fix is a decision.** Read it
 before starting a phase and add to it in the same session something is found. **A finding does not
@@ -88,7 +88,10 @@ has the originals. Any instruction referencing either file is out of date.
 3. **Four screens.** Capture, Review, Patterns, Settings. Never a fifth.
 4. **Data stays on device.** Dexie and IndexedDB. No accounts in v1. BYOK for the agent, client-side
    only, key in localStorage, never on a server.
-5. **The agent runs on Review only.** Never at capture.
+5. **The agent never runs at capture.** Not on a keystroke, not on park, not in the background.
+   It runs on **Review**, for triage, and on **Patterns**, for the weekly digest, and both are
+   explicit presses. This line used to read "the agent runs on Review only", which is not what
+   `PRODUCT.md` says and would have had someone delete a shipped feature. Capture is the rule.
 6. **UK English** in UI copy, comments and commits. Colour, organise, initialise.
 7. **`prefers-reduced-motion: reduce` is a contract, not a fallback.** Every motion token ships its
    reduced-motion counterpart in the same token entry. The generator throws if one is missing. The
@@ -456,10 +459,10 @@ can go back into `build`.
 
 - **Zero runtime.** Springs are solved at build time into CSS `linear()` easings. No animation
   library is installed and none should be without a decision recorded in `docs/DECISIONS.md`.
-- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Currently **117.26
-  KB JS and 5.57 KB CSS**, so roughly 13 KB of headroom. Phase 5 cost 1.08 KB of JS and 0.23 KB of
-  CSS and D-019 cost 0.47 KB more; the jump from the 113.07 KB this line used to claim happened in
-  `f1acb3d` and was not recorded then. The lens is 4.84 KB of that, measured by
+- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Currently **117.99
+  KB JS and 5.71 KB CSS**, so roughly 12 KB of headroom. Phase 5 cost 1.08 KB of JS, D-019 and D-020
+  0.72 KB between them, and Phase 6 0.30 KB; the jump from the 113.07 KB this line used to claim
+  happened in `f1acb3d` and was not recorded then. The lens is 4.84 KB of that, measured by
   building with and without it. Two deliberate holds protect the rest: React is pinned at 19.2.8
   (D-010) and zod uses the `mini` export (D-012). Record the numbers in the commit when they move.
 - **Commit is where the budget goes.** If one moment is exceptional it is the handover. There is

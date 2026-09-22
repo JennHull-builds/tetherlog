@@ -68,20 +68,35 @@ const DOT_TONE: Record<TriageBucket, string> = {
   wonder: "var(--color-tag-wonder)",
 };
 
+/** The type size a marker is sitting beside, so it lands on the first line. */
+const DOT_LINE: Record<"body" | "small" | "none", string | undefined> = {
+  body: "calc(var(--tl-text-body) * var(--tl-leading-body))",
+  small: "calc(var(--tl-text-small) * var(--tl-leading-body))",
+  none: undefined,
+};
+
 /**
  * A bucket hue as a marker beside words, never as the words themselves.
  *
- * It centres itself in a box exactly one body line tall, so it sits on the
- * FIRST line of whatever it labels rather than drifting to the middle of a
- * two-line sentence. The carry-forward line is two lines as soon as a thought
- * is longer than a few words, which is most of them.
+ * It centres itself in a box exactly one line tall, so it sits on the FIRST
+ * line of whatever it labels rather than drifting to the middle of a two-line
+ * sentence: the carry-forward line wraps as soon as a thought is longer than a
+ * few words, which is most of them. `line` has to name the size it is sitting
+ * beside, because the box cannot read the type size of its own parent. `none`
+ * is for a single-line row that centres its own children.
  */
-function BucketDot({ bucket }: { bucket: TriageBucket }) {
+function BucketDot({
+  bucket,
+  line = "body",
+}: {
+  bucket: TriageBucket;
+  line?: "body" | "small" | "none";
+}) {
   return (
     <span
       aria-hidden
       className="flex shrink-0 items-center"
-      style={{ height: "calc(var(--tl-text-body) * var(--tl-leading-body))" }}
+      style={{ height: DOT_LINE[line] }}
     >
       <span
         style={{
@@ -473,7 +488,7 @@ function TriageState({
         // The fix docs/BUILD-SPEC.md asked for: this was `text-do` at 2.79:1,
         // with the colour carrying the whole meaning. Ink plus a marker.
         <p className="mt-3 flex items-start gap-2 text-small text-ink">
-          <BucketDot bucket="do" />
+          <BucketDot bucket="do" line="small" />
           <span>Carry forward (max one)</span>
         </p>
       )}
@@ -651,13 +666,28 @@ function WrapUp({
       </h1>
 
       {triagedToday.length > 0 ? (
-        <section className="space-y-3">
+        <section className="space-y-4">
           <h2 className="text-body font-medium text-ink">Review summary</h2>
-          <ul className="space-y-2">
+          {/*
+            THE SAME READOUT PATTERNS USES, decided 2026-09-22 (D-021): the
+            numeral in the display face, the label in mono beneath it, a 2x2 at
+            390px opening to a row of four. Two screens that both answer "how
+            many" should answer it the same way, and before this one used 15px
+            body text while the other used 34px display.
+
+            The bucket marker moved onto the label rather than being dropped.
+            Colour is still never the only carrier: the word is right there.
+          */}
+          <ul className="grid grid-cols-2 gap-x-6 gap-y-8">
             {BUCKETS.map((bucket) => (
-              <li key={bucket} className="flex items-start gap-2 text-body text-ink">
-                <BucketDot bucket={bucket} />
-                {BUCKET_LABELS[bucket]} {counts[bucket]}
+              <li key={bucket} className="flex flex-col gap-1">
+                <span className="text-display font-light leading-display tracking-display tabular-nums text-ink">
+                  {counts[bucket]}
+                </span>
+                <span className="flex items-center gap-2 font-mono text-micro uppercase tracking-micro text-muted">
+                  <BucketDot bucket={bucket} line="none" />
+                  {BUCKET_LABELS[bucket]}
+                </span>
               </li>
             ))}
           </ul>
