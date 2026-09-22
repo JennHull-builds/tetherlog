@@ -51,10 +51,11 @@ before any visual work. Three rules from it that contradict everything written b
 - **Never same-colour-as-ground plus two soft shadows.** That is neumorphism and it is the one thing
   explicitly rejected.
 
-Phases 1 and 2 are **done and pushed**. **Phases 3 and 4 are built and awaiting a look.** Capture is
-now three elements at rest with the gravity lens behind it; the composition is in `docs/DECISIONS.md`
-D-014 and the lens is in D-015. **Phase 5 is Review**, and its first question is structural, not
-visual.
+Phases 1 and 2 are **done and pushed**. **Phases 3, 4 and 5 are built and awaiting a look.** Capture
+is three elements at rest with the gravity lens behind it; the composition is in `docs/DECISIONS.md`
+D-014 and the lens is in D-015 and D-016. **Review is two states**: a full-screen one-card triage
+ritual, then a separate wrap-up. The structure is D-017 and the hand-off, the navigation and the
+wrap-up's layout are D-018. **Phase 6 is Patterns and Settings.**
 
 ---
 
@@ -148,6 +149,29 @@ never auto-retries, because a silent retry can double-write.
 **`docs/DECISIONS.md` D-004 is the full write-up**, including a symptom-to-cause table for
 exactly this: text typed, Park pressed, nothing in Review. Read that table before debugging anything
 else, and read it before changing the order of those four steps.
+
+### Triage suggestions must not be derived from the shrinking queue
+
+`ruleBasedTriage` grants carry-forward to the **first `do` in the array it is handed**. Re-run it
+against a queue that gets shorter with every confirm and the flag walks to the next `do`, so
+"carry forward (max one)" is offered on card one, then card four, then card six. The database
+enforces max one; the screen does not, and the screen is what a person reads.
+
+`ReviewView` derives suggestions from an **append-only ritual set** rather than from the live queue,
+and suppresses the offer once a carry-forward has been written tonight. Appending never moves the
+first `do`. If suggestions ever start flickering between cards, look here. Written up in
+`docs/DECISIONS.md` D-018.
+
+### Seeding IndexedDB by hand leaves Dexie's cache stale
+
+Dexie 4 caches index queries and invalidates them only on writes it made itself. Seed captures with
+raw `indexedDB` for a screenshot or a test and `getCapturesForDay`, which is a
+`where("createdAt").between(...)`, keeps returning the empty result it cached, while
+`getUntriagedCaptures`, which is a table scan, returns the fresh rows. Review then shows an empty
+queue and a full backlog and the bug looks like date handling.
+
+**Reload the page after seeding**, or seed through the app's own Dexie instance. This cost twenty
+minutes chasing a timezone bug that was not there.
 
 ### A negative z-index hides a fixed canvas behind an ancestor's background
 
@@ -249,6 +273,25 @@ names needs a `@source not` line before it lands.**
 
 Verified on `tailwindcss@4.3.3`. If those lines ever disappear, the leak comes straight back and
 nothing will warn you: the rules are valid CSS, they just are not yours.
+
+**And the guard does not cover everything, which was found on 2026-09-22 while measuring Phase 5.**
+Five rules are shipping today, 582 bytes uncompressed, and none of them came from a markdown file:
+
+```
+.fixed   .inline   .ring   .rounded   .shadow
+```
+
+They come from **prose in source-file comments**: `GravityField.tsx`, `Field.tsx`, `TriageCard.tsx`,
+the comments in `src/index.css` and `tokens.json`. `src/` cannot be added to the `@source not` list,
+because `src/` is where the real class names live, so the four directives are intact and working and
+the leak is coming in behind them. `.shadow` is in the production CSS of an app whose direction is
+that depth is never a shadow attached to an edge.
+
+**It predates Phase 5 and is not fixed here**, because every available fix is a decision rather than
+a change: reword the comments across files this phase did not own, or post-process the built CSS,
+and a build script is what broke every Vercel deployment on 2026-09-18. **Flagged for Phase 7.**
+Meanwhile the CI assertion in `.github/workflows/verify.yml` names five different utilities and has
+been silent throughout, so widening that list is the cheap half of the fix.
 
 ### Never add an unlayered global reset
 
@@ -385,8 +428,10 @@ can go back into `build`.
 
 - **Zero runtime.** Springs are solved at build time into CSS `linear()` easings. No animation
   library is installed and none should be without a decision recorded in `docs/DECISIONS.md`.
-- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Currently **113.07
-  KB JS and 5.01 KB CSS**, so roughly 17 KB of headroom. The lens is 4.84 KB of that, measured by
+- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Currently **116.79
+  KB JS and 5.55 KB CSS**, so roughly 13 KB of headroom. Phase 5 cost 1.08 KB of JS and 0.23 KB of
+  CSS; the jump from the 113.07 KB this line used to claim happened in `f1acb3d` and was not
+  recorded then. The lens is 4.84 KB of that, measured by
   building with and without it. Two deliberate holds protect the rest: React is pinned at 19.2.8
   (D-010) and zod uses the `mini` export (D-012). Record the numbers in the commit when they move.
 - **Commit is where the budget goes.** If one moment is exceptional it is the handover. There is

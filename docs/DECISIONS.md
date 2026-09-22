@@ -29,7 +29,7 @@ into `docs/BUILD-SPEC.md`. `git log` has the original if it is ever wanted.
 | Phases 1 and 2 | Done and pushed, 2026-09-18 |
 | Phase 3 | **Built 2026-09-18**, awaiting a look. The ground, the type and the PWA chrome. |
 | Phase 4 | **Built 2026-09-18, enhanced 2026-09-22.** Capture's composition, the lens, the arc, then the lens's own body (refraction, dispersion, specular, rim) and the commit sound. See D-014, D-015, D-016. |
-| Phase 5 | **Structure decided 2026-09-22 (D-017), not built.** Two states: a full-screen one-card triage ritual, then a separate wrap-up. |
+| Phase 5 | **Built 2026-09-22.** Two states: a full-screen one-card triage ritual, then a separate wrap-up. Structure in D-017, the three questions it left open in D-018. |
 | Phases 6 and 7 | Not started. Patterns and Settings, then the sweep. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
@@ -766,3 +766,175 @@ into the wrap-up, or does the screen just change), and whether Patterns/Settings
 reachable mid-ritual or only from the wrap-up state. Phase 5's build session should settle these
 against `docs/LOOK.md`'s existing rules before writing components, the same way D-014 settled
 Capture's composition before any shader work began.
+
+## D-018: Review's hand-off, its navigation, and the wrap-up's layout
+
+**2026-09-22. Closed and built.** D-017 settled the structure and explicitly left three things to
+this build session: the hand-off from the last card, whether Patterns and Settings are reachable
+mid-ritual, and the wrap-up state's own layout. All three are answered here, against
+`docs/LOOK.md`'s existing rules rather than fresh ones.
+
+### The hand-off is not a moment
+
+**The last card leaves on `--ease-dismiss` exactly as every other card does, and the wrap-up rises
+on `--ease-settle` in the space the next card would have used.** It is the same two animations, on
+the same two springs, with nothing added for the fact that the queue happened to run out.
+
+Four reasons, none of them taste:
+
+1. **A flourish for finishing is a celebration.** `PRODUCT.md` forbids celebration, confetti and
+   anything that rewards returning. "You got to the end" is the exact sentiment the rule exists to
+   keep out.
+2. **There is one light event in the whole app and it belongs to Capture's commit.** `CLAUDE.md`
+   says commit is where the motion budget goes and that if one moment is exceptional it is the
+   handover. A second exceptional moment on Review spends a budget that is already committed.
+3. **Triage is repetitive by design**, so `docs/BUILD-SPEC.md` gives it the shortest motion in the
+   system. If the seventh card behaves differently from the sixth, the screen has taught the person
+   that finishing is the point, and the point is that the thought is gone.
+4. **The code does not know which card is last.** The queue is derived from the database, so "the
+   last card" is not a state that exists in advance: it is the moment nothing is left. Building a
+   transition for it would mean inventing a concept the data model does not have.
+
+The one piece of machinery this needs is that the leaving card outlives its own screen. It is
+rendered as a ghost at the Review root, pinned to the rect the real card occupied, so it keeps
+animating across the swap from the triage state to the wrap-up instead of being unmounted with it.
+Each ghost is keyed by capture id and removed by its own timer, so two confirms in a row animate two
+independent elements. Measured in the browser at 30ms apart: two `tl-triage-leave` animations
+running at different offsets, one `tl-triage-rise` behind them, and the second card clickable
+throughout. **Motion never queues.**
+
+### Patterns and Settings stay reachable, and so does Capture
+
+**The navigation is unchanged on both states.** No kiosk mode, nothing hidden until the queue is
+empty.
+
+1. **A thought that arrives mid-triage is the thought this product exists to catch.** `PRODUCT.md`
+   is built on parking in under five seconds from wherever you are. Making Capture unreachable
+   during Review is the one failure the product cannot afford, and Review is a screen a person sits
+   on for minutes.
+2. **A navigation that returns only when you finish is a completion gate**, and a completion gate is
+   the guilt mechanic in different clothes. Untriaged is parked, not failure, and that has to stay
+   true of a queue you walked away from halfway.
+3. **Leaving costs nothing, so there is nothing to protect.** Every confirmed card is already
+   written, and the queue re-derives itself from the database on return. Verified in the browser:
+   confirm one, go to Capture, come back, and the same card is showing at the right position.
+4. **Removing the only navigation is a keyboard and screen reader trap**, whatever it does for the
+   composition.
+
+The one thing genuinely lost by leaving is an AI triage run, which lives in component state. Rule
+suggestions are recomputed identically, so the queue looks the same; the agent's reasons do not come
+back. Storing them would mean touching the Dexie schema, which is on the do-not-touch list.
+
+### The wrap-up's layout
+
+**Space, not cards, and the sections are named in the body face.** A rule between them would have to
+be `--tl-hairline`, which measures 1.08:1 on ground, 1.11:1 on raised and 1.15:1 on field. That is
+not faint, it is invisible, and the structural rule token is reserved for boundaries a user has to
+see. This is the same finding as the blank third row in Capture's peek stack (D-014).
+
+**Order: the summary, then Wins, then Hands.** D-017 lists the contents rather than a sequence, and
+the old scrolling page opened with Wins. Wins is a text field, which is a demand; the summary is
+read-only and answers "what did I just do" without asking for anything. Reading comes before typing,
+and Hands is the exit, so it is last.
+
+**The backlog moved here and became a button.** It was a checkbox held open during triage. As a
+control on the wrap-up it is a decision to start more triage, taken once and deliberately, and it
+appears only when there is a backlog. It is never phrased as a count of what is owed.
+
+**The display step belongs to the wrap-up's headline.** The triage state has no headline of its own,
+which is what makes the arrival of "Evening review" legible as the hand-off without any animation
+spent on it.
+
+### What the triage card became
+
+`FileCard` is gone, replaced by `TriageCard`. It was the last of the brutalist era in the component
+directory: hard borders, a `3px 3px 0` offset shadow and a decorative `[` glyph, none of which
+survive `docs/LOOK.md`. The name went with it, because a card that is only ever a triage card should
+not be called something else.
+
+| | |
+|---|---|
+| **Bucket colour** | A 4px bar on the leading edge, and the bucket written in words beside it. Read the card in greyscale and nothing is missing. |
+| **Depth** | Value and occlusion, no border and no shadow. The card is `--tl-field`, the peek behind it is `--tl-raised` and starts underneath it. The same three cues as Capture's peek stack. |
+| **The one accent** | Confirm, full width. The three overrides are unselected chips at `--tl-ink-muted`, 8.03:1 on the card, receding by value and weight as `docs/BUILD-SPEC.md` asked. |
+| **Element count** | Four per card, down from five. The old card rendered the suggested bucket twice: once as a selected confirm chip and again in the row of all four buckets. |
+| **The footer** | Pinned to the bottom on every card. Triage is the one repetitive action in the app and a target that moves between repetitions has to be found again every time. |
+| **Carry forward** | `--tl-ink` text with a `--tl-bucket-do` marker, which is the fix `docs/BUILD-SPEC.md` asked for. It was `text-do` at 2.79:1 with the colour carrying the whole meaning. |
+
+**The thought is set at the display step**, which is a departure from the Review blueprint in
+`docs/BUILD-SPEC.md` and worth saying plainly. That blueprint asks for `--text-lg`, a Depth Field
+size that does not exist in the live five-step scale, and the section is marked superseded for
+exactly that reason. At 17px the thought did not fill a card that fills the view, and the screen
+read as content followed by a hole. At 34px it is the one thing the screen is about, which is what
+`docs/LOOK.md` means by one headline per screen, and it is the only display-sized element on the
+triage state. There is a symmetry worth keeping: you type at 17px while distracted, and it comes
+back at 34px when it is time to decide.
+
+### What rendering it found, and reading it would not have
+
+1. **`leading-display` was a token nothing could read.** `--tl-leading-display` has been in
+   `tokens.json` since Phase 3 with no entry in the `@theme` block, so `leading-display` matched no
+   utility and silently did nothing. It went unnoticed because Capture's headline is one line. The
+   first multi-line display text in the app set 34px on 1.5 body leading and the lines fell apart.
+   Same family as naming a font without loading it.
+2. **Capping the card fixed 1280 and broke 390.** Left to fill the viewport the card is a 712px
+   column at 1280 holding about 300px of content, because the wider the screen the fewer lines the
+   thought wraps to. Capped at 32rem and centred it was square and composed at 1280, and at 390 it
+   became a panel floating on a band of bare ground, which is an item on a page rather than the
+   page. The card fills the view at both sizes and the emptiness is answered by centring the thought
+   inside it.
+3. **The bucket marker drifted to the wrong line.** Beside a two-line carry-forward sentence the dot
+   sat between the lines rather than on the first one. It now centres itself in a box exactly one
+   body line tall.
+4. **The ghost re-used the live card's element ids.** Found because a test selector matched two
+   elements at once. Harmless on the happy path, because the live card is replaced in the same
+   commit, but a failed confirm puts its card back while its own ghost is still on screen, and two
+   elements answering the same `aria-labelledby` is a card naming itself with somebody else's
+   thought. The ghost has its own id namespace.
+5. **Rule suggestions had to stop being derived from the live queue.** `ruleBasedTriage` grants
+   carry-forward to the first `do` in the array it is handed, so re-running it against a queue that
+   shrinks with every confirm moves the flag to the next `do` and offers "carry forward (max one)"
+   on three separate cards. Suggestions come from an append-only ritual set instead, and a
+   carry-forward already written tonight suppresses the offer on later cards. Verified: offered on
+   one card, stored on one capture.
+
+### Verified in a browser, not assumed from the code
+
+| | |
+|---|---|
+| Queue empties | Six cards, positions 1 of 6 to 6 of 6, landing on the wrap-up with no cards and no ghosts left |
+| Two confirms 30ms apart | Two independent leave animations at different offsets, second card clickable throughout |
+| Reduced motion | Zero animations. Ghost at opacity 0 with no transform, next card at opacity 1 with no transform. Cards swap without travel |
+| At rest | Zero running animations and zero `requestAnimationFrame` calls in one second |
+| A failed write | The reserved line says so, the card returns to the queue, it does not move by a pixel, the database is untouched and a retry works |
+| An override | Writes the chosen bucket and drops the agent's reason, as before |
+| Leaving mid-ritual | Capture reachable, same card at the same position on return |
+| Horizontal overflow | Zero at 390 and at 1280, Hands wrapping to three rows and two |
+
+### Copy this phase touched
+
+Phase 5 does not own copy. Three strings changed because the structure changed, and they are listed
+here rather than buried, the way D-014 listed Capture's.
+
+| What | Why |
+|---|---|
+| **New:** "N of M" | The ritual needs an end in sight. Mono micro, the same role as "3 parked today", and it counts down what is left rather than up what is done. |
+| **New:** "That one did not save. It is back in the queue." | There was no failure path before, so there was no string. Agrees with Capture's "That one did not save. It is back in the field." |
+| **New:** "Nothing to sort tonight." | Review with an empty queue and nothing triaged had no empty state at all; it rendered a heading and a disabled button. |
+| **Retired:** "Rule triage" | Rule triage now runs on open, because it is local, synchronous and costs nothing. Only the Gemini call is a button, because only it leaves the device. |
+
+### Numbers
+
+| | Before | After | Budget |
+|---|---|---|---|
+| JS gzipped | 115.71 KB | 116.79 KB | 130 KB |
+| CSS gzipped | 5.32 KB | 5.55 KB | 12 KB |
+
+`CLAUDE.md` still recorded 113.07 KB and 5.01 KB, which predate the lens body and the commit sound
+in `f1acb3d`. Both lines are now the measured figures.
+
+### Left open
+
+The wrap-up's four summary counts are body-sized text with a marker each. Patterns is where numerals
+do their real work in the display face, and Phase 6 may well want the summary to agree with whatever
+it settles. It is not changed here because Phase 6 owns that question.

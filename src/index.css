@@ -92,6 +92,12 @@
   --text-input: var(--tl-text-input);
   --text-display: var(--tl-text-display);
 
+  /* The display step is the only one that ever sets its own leading: at 34px
+     the body's 1.5 is a gap, not a line. Declared in tokens.json since Phase 3
+     and unread by anything until Review's triage card wrapped a thought onto
+     four lines. */
+  --leading-display: var(--tl-leading-display);
+
   --tracking-display: var(--tl-tracking-display);
   --tracking-input: var(--tl-tracking-input);
   --tracking-micro: var(--tl-tracking-micro);
@@ -153,6 +159,71 @@
    * must simply be there.
    */
   .tl-parked-row {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/*
+ * TRIAGE. A card leaves, and the next one rises into the space it left.
+ *
+ * Both run on an element keyed by capture id, so two confirms in quick
+ * succession animate two different elements and the second can never wait for
+ * the first. Motion must never queue.
+ *
+ * The leaving card is a ghost pinned to the rect the real card occupied, so it
+ * survives the swap from the triage state to the wrap-up. THE WRAP-UP RISES ON
+ * THE SAME SPRING A CARD DOES: the hand-off from the last card is deliberately
+ * not a moment of its own. Triage is repetitive by design, so its motion is the
+ * shortest in the system, and finishing must not be rewarded with a flourish.
+ * See docs/DECISIONS.md D-018.
+ */
+@keyframes tl-triage-leave {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-14px);
+    opacity: 0;
+  }
+}
+
+.tl-triage-leaving {
+  animation: tl-triage-leave var(--tl-spring-dismiss-duration)
+    var(--tl-spring-dismiss-ease) both;
+}
+
+@keyframes tl-triage-rise {
+  from {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.tl-triage-rising {
+  animation: tl-triage-rise var(--tl-spring-settle-duration)
+    var(--tl-spring-settle-ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /*
+   * "Cards swap without travel." The bucket bar changing and the card leaving
+   * the queue is the confirmation. Not `animation: none` on its own: `both`
+   * fill can otherwise leave a 0-opacity start applied in some engines.
+   */
+  .tl-triage-leaving {
+    animation: none;
+    transform: none;
+    opacity: 0;
+  }
+
+  .tl-triage-rising {
     animation: none;
     transform: none;
     opacity: 1;

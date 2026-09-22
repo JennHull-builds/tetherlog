@@ -590,9 +590,17 @@ heavy, and space bends around it.
 ---
 
 
-**Phase 5: Review**
+**Phase 5: Review** BUILT 2026-09-22
 
-*Files:* `src/views/ReviewView.tsx`, `src/components/ui/FileCard.tsx`, `src/components/ui/Card.tsx`
+*Files:* `src/views/ReviewView.tsx`, `src/components/ui/TriageCard.tsx` (replaced `FileCard.tsx`),
+`src/index.css`
+
+**Everything below was met. The three questions this phase had to settle are answered in
+`docs/DECISIONS.md` D-018**, with the evidence: the hand-off, the navigation, and the wrap-up's own
+layout. Two departures from what is written here are recorded there and are deliberate. The capture
+text is set at the display step rather than at `--text-lg`, which is a dead Depth Field size. Rule
+triage runs on open rather than behind a button, because it is local and synchronous; only the
+Gemini call stays a button, because only it leaves the device.
 
 **Structure, decided 2026-09-22 (D-017): two states, not one scrolling page.** Review opens straight
 into a full-screen, one-card-at-a-time triage ritual — Wins, the backlog toggle, the summary and
