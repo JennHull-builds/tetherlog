@@ -28,8 +28,9 @@ into `docs/BUILD-SPEC.md`. `git log` has the original if it is ever wanted.
 |---|---|
 | Phases 1 and 2 | Done and pushed, 2026-09-18 |
 | Phase 3 | **Built 2026-09-18**, awaiting a look. The ground, the type and the PWA chrome. |
-| Phase 4 | **Built 2026-09-18**, awaiting a look. Capture's composition, the lens, the arc. See D-014 and D-015. |
-| Phases 5 to 7 | Not started. Review, then Patterns and Settings, then the sweep. |
+| Phase 4 | **Built 2026-09-18, enhanced 2026-09-22.** Capture's composition, the lens, the arc, then the lens's own body (refraction, dispersion, specular, rim) and the commit sound. See D-014, D-015, D-016. |
+| Phase 5 | **Structure decided 2026-09-22 (D-017), not built.** Two states: a full-screen one-card triage ritual, then a separate wrap-up. |
+| Phases 6 and 7 | Not started. Patterns and Settings, then the sweep. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -719,3 +720,49 @@ not resolved here. Off-by-default is the mitigation for now.
 
 **JS budget:** 115.71 KB gzipped, up from 114.50 KB before this entry, against the 130 KB ceiling —
 about 14.3 KB of headroom left. CSS 5.32 KB, up marginally from the nine new custom properties.
+
+## D-017: Phase 5's structure — two states, not one scrolling page
+
+**2026-09-22. Closed, not built.** `CLAUDE.md` flagged Review's first question as "structural, not
+visual" without ever writing down what the question was — the same shape of gap Phase 4 closed with
+D-014's "six things become three" brief before any shader work started. This is that brief for
+Review.
+
+### The actual question
+
+`docs/BUILD-SPEC.md`'s Phase 5 acceptance criteria already commit to "one triage card fills the view
+... not a list," but the current `ReviewView.tsx` renders every suggestion as a flat stack on one
+scrolling page alongside Wins, the backlog toggle, the summary and Hands. That page has never been
+rebuilt against the approved direction. The open question was never "what does the card look like" —
+it was **whether the one-card-at-a-time queue lives embedded on that same kitchen-sink page, or
+whether Review becomes a two-state screen: the queue first, full screen, then everything else
+second.**
+
+### The decision
+
+**Two states.** Review opens straight into a full-screen, one-card-at-a-time triage ritual — Wins,
+the backlog toggle, the summary and Hands do not exist on screen yet. Once the queue is empty, it
+hands off to a second state carrying all of that: Wins, the triage summary, carry-forward, Hands.
+
+**Why, not just what:** the rest of this product is built as a calm room — capture is silent and
+asks nothing, and `PRODUCT.md` forbids streaks, guilt, and day-over-day comparison. A single
+scrolling page that mixes the triage ritual with wins, an AI-triage button, a backlog checkbox and an
+export row asks someone to hold all of that at once while they are mid-ritual. Splitting it into
+"triage, then done" matches the same one-thing-at-a-time discipline `docs/LOOK.md` already applies to
+Capture, rather than treating Review as a different kind of screen by default.
+
+### What does not change
+
+`docs/BUILD-SPEC.md`'s existing Phase 5 acceptance criteria (bucket colour as a leading-edge bar
+never the sole carrier of state, confirm as the one accent per card, the Hands row wrapping at
+390px, "Parked." agreeing with Capture) all still apply — they describe the triage state's own
+card, which this decision does not touch. This entry adds the screen-level architecture around
+them; it does not replace them.
+
+### Not decided here
+
+The wrap-up state's own layout, the exact hand-off moment (does the last card's confirm animate
+into the wrap-up, or does the screen just change), and whether Patterns/Settings navigation is
+reachable mid-ritual or only from the wrap-up state. Phase 5's build session should settle these
+against `docs/LOOK.md`'s existing rules before writing components, the same way D-014 settled
+Capture's composition before any shader work began.

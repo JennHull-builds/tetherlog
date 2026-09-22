@@ -594,14 +594,25 @@ heavy, and space bends around it.
 
 *Files:* `src/views/ReviewView.tsx`, `src/components/ui/FileCard.tsx`, `src/components/ui/Card.tsx`
 
-*Acceptance:*
+**Structure, decided 2026-09-22 (D-017): two states, not one scrolling page.** Review opens straight
+into a full-screen, one-card-at-a-time triage ritual — Wins, the backlog toggle, the summary and
+Hands are not on screen yet. Once the queue is empty, it hands off to a second, separate state
+carrying all of that. Read D-017 before starting: it has the reasoning, and explicitly leaves the
+wrap-up state's own layout and the hand-off moment for this build session to settle.
+
+*Acceptance, the triage state:*
 - At 390px **one triage card fills the view** with the next just visible at the fold. Not a list.
 - Bucket colour is visible as a leading-edge bar and is **never the only carrier** of a state: the
   carry-forward line reads without colour.
 - Confirm is the one accent element per card; the override chips recede until chosen. **Recede by
   value and weight, not with a shadow on the edge and not with a Depth Field plane.**
-- The Hands row wraps without overflow at 390px.
 - The confirm copy agrees with Capture. If Capture says "Parked.", nothing here says "Logged."
+
+*Acceptance, the wrap-up state:*
+- Wins, the triage summary, carry-forward, and Hands all live here, not on the triage screen.
+- The Hands row wraps without overflow at 390px.
+- Settle before building: what the hand-off from the last card actually looks like, and whether
+  Patterns/Settings are reachable mid-ritual or only once the wrap-up state is showing.
 
 ---
 
