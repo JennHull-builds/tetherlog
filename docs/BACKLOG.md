@@ -25,18 +25,22 @@ is viewport-dependent rather than constant: on most screen sizes most of the tex
 Worst case over nine viewport sizes and four states, sampled off rendered frames against the actual
 glyph mask.
 
-| Element | Needs | Phase 4 | After D-019 | **After D-020** |
-|---|---|---|---|---|
-| Headline, 34px | 3.0 | 6.62 | 2.97 | **3.06 passes** |
-| Parked count, 11px mono | 4.5 | **3.61** | **1.43** | **1.43** |
-| Confirm word, 15px | 4.5 | 4.57 | **2.80** | **2.95** |
-| Tag chip label, 13px | 4.5 | 4.57 | **3.54** | **3.54** |
-| Sub-line, 13px | 4.5 | **3.56** | removed in D-019 | gone |
+| Element | Needs | Phase 4 | After D-019 | After D-020 | **After D-022** |
+|---|---|---|---|---|---|
+| Headline, 34px | 3.0 | 6.62 | 2.97 | 3.06 | **3.24 passes** |
+| Parked count, 11px mono | 4.5 | **3.61** | **1.43** | **1.43** | **1.43** |
+| Confirm word, 15px | 4.5 | 4.57 | **2.80** | **2.95** | **3.10** |
+| Tag chip label, 13px | 4.5 | 4.57 | **3.54** | **3.54** | **3.92** |
+| Sub-line, 13px | 4.5 | **3.56** | removed in D-019 | gone | gone |
 
-**D-020's blue bloom recovered the headline** and moved the confirm word a little. It did nothing
-for the parked count, which sits low on the screen where the bloom is weakest: its worst case is a
-star landing behind an 11px glyph, not the atmosphere. **The count is now the whole of this entry**
-and the options below are unchanged for it.
+**Every element the atmosphere was lifting has improved twice**, once when the bloom turned blue
+(D-020) and again when its reach was tightened (D-022). The headline is comfortably clear now.
+
+**The parked count has not moved at all across either change, and that is the finding.** It sits low
+on the screen where the bloom barely reaches, so its background is not the atmosphere: it is a star
+landing behind an 11px glyph. Nothing done to the bloom will fix it. **The count is the whole of
+this entry**, and of the options below only dimming the stars, putting a surface under it, or moving
+it off the sky can touch it.
 
 > **When re-measuring the tag chip, hide the label on the element that carries the colour.** `Chip`
 > sets `color` inline on an inner span, so setting it on the button does nothing and the glyph mask
