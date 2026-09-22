@@ -1214,3 +1214,96 @@ Phase 6 does not own copy. Three things changed and are listed here rather than 
 `PatternsView` still renders the weekly digest, and `CLAUDE.md` said "the agent runs on Review only",
 which would have had someone delete it. `PRODUCT.md` sanctions it in three places and it is a shipped
 feature; the shorthand was wrong and is corrected rather than the code.
+
+## D-022: The bloom's reach, which is what was actually wrong
+
+**2026-09-22. Closed and built.** The dull overlay was reported a third time, still there after D-020
+made the bloom blue. D-020 changed its colour and raised its level; neither is what covered the
+screen. **Its reach is.**
+
+### What the third report found that the first two did not
+
+Photographing the screen one frame before the canvas draws and one frame after:
+
+| | Median sky pixel | Share of sky above the ground colour |
+|---|---|---|
+| Before the shader paints | 0.00000 | 1.8% |
+| After it paints | 0.00313 | 46.2% |
+
+**98.7% of the screen changes**, and the before frame is not the ground, it is pure black: a WebGL
+context created with `alpha: false` initialises its drawing buffer to opaque black, and the canvas is
+fixed to the whole viewport. So a page load is three states, not two. Ground, then the canvas
+covering it in pure black, then the shader's first paint bringing the stars, the atmosphere and the
+lift all at once, about a second in. **That last step is the "overlay", and it was never a second
+event: it is the canvas arriving.**
+
+### The knob
+
+`nebula = exp(-(dist * dist) / (uInfluence * uInfluence * K))`, where `uInfluence` is derived from
+the field's size and `K` was a hardcoded `1.1`. The field is wide, so at `1.1` the bloom is still at
+roughly half strength a third of the way up a 390px screen. It was never atmosphere around an
+object; it was a film over the view.
+
+`K` is now `lens.bloom-reach`, because a constant that decides whether half the screen is lifted is
+not a magic number in a shader. Measured across the ladder:
+
+| `bloom-reach` | Median sky pixel | Share of sky lifted |
+|---|---|---|
+| 1.10, as shipped | 0.00313 | 46.2% |
+| 0.50 | 0.00300 | 30.2% |
+| **0.30, now** | **0.00274** | **22.6%** |
+| 0.18 | 0.00274 | 17.7% |
+| 0.10 | 0.00274 | 13.5% |
+
+**At 0.30 and below the median sky pixel is the ground colour exactly**, 0.00274. More than half the
+screen is true ground again, and what remains above it is the atmosphere near the field plus the
+stars, which is the part worth having. 0.30 keeps the bloom at roughly 80% of full 50px from the
+field and 7% a third of the way up.
+
+**Reach, not strength, and the difference matters.** Lowering `bloom-strength` dims the atmosphere
+everywhere including right at the field, which is the half that makes the lens read as glass.
+Tightening the reach takes it off the parts of the screen it was never meant to be on.
+
+### Two process notes, both the same shape
+
+1. **A `&&` chain silently skipped the edit.** The shader change was run as
+   `grep ... && python3 ...`, the grep found nothing because the semantic token did not exist yet,
+   and the edit never ran. The ladder that followed measured five identical frames, which is the
+   only reason it was caught. **A measurement that shows no difference is evidence about the
+   measurement first and the subject second.**
+2. **A primitive without a semantic reaches nothing.** `lens.bloom-reach` was added to the `lens`
+   group and generated as `--tl-ref-lens-bloom-reach`, but components may not read `--tl-ref-*`, so
+   `readNumber("--tl-lens-bloom-reach")` fell to its default and the token did nothing. Same family
+   as rule 13 in `CLAUDE.md`'s token contract, which says this about reduced-motion overrides and is
+   just as true of every other token.
+
+---
+
+## D-023: Capture does not open a keyboard nobody asked for
+
+**2026-09-22. Closed and built.** Two faults on a phone, reported together, and they have the same
+root: this screen took focus in places it should not and failed to offer it in the place it should.
+
+### The keyboard opened on load
+
+`CaptureView` focused the field on mount, and a click anywhere on the screen focused it again. On a
+pointer device that is the whole promise: land ready to type, no clicks spent. On a phone the same
+two lines throw the keyboard over half the screen before anyone has tapped, and every stray tap on
+the sky throws it up again. The first thing a person does is dismiss it, which is the opposite of a
+calm room.
+
+**Both are now gated on `(pointer: fine)`**, read fresh on every call rather than cached, because a
+tablet with a keyboard attached and removed changes the answer without a reload. Verified: on an
+iPhone profile nothing is focused on load; at 1280 the field is focused on load exactly as before.
+
+### Most of the field was not clickable
+
+The shell is padded and grows to three lines, so most of its area is not the control. Clicking that
+area did nothing at all. The screen-level click handler that would have caught it is blocked by the
+form's own `stopPropagation`, which is there so the Mic and Park glyphs work.
+
+**The fix belongs in `Field`, not in `CaptureView`**, because it is the field's shape that creates
+the dead area and every future `Field` has the same shape. The shell focuses its control on
+`mousedown`, skipping the control itself and anything inside a button, and calls `preventDefault` so
+the shell never takes focus for a frame first. That frame is the flicker: it also restarted the
+lens's focus arc, which is most of what "the animation is glitchy" was.

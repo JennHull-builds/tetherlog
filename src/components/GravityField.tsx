@@ -152,6 +152,7 @@ uniform float uSpecular;      // strength of the one fixed-direction highlight
 uniform vec3 uSpecularTint;   // and its colour. Blue-white, not white.
 uniform float uRimStrength;   // brightness of the shader-drawn boundary
 uniform float uBloomStrength; // soft glow behind the field, so refraction has something to bend
+uniform float uBloomReach;    // how far it carries. The knob that decides atmosphere or film.
 
 float hash21(vec2 p) {
   p = fract(p * vec2(127.11, 311.7));
@@ -274,7 +275,7 @@ vec3 background(vec2 p) {
   // Both the hue and the level are tokens. Raising uBloomStrength re-opens the
   // contrast measurement in docs/BACKLOG.md B-001, because this lifts the
   // ground the headline sits on.
-  float nebula = exp(-(dist * dist) / (uInfluence * uInfluence * 1.1));
+  float nebula = exp(-(dist * dist) / (uInfluence * uInfluence * uBloomReach));
   col += uGlow * nebula * uBloomStrength;
 
   return col;
@@ -400,6 +401,7 @@ interface Lens {
   specular: number;
   rimStrength: number;
   bloomStrength: number;
+  bloomReach: number;
 }
 
 function compile(
@@ -464,7 +466,8 @@ function createLens(canvas: HTMLCanvasElement): Lens | null {
     "uWell", "uHalf", "uRadius", "uInfluence",
     "uMass", "uLight", "uScale", "uGround",
     "uStarCool", "uStarWarm", "uRim", "uGlow", "uSpecularTint",
-    "uThick", "uDispersion", "uSpecular", "uRimStrength", "uBloomStrength",
+    "uThick", "uDispersion", "uSpecular", "uRimStrength",
+    "uBloomStrength", "uBloomReach",
   ]) {
     u[name] = gl.getUniformLocation(program, name);
   }
@@ -493,6 +496,7 @@ function createLens(canvas: HTMLCanvasElement): Lens | null {
     specular: readNumber("--tl-lens-specular-strength", 0.5),
     rimStrength: readNumber("--tl-lens-rim-strength", 0.32),
     bloomStrength: readNumber("--tl-lens-bloom-strength", 0.09),
+    bloomReach: readNumber("--tl-lens-bloom-reach", 0.3),
   };
 }
 
@@ -564,6 +568,7 @@ export function GravityField({ well, focused, commitKey, onReady }: GravityField
     gl.uniform1f(u.uSpecular, lens.specular);
     gl.uniform1f(u.uRimStrength, lens.rimStrength);
     gl.uniform1f(u.uBloomStrength, lens.bloomStrength);
+    gl.uniform1f(u.uBloomReach, lens.bloomReach);
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }, []);

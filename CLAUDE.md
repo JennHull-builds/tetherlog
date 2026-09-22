@@ -203,8 +203,21 @@ grey; a deep saturated one reads as air.** It shipped as the accent violet at 80
 reported as a dull overlay washing the screen. It is now `--tl-lens-glow`, the reference artifact's
 blue at 65%, and the same amount of light reads as atmosphere instead of dirt.
 
-**So: if the ground ever looks washed out, check this token's colour before its level.** Raising the
-level re-opens `docs/BACKLOG.md` B-001. Written up in `docs/DECISIONS.md` D-020.
+**Its REACH is the knob, not its level.** `lens.bloom-reach` scales the falloff against the field's
+own size. It was a hardcoded `1.1` and the wash was reported three times before anyone looked at it:
+at `1.1` the bloom lifts 46% of the sky off the ground colour, at `0.3` the median sky pixel is the
+ground colour exactly and the atmosphere stays where the object is. **Lowering `bloom-strength`
+instead dims it everywhere including right at the field, which is the half worth keeping.**
+
+**So: if the ground ever looks washed out, check the reach, then the colour, then the level, in that
+order.** Raising any of them re-opens `docs/BACKLOG.md` B-001. Written up in `docs/DECISIONS.md`
+D-020 and D-022.
+
+**A page load is three states, not two**, and this is worth knowing before debugging anything that
+"appears a second in". A WebGL context created with `alpha: false` initialises its buffer to opaque
+black, and this canvas is fixed to the whole viewport. So: the ground, then the canvas covering it in
+pure black, then the shader's first paint. 98.7% of the screen changes at that last step. It is not a
+second event, it is the canvas arriving.
 
 ### In the lens, the sweep and the arcs can cancel each other out
 

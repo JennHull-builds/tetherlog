@@ -48,6 +48,26 @@ interface Held {
   options?: ParkCaptureOptions;
 }
 
+/**
+ * A mouse or a trackpad, rather than a finger.
+ *
+ * It gates the two places this screen takes focus on its own. On a pointer
+ * device, landing ready to type is the whole promise: park in under five
+ * seconds, no clicks spent. On a touch device the same line opens the keyboard
+ * over half the screen before anyone has asked for it, which is the opposite
+ * of a calm room, and the first thing a person does is dismiss it.
+ *
+ * Read on every call rather than cached: a tablet with a keyboard attached and
+ * removed changes the answer without reloading the page.
+ */
+function hasFinePointer(): boolean {
+  try {
+    return window.matchMedia("(pointer: fine)").matches;
+  } catch {
+    return false;
+  }
+}
+
 function hapticPark(): void {
   try {
     navigator.vibrate?.(12);
@@ -114,7 +134,9 @@ export function CaptureView({ onParked }: CaptureViewProps) {
   const settings = useLiveQuery(getSettings, [], null);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    // NOT on touch. See hasFinePointer: this line used to open the phone
+    // keyboard on load, over a screen nobody had tapped yet.
+    if (hasFinePointer()) inputRef.current?.focus();
   }, []);
 
   useEffect(() => {
@@ -384,8 +406,10 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     <section
       className="relative flex min-h-[calc(100dvh-5.5rem)] flex-col pt-16 pb-6"
       style={{ paddingInline: "var(--tl-gutter)" }}
+      // Click anywhere on the screen to start typing, on a pointer device only.
+      // On touch this made every stray tap on the sky open the keyboard.
       onClick={() => {
-        if (!recording) inputRef.current?.focus();
+        if (!recording && hasFinePointer()) inputRef.current?.focus();
       }}
     >
       <GravityField

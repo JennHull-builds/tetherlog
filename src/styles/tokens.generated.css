@@ -7,7 +7,7 @@
  * This is the ONLY file in the repo that may contain a colour literal.
  * Components read --tl-<role>. Never --tl-ref-*. Never hex. See CLAUDE.md.
  *
- * 133 tokens.
+ * 135 tokens.
  */
 
 :root {
@@ -82,6 +82,7 @@
   --tl-ref-lens-specular-strength: 1;
   --tl-ref-lens-rim-strength: 0.85;
   --tl-ref-lens-bloom-strength: 0.1;
+  --tl-ref-lens-bloom-reach: 0.3;
   --tl-ref-sound-commit-frequency-start: 220;
   --tl-ref-sound-commit-frequency-end: 110;
   --tl-ref-sound-commit-gain-peak: 0.22;
@@ -144,6 +145,7 @@
   --tl-lens-dispersion: 0.5;
   --tl-lens-specular-strength: 1;
   --tl-lens-rim-strength: 0.85;
+  --tl-lens-bloom-reach: 0.3;
   --tl-lens-bloom-strength: 0.1;
   --tl-sound-commit-frequency-start: 220;
   --tl-sound-commit-frequency-end: 110;

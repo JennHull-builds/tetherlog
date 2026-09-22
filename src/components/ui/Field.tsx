@@ -163,6 +163,28 @@ export function Field({
     onFocusChange?.(false);
   }
 
+  /**
+   * THE WHOLE FIELD IS THE TARGET, not just the line of text in it.
+   *
+   * The shell is padded and grows to three lines, so most of its area is not
+   * the control. Clicking that area did nothing: CaptureView focuses the input
+   * from a click on the screen, and the form around this field stops
+   * propagation so the buttons work, which killed it for the field too. The
+   * fix belongs here rather than there, because it is this component's shape
+   * that makes the dead area.
+   *
+   * mousedown rather than click, with preventDefault: the shell would
+   * otherwise take focus for a frame first, which reads as a flicker and
+   * restarts the lens arc.
+   */
+  function handleShellPointerDown(event: React.MouseEvent<HTMLDivElement>) {
+    const target = event.target;
+    if (target === innerRef.current) return;
+    if (target instanceof HTMLElement && target.closest("button")) return;
+    event.preventDefault();
+    innerRef.current?.focus();
+  }
+
   const shared = {
     onKeyDown,
     onFocus: handleFocus,
@@ -178,6 +200,7 @@ export function Field({
   return (
     <div
       ref={shellRef}
+      onMouseDown={handleShellPointerDown}
       style={{
         ...SHELL_STYLE,
         // The rim brightens on focus. Scale is never a focus indicator here,
