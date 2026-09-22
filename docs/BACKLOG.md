@@ -23,17 +23,25 @@ its background wherever one lands behind a glyph. Whether one does is luck of th
 is viewport-dependent rather than constant: on most screen sizes most of the text is clean.
 
 Worst case over nine viewport sizes and four states, sampled off rendered frames against the actual
-glyph mask. **These numbers were taken before D-020 changed the lens bloom from a pale violet to a
-deep blue, which lowered the luminance of the ground this copy sits on. They are the pessimistic
-figures until a fresh sweep replaces them.**
+glyph mask.
 
-| Element | Needs | Before D-019 | After D-019 |
-|---|---|---|---|
-| Headline, 34px | 3.0 | 6.62 | **2.97** |
-| Parked count, 11px mono | 4.5 | **3.61** | **1.43** |
-| Confirm word, 15px | 4.5 | 4.57 | **2.80** |
-| Tag chip label, 13px | 4.5 | 4.57 | **3.54** |
-| Sub-line, 13px | 4.5 | **3.56** | removed in D-019 |
+| Element | Needs | Phase 4 | After D-019 | **After D-020** |
+|---|---|---|---|---|
+| Headline, 34px | 3.0 | 6.62 | 2.97 | **3.06 passes** |
+| Parked count, 11px mono | 4.5 | **3.61** | **1.43** | **1.43** |
+| Confirm word, 15px | 4.5 | 4.57 | **2.80** | **2.95** |
+| Tag chip label, 13px | 4.5 | 4.57 | **3.54** | **3.54** |
+| Sub-line, 13px | 4.5 | **3.56** | removed in D-019 | gone |
+
+**D-020's blue bloom recovered the headline** and moved the confirm word a little. It did nothing
+for the parked count, which sits low on the screen where the bloom is weakest: its worst case is a
+star landing behind an 11px glyph, not the atmosphere. **The count is now the whole of this entry**
+and the options below are unchanged for it.
+
+> **When re-measuring the tag chip, hide the label on the element that carries the colour.** `Chip`
+> sets `color` inline on an inner span, so setting it on the button does nothing and the glyph mask
+> picks up the chip's own `--tl-rule` border instead, which reports a stable, wrong 2.67:1 on every
+> build. The 3.54 above came from a probe that hides the span.
 
 **Two of these predate the new star tint.** The parked count and the sub-line were already under AA
 on the grey starfield that shipped from Phase 4. D-015 recorded 4.71:1 for the sub-line and that was
