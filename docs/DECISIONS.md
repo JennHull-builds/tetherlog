@@ -611,3 +611,111 @@ drift apart. Same solve, two outputs, and `npm run tokens:check` diffs both.
 The generator also learned to put a reduced-motion override on the **semantic** name, not only the
 primitive. Before this, `--tl-ref-motion-duration-confirm` was overridden inside the media query and
 nothing could read it, because components may not read primitives. The override reached nothing.
+
+## D-016: Tier 1 of the refraction lens, and the commit sound
+
+**2026-09-22. Closed, Tier 2 (a flowing streak field replacing the point stars) explicitly not
+attempted here — see docs/DECISIONS.md's own note below.**
+
+D-015 shipped the gravity well as a starfield that bends around the field, with the field itself
+left as flat CSS. Comparing it directly against the artifact that was actually approved on
+2026-09-18 (`https://claude.ai/artifact/EvKDzM63jz98439hBFDrMk`, its shader still readable in the
+page) found six things the approved version did that the shipped one didn't: a glass body, real
+refraction, chromatic dispersion, a specular highlight, a nebula bloom, and dither. This entry is
+that gap closed for the field's own body. The starfield's rendering (`sky()`, `starLayer()`) is
+untouched.
+
+### What changed
+
+`GravityField.tsx`'s fragment shader gained a signed-distance lens profile (`sdBox`, ported near
+verbatim from the approved artifact), a surface normal from that profile's finite difference, and a
+lens body: refraction (background sampled at an offset per RGB channel — the offset difference IS
+the dispersion), one fixed-direction specular highlight, a shader-drawn rim, and a small nebula
+bloom behind the field. `Field.tsx` gained a `glass` prop: when true, its CSS background and border
+go transparent so the shader's rendering is what's actually seen; when false — before the lens has
+initialised, or on the ~2% of devices with no WebGL — it keeps the exact opaque look D-015 shipped.
+`CaptureView` wires `GravityField`'s new `onReady` callback to that prop, so the fallback is
+automatic rather than assumed.
+
+**Thickness rides the existing mass arc.** The approved artifact drove `uThick` and `uMass` off two
+parallel timers. Rather than add a second arc system to a file whose whole discipline is one
+arc, one schedule, one idle exit, thickness is a plain linear remap of the mass value the file
+already computes (`MASS_REST` to `MASS_FOCUS + MASS_COMMIT`). Every invariant the existing arc
+already keeps — interruptible, reduced-motion-correct, idle at rest — applies to the lens body for
+free.
+
+### A coordinate bug, caught by rendering rather than reading the diff
+
+The approved artifact flipped `gl_FragCoord` to a top-left-origin `uv` before doing any of this
+math; this file inherits the star shader's native bottom-left-origin convention instead. Porting the
+light direction verbatim (`vec3(-0.42, -0.72, 0.55)`) lit the field from the **bottom**-left, not the
+top-left docs/LOOK.md rule 2 calls for. Caught by rendering a frame and comparing it to the reference
+screenshots, not by reading the shader. Fixed by flipping the sign of the y component
+(`vec3(-0.42, 0.72, 0.55)`) rather than the coordinate space itself, which would have touched the
+untouched star code.
+
+### Tokens, all in `tokens.json`'s new `lens` and `sound` groups
+
+| Token | Shipped value | Note |
+|---|---|---|
+| `lens.thickness.rest` / `.commit-peak` | 0.42 / 1.0 | Matches the approved artifact's own values |
+| `lens.dispersion` | 0.5 | First pass shipped 0.35 out of unwarranted caution; raised to match what was actually approved — there is no product reason to restrain it |
+| `lens.specular-strength` | 1.0 | The approved artifact applied no damping scalar; matched rather than guessed at |
+| `lens.rim-strength` | 0.85 | Raised from a first-pass 0.32. The real source video's rim was flagged as brighter and thicker than either build; a muted rim was the opposite of the note it was meant to answer |
+| `lens.bloom-strength` | 0.09 | Kept small and tight to the well; see the contrast measurement below |
+
+### Contrast, measured after the change, not assumed safe
+
+D-015's star-brightness table stands: this entry doesn't touch `sky()`. The new bloom term was
+checked separately by rendering a frame and reading back the actual canvas pixels (`gl.readPixels`,
+`preserveDrawingBuffer` forced on for the check only) across the full headline bounding box, not a
+single sampled line:
+
+| | Brightest pixel found | `--tl-ink` on it | `--tl-ink-muted` on it |
+|---|---|---|---|
+| Full grid over the headline | `rgb(50, 53, 65)` | 11.08:1 | **5.27:1** |
+
+Both clear AA with margin, and the brightest pixel found is darker than D-015's own documented worst
+case (`rgb(56, 61, 70)`), consistent with the bloom term's falloff being negligible by the time it
+reaches the headline (~150px away) — the star sky() gains remain the limiting factor, exactly as
+before.
+
+### What this is not
+
+**Not Tier 2.** The real source (@soulegit, 2026-09-15) renders flowing curved light streaks, not
+discrete stars — closer to a warp field than a starfield. That's a rendering-model change, not a
+tuning pass, and it's deliberately not attempted in this entry. Evaluate it on its own measured
+merits, separately.
+
+**Not constant ambient motion.** The source video loops continuously because it's a marketing reel.
+`CLAUDE.md` forbids exactly that in the capture path, written for the ND audience this product is
+for. Nothing here reopens that rule.
+
+### The commit sound
+
+`src/lib/sound.ts`, one function, `playParkSound()`. Synthesized via Web Audio — a sine oscillator
+through a lowpass filter, pitched down from `sound.commit.frequency-start` to `-end` over the
+existing commit spring's own duration (`springs.commit.durationMs`, not a new hardcoded one) — no
+asset file, no network request. Fires once, on commit only, from the same synchronous point in
+`CaptureView.releaseField()` that already calls `hapticPark()`.
+
+**Off by default.** `AppSettings.soundEnabled`, a plain boolean next to `reviewReminderEnabled`,
+surfaced in Settings the same way. This is new user-facing surface on `src/types.ts` and
+`src/db/index.ts`, both normally do-not-touch: the addition is the minimum one field, following the
+existing pattern exactly, because the feature was explicitly asked for rather than incidental.
+
+**Verified in a real browser, not by reading the diff:** zero oscillator starts with the setting off,
+exactly one after turning it on and parking, in both cases with zero console errors. No-WebGL
+fallback re-checked after this change specifically: `Field`'s shell renders its normal opaque
+background and rim border, park still succeeds, nothing regresses. Double-park re-checked: two rapid
+parks still produce two captures, no queueing. Reduced motion re-checked: zero `requestAnimationFrame`
+calls at rest, park still confirms.
+
+### Open, deliberately
+
+**A user-facing accessibility consideration beyond the on/off switch** — the sound's frequency
+range, or other accommodations specific to this product's audience — is flagged for a later look,
+not resolved here. Off-by-default is the mitigation for now.
+
+**JS budget:** 115.71 KB gzipped, up from 114.50 KB before this entry, against the 130 KB ceiling —
+about 14.3 KB of headroom left. CSS 5.32 KB, up marginally from the nine new custom properties.

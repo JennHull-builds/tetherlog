@@ -45,6 +45,16 @@ export interface FieldProps {
    * appearing three times. Only the capture field asks for it.
    */
   rim?: boolean;
+  /**
+   * D-016: the shell goes transparent and borderless, so the WebGL lens body
+   * painted behind it (GravityField.tsx) is what the user actually sees —
+   * fill, border and rim all become the shader's job. Only ever true once
+   * `GravityField`'s `onReady` has fired true; false (the CSS fallback below)
+   * is what the ~2% of devices with no WebGL keep, and what every field
+   * renders as for the first frame or two before the lens context exists.
+   * Meaningless without `rim`: nothing but the capture field asks for either.
+   */
+  glass?: boolean;
 }
 
 /**
@@ -119,6 +129,7 @@ export function Field({
   trailing,
   onFocusChange,
   rim = false,
+  glass = false,
 }: FieldProps) {
   const innerRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const [focused, setFocused] = useState(false);
@@ -177,12 +188,18 @@ export function Field({
         // moves everything inside it by a pixel, and this field has a caret in
         // it at the time.
         borderWidth: rim ? "var(--tl-rim-width)" : "var(--tl-border-width)",
-        borderColor: focused
-          ? "var(--tl-rim-focus)"
-          : rim
-            ? "var(--tl-rim)"
-            : "var(--tl-rule)",
-        background: focused ? "var(--tl-field-focus)" : "var(--tl-field)",
+        // Glass mode: the shader draws its own rim (uRimStrength), so the CSS
+        // border steps aside rather than doubling it. Transparent, not simply
+        // absent — the width above still reserves the same box, so nothing
+        // reflows when `glass` flips.
+        borderColor: glass
+          ? "transparent"
+          : focused
+            ? "var(--tl-rim-focus)"
+            : rim
+              ? "var(--tl-rim)"
+              : "var(--tl-rule)",
+        background: glass ? "transparent" : focused ? "var(--tl-field-focus)" : "var(--tl-field)",
         transition:
           "border-color var(--tl-spring-focus-duration) var(--tl-spring-focus-ease), " +
           "background var(--tl-spring-focus-duration) var(--tl-spring-focus-ease)",

@@ -10,8 +10,9 @@ import {
   PeekStack,
   StopGlyph,
 } from "../components/ui";
-import { getCapturesForDay, parkCapture, type ParkCaptureOptions } from "../db";
+import { getCapturesForDay, getSettings, parkCapture, type ParkCaptureOptions } from "../db";
 import { readDurationMs } from "../lib/motion";
+import { playParkSound } from "../lib/sound";
 import {
   formatDuration,
   isVoiceSupported,
@@ -80,6 +81,11 @@ export function CaptureView({ onParked }: CaptureViewProps) {
   const [focused, setFocused] = useState(false);
   const [commitKey, setCommitKey] = useState(0);
   const [well, setWell] = useState<Well | null>(null);
+  // D-016: only true once the WebGL lens has actually rendered a frame. Field
+  // stays in its normal opaque CSS look until then, and reverts if the
+  // context is ever lost, so the ~2% of devices with no WebGL never see a
+  // borderless field with nothing painted behind it.
+  const [lensReady, setLensReady] = useState(false);
 
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
@@ -104,6 +110,7 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     [dayKey],
     NO_CAPTURES,
   );
+  const settings = useLiveQuery(getSettings, [], null);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -214,6 +221,9 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     onParked();
     inputRef.current?.focus();
     hapticPark();
+    // Commit only, off by default (D-016): nothing responds to typing, and
+    // this is acknowledgment, not a reward chime, so it stays quiet.
+    if (settings?.soundEnabled) playParkSound();
 
     // The lens pulse. A counter, so two parks in a second give two distinct
     // effect runs and the second restarts the arc rather than queueing.
@@ -377,7 +387,12 @@ export function CaptureView({ onParked }: CaptureViewProps) {
         if (!recording) inputRef.current?.focus();
       }}
     >
-      <GravityField well={well} focused={focused} commitKey={commitKey} />
+      <GravityField
+        well={well}
+        focused={focused}
+        commitKey={commitKey}
+        onReady={setLensReady}
+      />
 
       <div className="relative z-10 flex flex-1 flex-col justify-center gap-8">
         <header className="space-y-2">
@@ -396,6 +411,7 @@ export function CaptureView({ onParked }: CaptureViewProps) {
             inputRef={inputRef}
             shellRef={shellRef}
             rim
+            glass={lensReady}
             value={text}
             onChange={setText}
             onFocusChange={setFocused}

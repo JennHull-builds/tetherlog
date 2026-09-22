@@ -9,6 +9,7 @@ export function SettingsView() {
   const [apiKey, setApiKey] = useState("");
   const [reminderHour, setReminderHour] = useState(20);
   const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(false);
   const [saved, setSaved] = useState(false);
 
   // Settings arrive from Dexie asynchronously and re-emit after every save.
@@ -21,6 +22,7 @@ export function SettingsView() {
     setApiKey(settings.geminiApiKey ?? "");
     setReminderHour(settings.reviewReminderHour ?? 20);
     setReminderEnabled(settings.reviewReminderEnabled ?? false);
+    setSoundEnabled(settings.soundEnabled ?? false);
   }
 
   async function handleSave() {
@@ -28,6 +30,7 @@ export function SettingsView() {
       geminiApiKey: apiKey.trim() || undefined,
       reviewReminderHour: reminderHour,
       reviewReminderEnabled: reminderEnabled,
+      soundEnabled,
     });
     setSaved(true);
     window.setTimeout(() => setSaved(false), 1500);
@@ -101,6 +104,21 @@ export function SettingsView() {
           </div>
           <span className="text-body text-muted">Hour (0–23)</span>
         </div>
+      </Card>
+
+      <Card className="space-y-3">
+        <h2 className="font-medium text-ink">Sound</h2>
+        <label className="flex items-center gap-2 text-body text-ink">
+          <input
+            type="checkbox"
+            checked={soundEnabled}
+            onChange={(event) => setSoundEnabled(event.target.checked)}
+          />
+          Play a sound when you park
+        </label>
+        <p className="text-body text-muted">
+          One quiet tone, only when a thought lands. Off by default.
+        </p>
       </Card>
 
       <Card className="space-y-3">

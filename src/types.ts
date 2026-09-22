@@ -68,6 +68,8 @@ export interface AppSettings {
   geminiApiKey?: string;
   reviewReminderHour?: number;
   reviewReminderEnabled?: boolean;
+  /** The commit acknowledgment tone (D-016). Off by default. */
+  soundEnabled?: boolean;
 }
 
 export type Screen = "capture" | "review" | "patterns" | "settings";

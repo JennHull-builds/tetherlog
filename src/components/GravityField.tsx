@@ -49,6 +49,13 @@ interface GravityFieldProps {
   focused: boolean;
   /** Changes once per park. The commit pulse runs when it does, and never queues. */
   commitKey: number;
+  /**
+   * Fires once after WebGL either succeeds or fails, and again on context loss
+   * and restore. Field reads this to decide whether to paint its own opaque
+   * fallback (no lens) or go transparent and let the shader's glass body show
+   * through (D-016). Never drives layout: it only changes a background.
+   */
+  onReady?: (ready: boolean) => void;
 }
 
 // ── the arc ────────────────────────────────────────────────────────────────
@@ -59,6 +66,12 @@ const MASS_REST = 1;
 const MASS_FOCUS = 1.55;
 /** How much more mass the collapse adds at the peak of the commit envelope. */
 const MASS_COMMIT = 1.1;
+/**
+ * The top of the arc the mass value can ever reach (focused + a full commit
+ * pulse). Used only to remap mass into lens thickness (D-016) — the focus
+ * spring is critically damped (no overshoot), so mass never exceeds this.
+ */
+const MASS_PEAK = MASS_FOCUS + MASS_COMMIT;
 
 /**
  * The settle spring starts before the commit spring has finished, so the well
@@ -128,6 +141,15 @@ uniform vec3 uGround;
 uniform vec3 uStar;
 uniform vec3 uGlow;
 
+// Tier 1 (docs/DECISIONS.md D-016): the field's own body as a lit, refractive
+// surface, ported from the approved reference artifact. All five are tokens
+// (src/tokens/tokens.json, group "lens"), never hand-tuned constants.
+uniform float uThick;         // 0..1, lens thickness. Derived from uMass, not a second arc.
+uniform float uDispersion;    // chromatic fringe amount at the rim
+uniform float uSpecular;      // strength of the one fixed-direction highlight
+uniform float uRimStrength;   // brightness of the shader-drawn boundary
+uniform float uBloomStrength; // soft glow behind the field, so refraction has something to bend
+
 float hash21(vec2 p) {
   p = fract(p * vec2(127.11, 311.7));
   p += dot(p, p + 34.56);
@@ -178,8 +200,13 @@ float sky(vec2 p, vec2 tangent, float stretch) {
        + starLayer(p, tangent, stretch, 67.0 * uScale, 2.4 * uScale, 11.3, 0.64, 0.58);
 }
 
-void main() {
-  vec2 p = gl_FragCoord.xy;
+/**
+ * Everything behind the field, at an arbitrary screen position. Factored out
+ * of main() so refraction (below) can sample it at an offset per colour
+ * channel — that offset sampling IS the chromatic dispersion. Unchanged from
+ * the original single-pass version when called at the pixel's own position.
+ */
+vec3 background(vec2 p) {
   vec2 q = p - uWell;
 
   // Signed distance to the field's own rounded rectangle, so the warp follows
@@ -218,14 +245,108 @@ void main() {
 
   vec3 col = uGround + uStar * acc;
 
+  // A soft glow behind the field so refraction (below) has something worth
+  // bending. Small and tight to the well on purpose: this is a token
+  // (uBloomStrength), and raising it re-opens the same contrast measurement
+  // the sky() gains above went through — see CLAUDE.md on star brightness as
+  // a contrast constraint, not a taste knob.
+  float nebula = exp(-(dist * dist) / (uInfluence * uInfluence * 1.1));
+  col += uGlow * nebula * uBloomStrength;
+
+  return col;
+}
+
+// ── the lens body (D-016) ───────────────────────────────────────────────────
+// Signed distance to a rounded box, and the thickness profile built on it.
+// Ported from the approved reference artifact. sdBox is a standard SDF, not
+// tuned; prof()'s only job is to be finite-differenced into a surface normal
+// below, so its absolute value outside the box does not need to mean anything.
+
+float sdBox(vec2 p, vec2 b, float r) {
+  vec2 q = abs(p) - b + r;
+  return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r;
+}
+
+float lensProfile(vec2 q, float bev) {
+  float d = sdBox(q, uHalf, uRadius);
+  return 1.0 - clamp(-d / bev, 0.0, 1.0);
+}
+
+void main() {
+  vec2 p = gl_FragCoord.xy;
+  vec2 q = p - uWell;
+
+  vec3 col = background(p);
+
+  float d = sdBox(q, uHalf, uRadius);
+  // A 2px antialiased mask, true at the field's real edge (not the swept
+  // collar above, which is a falloff in the surroundings and a different
+  // thing).
+  float inside = smoothstep(1.0, -1.0, d);
+
+  if (inside > 0.001) {
+    float bev = mix(10.0, 22.0, uThick);
+    float e = 1.25;
+    float hx = lensProfile(q + vec2(e, 0.0), bev) - lensProfile(q - vec2(e, 0.0), bev);
+    float hy = lensProfile(q + vec2(0.0, e), bev) - lensProfile(q - vec2(0.0, e), bev);
+    vec2 n2 = vec2(hx, hy) * 0.5;
+    vec3 N = normalize(vec3(n2 * mix(7.0, 20.0, uThick), 1.0));
+
+    // Refract: push the sample along the surface normal, per channel. The
+    // per-channel offset difference IS the chromatic dispersion.
+    float amt = mix(5.0, 18.0, uThick) * length(n2) * 20.0;
+    vec2 dir2 = normalize(n2 + 1e-6);
+    float k = uDispersion * 0.075;
+    vec2 o = dir2 * amt;
+    vec3 refr;
+    refr.r = background(p - o * (1.0 + k)).r;
+    refr.g = background(p - o).g;
+    refr.b = background(p - o * (1.0 - k)).b;
+
+    // Glass body: a touch of the ground mixed in so it reads as a lit solid,
+    // never a hole cut in the scene.
+    float core = smoothstep(0.0, -14.0, d);
+    vec3 body = mix(refr * 0.94, refr * 0.5, core * 0.7);
+    body += uGround * (0.10 + uThick * 0.10);
+
+    // One fixed light, upper-left. docs/LOOK.md rule 2: one source, one
+    // direction, everywhere — this is the only place this shader lights from.
+    //
+    // +y here is UP: this file inherits gl_FragCoord's native bottom-left
+    // origin (see uWell's own conversion in draw() below), unlike the
+    // approved reference artifact, which flipped to a top-left-origin uv
+    // before doing any of this math. Its L was (-0.42, -0.72, 0.55) in that
+    // flipped space; ported verbatim here it lit the BOTTOM-left instead,
+    // caught rendering it and comparing against the reference screenshots.
+    vec3 L = normalize(vec3(-0.42, 0.72, 0.55));
+    float sp = pow(max(dot(N, L), 0.0), 20.0);
+    body += vec3(1.0) * sp * uSpecular * (0.4 + uThick * 0.6);
+
+    // The rim: the field's visible boundary now that its CSS border is gone
+    // in glass mode (Field.tsx, prop glass). Carries the same WCAG-1.4.11
+    // boundary duty the CSS rim token carried before.
+    float rim = smoothstep(2.2, 0.0, abs(d));
+    body += uStar * rim * uRimStrength * (0.5 + uThick * 0.7);
+
+    col = mix(col, body, inside);
+  }
+
   // The one light event in the application, and it lives at the handover.
   // uLight is 0 under reduced motion because the token is, so this line costs
   // nothing and fires nothing: a flash with no travel is a strobe.
   // Tight to the well. At 2.2 this lifted the whole screen, which reads as the
   // page flashing rather than as the object flaring, and a full-screen flash is
   // the thing reduced motion exists to prevent.
-  float bloom = exp(-(dist * dist) / (uInfluence * uInfluence * 0.9));
+  //
+  // distOut, not the signed d: this term is unchanged from before the lens
+  // body existed, and it must stay 0 (full strength) everywhere inside the
+  // field the way the old unsigned distance was, not decay with depth.
+  float distOut = max(d, 0.0);
+  float bloom = exp(-(distOut * distOut) / (uInfluence * uInfluence * 0.9));
   col += uGlow * bloom * uLight;
+
+  // Dither, to kill banding in the ground gradient the bloom terms introduce.
+  col += (hash21(p) - 0.5) * 0.006;
 
   gl_FragColor = vec4(col, 1.0);
 }
@@ -240,6 +361,13 @@ interface Lens {
   star: [number, number, number];
   glow: [number, number, number];
   lightPeak: number;
+  /** Tier 1 (D-016), all read once from tokens.json's "lens" group. */
+  thicknessRest: number;
+  thicknessCommitPeak: number;
+  dispersion: number;
+  specular: number;
+  rimStrength: number;
+  bloomStrength: number;
 }
 
 function compile(
@@ -303,6 +431,7 @@ function createLens(canvas: HTMLCanvasElement): Lens | null {
   for (const name of [
     "uWell", "uHalf", "uRadius", "uInfluence",
     "uMass", "uLight", "uScale", "uGround", "uStar", "uGlow",
+    "uThick", "uDispersion", "uSpecular", "uRimStrength", "uBloomStrength",
   ]) {
     u[name] = gl.getUniformLocation(program, name);
   }
@@ -319,14 +448,25 @@ function createLens(canvas: HTMLCanvasElement): Lens | null {
     star: [sr, sg, sb],
     glow: [lr, lg, lb],
     lightPeak: readNumber("--tl-light-commit-peak", 0),
+    thicknessRest: readNumber("--tl-lens-thickness-rest", 0.42),
+    thicknessCommitPeak: readNumber("--tl-lens-thickness-commit-peak", 1),
+    dispersion: readNumber("--tl-lens-dispersion", 0.35),
+    specular: readNumber("--tl-lens-specular-strength", 0.5),
+    rimStrength: readNumber("--tl-lens-rim-strength", 0.32),
+    bloomStrength: readNumber("--tl-lens-bloom-strength", 0.09),
   };
 }
 
-export function GravityField({ well, focused, commitKey }: GravityFieldProps) {
+export function GravityField({ well, focused, commitKey, onReady }: GravityFieldProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const lensRef = useRef<Lens | null>(null);
   const wellRef = useRef<Well | null>(well);
   const frameRef = useRef(0);
+  // Latest callback, read from inside the context effect below without being
+  // one of its dependencies — an inline arrow prop must not re-run WebGL
+  // context creation on every render.
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
 
   const arcRef = useRef({
     from: MASS_REST,
@@ -371,6 +511,17 @@ export function GravityField({ well, focused, commitKey }: GravityFieldProps) {
     gl.uniform3fv(u.uGround, lens.ground);
     gl.uniform3fv(u.uStar, lens.star);
     gl.uniform3fv(u.uGlow, lens.glow);
+
+    // Thickness rides the existing mass arc rather than a second timer, so
+    // every invariant that arc already keeps (idle at rest, one pulse per
+    // park, interrupt-safe) applies to the lens body for free.
+    const t = Math.min(Math.max((mass - MASS_REST) / (MASS_PEAK - MASS_REST), 0), 1);
+    const thickness = lens.thicknessRest + (lens.thicknessCommitPeak - lens.thicknessRest) * t;
+    gl.uniform1f(u.uThick, thickness);
+    gl.uniform1f(u.uDispersion, lens.dispersion);
+    gl.uniform1f(u.uSpecular, lens.specular);
+    gl.uniform1f(u.uRimStrength, lens.rimStrength);
+    gl.uniform1f(u.uBloomStrength, lens.bloomStrength);
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }, []);
@@ -448,6 +599,7 @@ export function GravityField({ well, focused, commitKey }: GravityFieldProps) {
       if (cancelled) return;
       lensRef.current = createLens(canvas!);
       if (lensRef.current) schedule();
+      onReadyRef.current?.(lensRef.current !== null);
     }
 
     // Capture never waits on the GPU. Context creation costs 10 to 40ms and it
@@ -466,6 +618,7 @@ export function GravityField({ well, focused, commitKey }: GravityFieldProps) {
         cancelAnimationFrame(frameRef.current);
         frameRef.current = 0;
       }
+      onReadyRef.current?.(false);
     }
     function onRestored() {
       init();

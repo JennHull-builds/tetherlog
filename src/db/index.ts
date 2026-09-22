@@ -127,6 +127,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   id: "settings",
   reviewReminderEnabled: false,
   reviewReminderHour: 20,
+  soundEnabled: false,
 };
 
 export async function getSettings(): Promise<AppSettings> {
