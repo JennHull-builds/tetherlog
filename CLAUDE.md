@@ -293,6 +293,12 @@ The wider lesson, and it is the second time this repo has taught it: **a green l
 nothing about Vercel.** The first time it was a sibling-repo path (`f1416d2`); this time it was a
 shell script. Both looked fine locally.
 
+**A third time on 2026-09-30, and this one was CI.** `scripts/check-docs.mjs` read the disk, where
+a laptop that has built has `dist/`; CI runs the check before the build and has none. It was red
+from `deb186e` for eight days while `npm run verify` passed here, and the steps behind it, including
+the CSS leak assertion, never ran. **A check must read git, not the working tree.** Anything
+gitignored is something CI cannot see.
+
 ### Vercel checks out this repo and nothing else
 
 `vite.config.ts` once aliased a sibling `../nil-ds` checkout. `npm run build` passed here because the

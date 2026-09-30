@@ -16,7 +16,6 @@
  * false pass is fine here; a false failure would get the whole check deleted.
  */
 import { readFileSync } from "node:fs";
-import { existsSync } from "node:fs";
 import { execSync } from "node:child_process";
 
 const docs = execSync("git ls-files '*.md'", { encoding: "utf8" })
@@ -27,7 +26,10 @@ const docs = execSync("git ls-files '*.md'", { encoding: "utf8" })
 // A backticked token counts as a repo path when it has a known extension, or
 // ends in a slash, and carries no spaces, glob or URL punctuation.
 const EXT = /\.(md|json|css|tsx?|mjs|js|yml|yaml|html|sh|png|svg|txt)$/;
+// A bare `/` is the focus shortcut, not a path. It only ever passed because the
+// disk has a root.
 const looksLikePath = (t) =>
+  t !== "/" &&
   !/[\s*?<>|"'()@]/.test(t) &&
   !t.startsWith("http") &&
   !t.startsWith("--") &&
@@ -60,14 +62,29 @@ const KNOWN_ABSENT = new Set([
 // basenames still fail, which is the case worth catching: a component that has
 // been renamed or deleted.
 const tracked = execSync("git ls-files", { encoding: "utf8" }).trim().split("\n");
+const trackedSet = new Set(tracked);
 const byBasename = new Map();
 for (const f of tracked) {
   const base = f.split("/").pop();
   byBasename.set(base, (byBasename.get(base) ?? []).concat(f));
 }
 
+// Build output. Gitignored, so it exists on a laptop that has built and never
+// in CI, where this check runs BEFORE the build. Reading the disk made the two
+// disagree: `dist/fonts/` passed here and failed every CI run from deb186e.
+const BUILD_OUTPUT = ["dist/"];
+
+// Resolved against git, never the disk, for the same reason. Whatever happens
+// to be lying around locally (build output, gitignored references) must not
+// decide whether a document is telling the truth about the repo.
+const exists = (token) =>
+  token.endsWith("/")
+    ? tracked.some((f) => f.startsWith(token))
+    : trackedSet.has(token);
+
 const resolves = (token) => {
-  if (existsSync(token)) return true;
+  if (BUILD_OUTPUT.some((dir) => token.startsWith(dir))) return true;
+  if (exists(token)) return true;
   const hits = byBasename.get(token.split("/").pop());
   // A one-file match is the shorthand case. Several means the doc is ambiguous
   // about which file it means, which is worth a failure of its own.
