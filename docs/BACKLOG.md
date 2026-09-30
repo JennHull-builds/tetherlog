@@ -184,3 +184,33 @@ own, and that is a decision about a visual that has been approved.
 darkest point, or stop blanking the CSS border in glass mode and accept a doubled edge, or light the
 rim evenly rather than from one direction, which contradicts `docs/LOOK.md` rule 2. All three change
 an approved visual, so the call is the owner's.
+
+---
+
+## B-007: Capture's field reads as a raised tile, and the park is not the one LOOK.md specified
+
+**Found 2026-09-30 by filming the live site, frame by frame, at 390px.**
+
+Two things, both visible in a recording and neither visible in the code review that shipped them:
+
+| What LOOK.md says | What ships |
+|---|---|
+| The field is not raised and not recessed: it is heavy | The shader lights a convex glass body from the upper left, with a specular corner and a bright band along the top edge. It reads as a bevelled tile sitting on space. `GravityField.tsx` says so in a comment: the body should read "as a lit solid, never a hole cut in the scene". |
+| On commit, the well briefly collapses inward and the thought falls in | The text clears instantly, then about 200ms later a blue wash lifts the top half of the screen and fades. Nothing moves, and nothing goes anywhere. |
+| The starfield bends around the field | At rest the bend is not visible in a still. |
+
+On load the field also changes identity: the CSS fallback paints first, then the glass body replaces it
+once the lens is ready.
+
+**The proposed direction is to invert the object**: a hole rather than a solid. Darker than the
+ground inside, a thin even ring as its only edge, light bent round it in arcs, and on park the
+words drawn into the centre with the ring answering once. A standalone sketch with a working park
+exists and is waiting for the owner's look on a real phone.
+
+**Two backlog entries would move with it.** An even ring is lit by nothing, so it no longer
+contradicts `docs/LOOK.md` rule 2, and it is the obvious fix for B-006. Streaks outside the ring
+put more light behind the copy under the field, so B-001 has to be re-measured, not assumed.
+
+**Waiting on:** the owner's verdict on the sketch. If it is approved, the port is a decision entry
+of its own, built from the sketch's shader rather than from a description of it: the last lens
+lost most of what was approved between the sketch and the build (D-016).
