@@ -191,7 +191,7 @@ an approved visual, so the call is the owner's.
 
 **Found 2026-09-30 by filming the live site, frame by frame, at 390px.**
 
-Two things, both visible in a recording and neither visible in the code review that shipped them:
+Three things, all visible in a recording and none visible in the code review that shipped them:
 
 | What LOOK.md says | What ships |
 |---|---|
