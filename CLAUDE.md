@@ -54,8 +54,9 @@ before any visual work. Three rules from it that contradict everything written b
   explicitly rejected.
 
 Phases 1 to 6 are **done, looked at, approved as good enough for now, and pushed.** Capture is two
-elements at rest with the gravity lens behind it; the composition is in `docs/DECISIONS.md` D-014
-and D-019, and the lens is in D-015, D-016 and D-019. **Review is two states**: a full-screen
+elements at rest on a dot grid; the composition is in `docs/DECISIONS.md` D-014 and D-019. **The
+grid replaced the starfield lens on 2026-10-01 and is built, awaiting a look on a real phone**: see
+D-027, which also says what of D-015, D-016, D-019, D-020 and D-022 still holds. **Review is two states**: a full-screen
 one-card triage ritual, then a separate wrap-up. The structure is D-017 and the hand-off, the
 navigation and the wrap-up's layout are D-018. **Phase 7, the sweep, is built and awaiting a look**:
 the build spec deleted, every document swept against D-009, the prose leak traced to its real source
@@ -64,8 +65,9 @@ and D-026. `docs/BACKLOG.md` was its inbox and two entries are still open there.
 
 **`docs/BACKLOG.md` is where a finding goes when it is real and the fix is a decision.** Read it
 before starting a phase and add to it in the same session something is found. **A finding does not
-stop a build.** Log it, say so, carry on; the owner decides when it gets fixed. Four entries are
-open, including two contrast failures that predate the current design and one live CSS leak.
+stop a build.** Log it, say so, carry on; the owner decides when it gets fixed. Two entries are
+open, B-004 and B-005. The grid closed both contrast failures, B-001 and B-006, by construction and
+by measurement.
 
 ---
 
@@ -200,66 +202,44 @@ minutes chasing a timezone bug that was not there.
 
 ### A negative z-index hides a fixed canvas behind an ancestor's background
 
-The gravity lens rendered the entire starfield into a canvas nobody could see. The build was green,
+The old gravity lens rendered its whole starfield into a canvas nobody could see. The build was green,
 the rAF instrumentation was perfect, one WebGL context was created, no errors anywhere, and the
 screen was empty black. `App`'s wrapper carries `bg-ground`, and a `-z-10` child paints behind an
 ancestor's background rather than behind its content.
 
-**The canvas is `z-0` and the content above it is `z-10`.** If the starfield disappears, look here
+**The canvas is `z-0` and the content above it is `z-10`.** If the grid disappears, look here
 before looking at the shader. Written up in `docs/DECISIONS.md` D-015.
 
-### The lens bloom is screen-wide, and its colour is what makes that survivable
+### The grid keeps clear of text, and that is a contrast rule, not polish
 
-`lens.bloom-strength` is scaled by the field's own size, and the field is wide, so the bloom reaches
-roughly half strength a third of the way up a 390px screen. It is **not** tight to the well, whatever
-D-016's table said. Turning it off drops the share of sky pixels lifted off the ground colour from
-44.7% to 2.6%: it is most of what lifts the ground the headline sits on.
+Capture's copy sits on the grid with no surface under it. The dots at rest are dim, but **the dots
+nearest the field, and every dot the wave passes, are `--tl-grid-dot-near`, and `--tl-ink-muted`
+measures only 3.19:1 on that.** A near dot behind a chip label or the confirm word fails AA.
 
-That is fine as long as it is the right colour. **A pale colour added to a near-black ground reads as
-grey; a deep saturated one reads as air.** It shipped as the accent violet at 80% lightness and was
-reported as a dull overlay washing the screen. It is now `--tl-lens-glow`, the reference artifact's
-blue at 65%, and the same amount of light reads as atmosphere instead of dirt.
+So `GravityField` takes a `keepClear` list of every run of text on the screen and the dots fade out
+around each one. Measured on 2026-10-01 over nine viewports, with the confirm word caught mid-wave,
+the brightest pixel behind any glyph is the ground itself: headline 17.98:1, chips, confirm word and
+parked count 8.55:1 or better. **A new piece of copy on Capture has to be added to `keepClear`**, or
+it sits on the dots and nothing will warn you.
 
-**Its REACH is the knob, not its level.** `lens.bloom-reach` scales the falloff against the field's
-own size. It was a hardcoded `1.1` and the wash was reported three times before anyone looked at it:
-at `1.1` the bloom lifts 46% of the sky off the ground colour, at `0.3` the median sky pixel is the
-ground colour exactly and the atmosphere stays where the object is. **Lowering `bloom-strength`
-instead dims it everywhere including right at the field, which is the half worth keeping.**
+**The two measuring rules the starfield taught still apply**, and they are why the numbers above are
+worth trusting:
 
-**So: if the ground ever looks washed out, check the reach, then the colour, then the level, in that
-order.** Raising any of them re-opens `docs/BACKLOG.md` B-001. Written up in `docs/DECISIONS.md`
-D-020 and D-022.
+1. **Sweep viewport sizes. One viewport measures one placement.** The lens recorded 4.71:1 from a
+   single viewport while the parked count was 1.43:1 at another.
+2. **Measure every run of text, not the one you expect to be worst.** The starfield's sub-line was
+   removed as the worst offender on a two-element sweep, and three more were failing.
 
-**A page load is three states, not two**, and this is worth knowing before debugging anything that
-"appears a second in". A WebGL context created with `alpha: false` initialises its buffer to opaque
-black, and this canvas is fixed to the whole viewport. So: the ground, then the canvas covering it in
-pure black, then the shader's first paint. 98.7% of the screen changes at that last step. It is not a
-second event, it is the canvas arriving.
+There is also **a clean collar a few pixels wide outside the field's edge.** The grid is pushed back
+from the field, which compresses the dots just outside it, and the focus edge is measured against
+whatever is next to it. Without the collar a dot can sit against the edge; with it the focus edge
+measures 5.12:1 at its worst, all the way round. See `docs/BACKLOG.md` B-006, closed.
 
-### In the lens, the sweep and the arcs can cancel each other out
-
-Space nearest the mass is swept clear of stars, which is right and physical. Set the sweep too wide
-and it clears exactly the band where the tangential stretch is strongest, so a working shader paints
-a plain field on a plain ground. **The sweep must end where the arcs begin.** The first tuning swept
-to three quarters of the influence radius; it is now a tight collar.
-
-### Star brightness in the lens is a contrast constraint, not a taste knob
-
-Capture's copy sits on the starfield with no surface under it, so **the brightest star is its
-background** wherever one lands behind a glyph. **This is currently failing and it is a known,
-accepted state: `docs/BACKLOG.md` B-001 has the numbers and the options.** Worst case after D-019:
-the headline at 2.97:1 against a 3.0 floor, the 11px parked count at 1.43:1 against 4.5.
-
-**Two rules came out of getting this wrong twice, and they are the useful part:**
-
-1. **Sweep viewport sizes. One viewport measures one star placement.** D-015 recorded 4.71:1 from a
-   single viewport and a live failure sat unnoticed from Phase 4 until 2026-09-22. The same probe
-   reported the parked count at 6.42:1 and it is 1.43:1 at 414x896.
-2. **Measure every run of text on the sky, not the one you expect to be worst.** The sub-line was
-   removed as the worst offender on the strength of a two-element sweep. Three more were failing.
-
-**Raising the gains puts small muted copy further under AA.** If the starfield ever needs to be
-brighter, the muted copy has to move off it first.
+**A page load is two states, and it used to be three.** A WebGL context created with `alpha: false`
+starts opaque black, and this canvas covers the viewport, so the old lens loaded as the ground, then
+pure black, then the shader. The canvas is now held at zero opacity until its first real frame, so a
+load is the ground and then the grid. If a black flash ever comes back, look at `drawn` in
+`GravityField.tsx`.
 
 ### Nothing on Capture may change the layout
 
@@ -461,23 +441,25 @@ src/index.css  @theme             maps semantics to Tailwind utilities
 7. **Motion springs are named for the moment in the arc they serve**, not for their shape:
    `focus`, `commit`, `settle`, `dismiss`. A token called `bouncy` has lost the plot.
 
-**The direction is the gravity well**, approved 2026-09-18 and specified in `docs/LOOK.md`. Four
+**The direction is the gravity well**, approved 2026-09-18 and specified in `docs/LOOK.md`, drawn
+since 2026-10-01 as a grid that makes room rather than a starfield that bends (D-027). Four
 more rules apply, and none of them can be caught by an automated check:
 
-8. **Depth is what an object does to its surroundings.** The field bends the starfield around it;
+8. **Depth is what an object does to its surroundings.** The grid makes room around the field;
    it is not raised, not recessed, and never carries a shadow attached to its edge. Same-colour-
    as-ground plus two soft shadows is neumorphism and is the one thing explicitly rejected.
-9. **The field is static at rest.** Star positions are computed once and the warp is redrawn only
-   at the four moments. No `requestAnimationFrame` loop, no drift, no shimmer. An ambient loop in
+9. **The field is static at rest.** The grid is drawn on demand and redrawn only at the four
+   moments, plus once when the copy around it changes. No `requestAnimationFrame` loop, no drift, no shimmer. An ambient loop in
    the capture path breaks `PRODUCT.md`.
 10. **Capture never waits on the GPU.** The field is real DOM and works the instant the page does;
-    the lens layers in behind it. Roughly 2% of devices get no WebGL and must lose nothing
-    functional.
+    the grid layers in behind it. Roughly 2% of devices get no WebGL and must lose nothing
+    functional. Since D-027 nothing depends on the canvas at all: the field draws its own edge.
 11. **Scale is never a focus indicator**, and never animate `font-variation-settings`: it forces a
     text relayout every frame.
-12. **The luminous rim is opt in and belongs to the capture field alone.** `<Field rim />`. It was
+12. **The heavier edge is opt in and belongs to the capture field alone.** `<Field rim />`. It was
     briefly the default for every `Field`, which rested Settings with the one colour per screen
-    appearing three times. Every other field uses the structural rule token.
+    appearing three times. Since D-027 it rests on the structural rule like every other field and
+    turns accent only on focus, so at rest the one colour on Capture is the Park button.
 13. **A reduced-motion override has to reach a SEMANTIC name.** Components may not read `--tl-ref-*`,
     so an override that only lands on the primitive reaches nothing. The generator now emits both.
 
@@ -507,11 +489,11 @@ can go back into `build`.
 
 - **Zero runtime.** Springs are solved at build time into CSS `linear()` easings. No animation
   library is installed and none should be without a decision recorded in `docs/DECISIONS.md`.
-- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Measured at Phase 7:
-  **118.13 KB JS, 5.44 KB CSS, 44.5 KB fonts.** Roughly 12 KB of JS headroom and 6.5 KB of CSS.
-  Phase 5 cost 1.08 KB of JS, D-019 and D-020 0.72 KB between them, and Phase 6 0.30 KB; the jump
-  from the 113.07 KB this line used to claim happened in `f1acb3d` and was not recorded then. The
-  lens is 4.84 KB of that, measured by building with and without it.
+- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Measured at D-027:
+  **114.78 KB JS, 5.54 KB CSS, 44.5 KB fonts.** Roughly 15 KB of JS headroom and 6.5 KB of CSS.
+  The grid gave back 3.35 KB of JS against the lens it replaced, and the sink cost 0.10 KB of CSS.
+  Phase 7 measured 118.13 KB JS and 5.44 KB CSS; Phase 5 cost 1.08 KB of JS, D-019 and D-020 0.72 KB
+  between them, and Phase 6 0.30 KB.
 
   **Phase 7 gave 0.28 KB of CSS back** by closing the prose leak (D-024), and left JS unmoved. This
   line said 117.99 KB JS and 5.71 KB CSS, which was never quite right: the tree at that commit built
@@ -522,11 +504,16 @@ can go back into `build`.
   Two deliberate holds protect the rest: React is pinned at 19.2.8 (D-010) and zod uses the `mini`
   export (D-012). Record the numbers in the commit when they move.
 - **Commit is where the budget goes.** If one moment is exceptional it is the handover. There is
-  exactly one light event in the entire app and it lives here: 320ms, peak 0.22 alpha, and it does
-  not fire under reduced motion because a flash with no travel is a strobe. It is the
-  `--tl-light-commit-peak` token, which the media query sets to 0, and the lens reads it as a
-  uniform. **Keep it tight to the well**: at a wide falloff it lifts the whole screen, which reads as
-  the page flashing rather than the object flaring.
+  exactly one light event in the entire app and it lives here: the wave lifting the grid dots it
+  passes, and it does not fire under reduced motion because a flash with no travel is a strobe. It
+  is the `--tl-light-commit-peak` token, a gain of 1.1 that the media query sets to 0, read by the
+  grid as a uniform. **It travels, it does not flash**: a lift applied to the whole grid at once
+  would read as the page flashing rather than the field answering.
+- **The words sink, and the field never waits for them.** On a park the field is cleared and
+  refocused first, then a transient copy of the words sinks out of it a character at a time on
+  `--tl-duration-sink` and `--tl-ease-sink`. The placeholder is held back until the copy has gone:
+  two lines of text in the field at once is what made a park read as a glitch. Under reduced
+  motion no copy is rendered and the words are simply gone.
 - **Nothing rewards returning.** No celebration, no flourish, no "nice one". The reward is that the
   thought is gone.
 - **Motion must never queue.** Commit animations run on transient elements keyed by capture id, and
@@ -535,8 +522,8 @@ can go back into `build`.
 - **Verify motion with a recording, not a screenshot**: the full arc, the same arc with
   `prefers-reduced-motion: reduce`, and a double-park.
 - **"It looks still" is not evidence.** Wrap `requestAnimationFrame`, count the calls, and assert
-  zero while the screen is idle. The lens must reach 0 at rest, 0 while focused and idle, and 0
-  again once an arc has settled.
+  zero while the screen is idle. The grid must reach 0 at rest, 0 while focused and idle, and 0
+  again once an arc has settled. Measured at D-027: 0, 0, 33 frames across a park, then 0.
 
 ---
 

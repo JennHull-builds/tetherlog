@@ -1,9 +1,9 @@
 /**
  * Reading the motion and colour contract from CSS, at runtime.
  *
- * The gravity lens is a canvas, so it cannot use a CSS easing or a CSS colour.
+ * The grid is a canvas, so it cannot use a CSS easing or a CSS colour.
  * It reads both from the same custom properties every DOM element reads, which
- * is what keeps one source of truth: change a token, and the lens changes with
+ * is what keeps one source of truth: change a token, and the grid changes with
  * the rest of the app. Nothing here may hold a colour literal.
  *
  * `prefers-reduced-motion` needs no special case in this file. The generated
@@ -59,7 +59,7 @@ export function readNumber(name: string, fallback: number): number {
 /**
  * A colour token as sRGB 0 to 1, with alpha.
  *
- * Deliberately NOT converted to linear light. The lens paints the ground
+ * Deliberately NOT converted to linear light. The grid paints the ground
  * colour into its own pixels, and the only way a canvas and a CSS background
  * agree exactly is if the canvas writes the same sRGB values the stylesheet
  * declared. A linearising round trip is more correct physics and a visible

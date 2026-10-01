@@ -11,7 +11,7 @@ import {
   StopGlyph,
 } from "../components/ui";
 import { getCapturesForDay, getSettings, parkCapture, type ParkCaptureOptions } from "../db";
-import { readDurationMs } from "../lib/motion";
+import { prefersReducedMotion, readDurationMs } from "../lib/motion";
 import { playParkSound } from "../lib/sound";
 import {
   formatDuration,
@@ -39,6 +39,22 @@ const TAG_TONE = {
 
 /** Stable empty default: useLiveQuery returns its third argument while loading. */
 const NO_CAPTURES: Capture[] = [];
+
+/**
+ * A copy of a parked thought, sinking out of the field after the field itself
+ * is already empty. Keyed by the park's ticket, so two parks never share one.
+ */
+interface Sink {
+  id: number;
+  text: string;
+  left: number;
+  top: number;
+  width: number;
+}
+
+/** Each character starts a little after the one before it, up to a cap. */
+const SINK_STAGGER_MS = 8;
+const SINK_STAGGER_CAP_MS = 180;
 
 /** A thought held outside React state between the release and the write. */
 interface Held {
@@ -102,14 +118,18 @@ export function CaptureView({ onParked }: CaptureViewProps) {
   const [focused, setFocused] = useState(false);
   const [commitKey, setCommitKey] = useState(0);
   const [well, setWell] = useState<Well | null>(null);
-  // D-016: only true once the WebGL lens has actually rendered a frame. Field
-  // stays in its normal opaque CSS look until then, and reverts if the
-  // context is ever lost, so the ~2% of devices with no WebGL never see a
-  // borderless field with nothing painted behind it.
-  const [lensReady, setLensReady] = useState(false);
+  const [sinking, setSinking] = useState<Sink[]>([]);
 
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  // Every run of text on this screen. The grid keeps clear of each one: its
+  // brightest dots would fail AA behind muted copy. See GravityField rule 4.
+  const headlineRef = useRef<HTMLHeadingElement | null>(null);
+  const confirmRef = useRef<HTMLParagraphElement | null>(null);
+  const chipsRef = useRef<HTMLDivElement | null>(null);
+  const errorRef = useRef<HTMLParagraphElement | null>(null);
+  const countRef = useRef<HTMLParagraphElement | null>(null);
   const timersRef = useRef<number[]>([]);
   const sessionRef = useRef<VoiceSession | null>(null);
   const recordStartedAtRef = useRef(0);
@@ -175,10 +195,10 @@ export function CaptureView({ onParked }: CaptureViewProps) {
   }, [recording]);
 
   /**
-   * Where the lens has to bend space. Measured from the DOM rather than
+   * Where the grid has to make room. Measured from the DOM rather than
    * assumed, because the field grows to three lines and the phone keyboard
    * moves it. ResizeObserver only, no polling: the identity guard means an
-   * unchanged rect does not re-render, so the lens is not asked to redraw.
+   * unchanged rect does not re-render, so the grid is not asked to redraw.
    */
   useLayoutEffect(() => {
     const el = shellRef.current;
@@ -248,8 +268,8 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     // this is acknowledgment, not a reward chime, so it stays quiet.
     if (settings?.soundEnabled) playParkSound();
 
-    // The lens pulse. A counter, so two parks in a second give two distinct
-    // effect runs and the second restarts the arc rather than queueing.
+    // The grid's wave. A counter, so two parks in a second give two distinct
+    // effect runs and the second restarts the wave rather than queueing.
     setCommitKey((key) => key + 1);
     setStatus("parked");
 
@@ -329,8 +349,63 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     const ticket = hold({ text: trimmed, tag });
     // 2. RELEASE.
     releaseField();
+    // The words sink out of the field. Synchronous, and safe after the
+    // release: React has not re-rendered yet, so the field still shows them
+    // and can be measured. Never awaited, and nothing reads it back.
+    sink(ticket, text);
     // 3. SETTLE, behind the user.
     void settlePark(ticket);
+  }
+
+  /**
+   * A transient copy of the words, laid exactly over the field's text, which
+   * sinks away while the empty field is already taking the next thought. It
+   * lands in the same render as the release, so there is no frame with the
+   * words missing and no frame with them twice.
+   */
+  function sink(id: number, words: string) {
+    if (prefersReducedMotion()) return;
+    const input = inputRef.current;
+    const section = sectionRef.current;
+    if (!input || !section) return;
+    const ir = input.getBoundingClientRect();
+    const sr = section.getBoundingClientRect();
+    setSinking((current) => [
+      ...current,
+      {
+        id,
+        text: words,
+        left: ir.left - sr.left,
+        top: ir.top - sr.top - input.scrollTop,
+        width: input.clientWidth,
+      },
+    ]);
+  }
+
+  function renderSink(words: string) {
+    let index = 0;
+    const parts = words.split(/(\s+)/).filter(Boolean);
+    const lastIndex = Array.from(words.replace(/\s+/g, "")).length - 1;
+    return parts.map((part, p) => {
+      if (/^\s+$/.test(part)) return part;
+      return (
+        <span key={p} className="tl-sink-word">
+          {Array.from(part).map((ch, c) => {
+            const i = index++;
+            return (
+              <span
+                key={c}
+                className="tl-sink-char"
+                data-last={i === lastIndex ? "" : undefined}
+                style={{ animationDelay: `${Math.min(i * SINK_STAGGER_MS, SINK_STAGGER_CAP_MS)}ms` }}
+              >
+                {ch}
+              </span>
+            );
+          })}
+        </span>
+      );
+    });
   }
 
   async function startRecording() {
@@ -401,9 +476,18 @@ export function CaptureView({ onParked }: CaptureViewProps) {
 
   const armed = recording || text.trim().length > 0;
   const showChips = !recording && text.trim().length > 0;
+  // Whatever changes the copy on screen, so the grid redraws once around it.
+  const contentKey = [
+    status,
+    showChips,
+    captures.length,
+    parkError ?? "",
+    voiceError ?? "",
+  ].join("|");
 
   return (
     <section
+      ref={sectionRef}
       className="relative flex min-h-[calc(100dvh-5.5rem)] flex-col pt-16 pb-6"
       style={{ paddingInline: "var(--tl-gutter)" }}
       // Click anywhere on the screen to start typing, on a pointer device only.
@@ -416,7 +500,8 @@ export function CaptureView({ onParked }: CaptureViewProps) {
         well={well}
         focused={focused}
         commitKey={commitKey}
-        onReady={setLensReady}
+        keepClear={[headlineRef, confirmRef, chipsRef, errorRef, countRef]}
+        contentKey={contentKey}
       />
 
       <div className="relative z-10 flex flex-1 flex-col justify-center gap-8">
@@ -432,7 +517,10 @@ export function CaptureView({ onParked }: CaptureViewProps) {
           13px muted copy sat on the bare starfield with no surface under it.
         */}
         <header>
-          <h1 className="text-display font-light tracking-display text-ink">
+          <h1
+            ref={headlineRef}
+            className="text-display font-light tracking-display text-ink"
+          >
             What's pulling you?
           </h1>
         </header>
@@ -446,7 +534,11 @@ export function CaptureView({ onParked }: CaptureViewProps) {
             inputRef={inputRef}
             shellRef={shellRef}
             rim
-            glass={lensReady}
+            className={
+              sinking.length > 0
+                ? "tl-capture-input tl-placeholder-hold"
+                : "tl-capture-input"
+            }
             value={text}
             onChange={setText}
             onFocusChange={setFocused}
@@ -519,6 +611,7 @@ export function CaptureView({ onParked }: CaptureViewProps) {
           */}
           <div className="relative flex h-11 items-center">
             <p
+              ref={confirmRef}
               className="absolute text-body text-muted"
               aria-live="polite"
               aria-atomic="true"
@@ -526,6 +619,7 @@ export function CaptureView({ onParked }: CaptureViewProps) {
               {status === "parked" ? "Parked." : ""}
             </p>
             <div
+              ref={chipsRef}
               className="flex flex-wrap gap-2"
               style={{ visibility: showChips ? "visible" : "hidden" }}
             >
@@ -546,7 +640,7 @@ export function CaptureView({ onParked }: CaptureViewProps) {
           </div>
 
           {(parkError || voiceError) && (
-            <p className="text-body text-danger" role="alert">
+            <p ref={errorRef} className="text-body text-danger" role="alert">
               {parkError ?? voiceError}
             </p>
           )}
@@ -562,8 +656,25 @@ export function CaptureView({ onParked }: CaptureViewProps) {
         an empty screen and it cannot shift.
       */}
       <div className="relative z-10 h-32 overflow-hidden">
-        {captures.length > 0 && <PeekStack captures={captures} />}
+        {captures.length > 0 && (
+          <PeekStack captures={captures} countRef={countRef} />
+        )}
       </div>
+
+      {sinking.map((s) => (
+        <div
+          key={s.id}
+          aria-hidden
+          className="tl-sink pointer-events-none absolute z-20"
+          style={{ left: s.left, top: s.top, width: s.width }}
+          onAnimationEnd={(event) => {
+            if ((event.target as HTMLElement).dataset.last === undefined) return;
+            setSinking((current) => current.filter((x) => x.id !== s.id));
+          }}
+        >
+          {renderSink(s.text)}
+        </div>
+      ))}
     </section>
   );
 }

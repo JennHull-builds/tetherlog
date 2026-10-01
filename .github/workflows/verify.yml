@@ -73,7 +73,8 @@ jobs:
           echo "Checking $CSS"
           FOUND=0
           for RULE in 'inline' 'ring' 'rounded' 'shadow' 'blur' 'static' 'transform' \
-                      'grow' 'invisible' 'font-sans' 'backdrop-filter' 'rounded-card'; do
+                      'grow' 'invisible' 'font-sans' 'backdrop-filter' 'rounded-card' \
+                      'antialiased' 'collapse'; do
             if grep -qE "(^|[},])\.${RULE}\{" "$CSS"; then
               echo "::error::Prose-leaked utility in production CSS: .$RULE"
               FOUND=1

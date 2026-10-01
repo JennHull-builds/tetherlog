@@ -16,6 +16,22 @@ shipping unless it says so.**
 
 ## B-001: Text on the bare starfield fails AA at some viewports
 
+**CLOSED 2026-10-01 by D-027. The starfield is gone and nothing on Capture sits on a light source.**
+The grid keeps clear of every run of text, so the brightest pixel behind any glyph is now the
+ground. Measured the same way as below, over the same nine viewports, with the confirm word caught
+mid-wave:
+
+| Element | Needs | Last on the starfield | **On the grid** |
+|---|---|---|---|
+| Headline, 34px | 3.0 | 3.24 | **17.98** |
+| Parked count, 11px mono | 4.5 | 1.43 | **8.60** |
+| Confirm word, 15px | 4.5 | 3.10 | **8.55** |
+| Tag chip label, 13px | 4.5 | 3.92 | **8.55** |
+
+**The rule that keeps it closed:** the dots nearest the field measure only 3.19:1 under muted copy,
+so any new text on Capture has to join `keepClear` in `GravityField`. The history below is kept
+because the measuring method in it is still the right one.
+
 **Found 2026-09-22 measuring D-019. Still open after Phase 7, deliberately: the call is the owner's
 and all three options change a composition that D-014 settled.** Phase 7 changed nothing on Capture,
 so every number below still stands.
@@ -149,6 +165,16 @@ public so the tell is real but not urgent.
 
 ## B-006: The focus rim is dimmer on the path almost everyone takes
 
+**CLOSED 2026-10-01 by D-027.** There is no shader-drawn rim any more: the field draws its own edge
+in CSS on every device, the path that measured well below. A clean collar a few pixels wide keeps
+the grid off the edge, so what sits next to it is always the ground. Sampled all the way round the
+focused field over nine viewports, 1,134 samples:
+
+| | Worst | **Median** | Best |
+|---|---|---|---|
+| Before, WebGL path | 1.00:1 | **1.79:1** | 6.01:1 |
+| **After, every device** | **5.12:1** | **5.69:1** | 5.72:1 |
+
 **Found 2026-09-22 in Phase 7, while re-shooting the README screenshot.**
 
 Capture's field is `<Field rim glass={lensReady} />`. **In glass mode the CSS border is set to
@@ -188,6 +214,10 @@ an approved visual, so the call is the owner's.
 ---
 
 ## B-007: Capture's field reads as a raised tile, and the park is not the one LOOK.md specified
+
+**CLOSED 2026-10-01: the owner picked the grid, and it is built (D-027).** Ported from the sketch's
+own shader and timings rather than from a description of them. What remains is the owner's look on a
+real phone, which is the same gate every phase has.
 
 **Found 2026-09-30 by filming the live site, frame by frame, at 390px.**
 

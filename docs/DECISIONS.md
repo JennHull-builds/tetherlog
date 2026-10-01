@@ -36,7 +36,8 @@ landed (D-025). `git log` has both originals if they are ever wanted.
 | Phase 7 | **Built 2026-09-22, awaiting a look.** The sweep: the build spec deleted, every
 document swept against D-009, the prose-leak traced to its real source and guarded. See D-024,
 D-025 and D-026. |
-| Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. |
+| Capture's ground | **Built 2026-10-01, awaiting a look on a real phone.** The grid replaced the starfield lens. B-001, B-006 and B-007 closed with it. See D-027. |
+| Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
 ---
@@ -546,6 +547,8 @@ not a composition question and it should not be guessed at without testing on a 
 
 ## D-015: The gravity lens
 
+**Superseded on 2026-10-01 by D-027**, which says what of this entry still holds.
+
 **2026-09-18. Closed.** `src/components/GravityField.tsx`. One fullscreen fragment shader, no
 library, **4.84 KB gzipped measured by building with and without it**, against the roughly 4 KB
 `docs/LOOK.md` budgeted.
@@ -622,6 +625,8 @@ primitive. Before this, `--tl-ref-motion-duration-confirm` was overridden inside
 nothing could read it, because components may not read primitives. The override reached nothing.
 
 ## D-016: Tier 1 of the refraction lens, and the commit sound
+
+**Superseded on 2026-10-01 by D-027**, which says what of this entry still holds.
 
 **2026-09-22. Closed, Tier 2 (a flowing streak field replacing the point stars) explicitly not
 attempted here — see docs/DECISIONS.md's own note below.**
@@ -1058,6 +1063,8 @@ default. `npm run verify` clean.
 
 ## D-020: The lens atmosphere is blue, and the accent stays violet
 
+**Superseded on 2026-10-01 by D-027**, which says what of this entry still holds.
+
 **2026-09-22. Closed and built.** Reported as a dull overlay washing the whole screen on load. It was
 the lens bloom, and the fix was its colour rather than its level.
 
@@ -1220,6 +1227,8 @@ which would have had someone delete it. `PRODUCT.md` sanctions it in three place
 feature; the shorthand was wrong and is corrected rather than the code.
 
 ## D-022: The bloom's reach, which is what was actually wrong
+
+**Superseded on 2026-10-01 by D-027**, which says what of this entry still holds.
 
 **2026-09-22. Closed and built.** The dull overlay was reported a third time, still there after D-020
 made the bloom blue. D-020 changed its colour and raised its level; neither is what covered the
@@ -1453,3 +1462,76 @@ Rendered at 390px before and after: four rules gone, nothing regrouped.
 
 `--tl-rule` keeps its job and its `CLAUDE.md` contract. A boundary a user genuinely needs to see
 still uses it, never the hairline; between two labelled sections, no boundary needed seeing.
+
+## D-027: Capture sits on a grid, and the words sink
+
+**2026-10-01. Built, awaiting a look on a real phone.** Supersedes the starfield in D-015, the lens
+body in D-016, and the atmosphere in D-020 and D-022.
+
+### Why
+
+Filmed frame by frame, the shipped lens did three things `docs/LOOK.md` never asked for (B-007): the
+field read as a raised, bevelled tile; the park was the text vanishing and then, about 200ms later, a
+blue wash over the top half of the screen with nothing moving; and the bend that was the whole idea
+was not visible in a still. The owner judged it underwhelming and glitchy.
+
+A first replacement kept the space metaphor and inverted the object into a hole. It was built as a
+standalone sketch with a working park and judged worse than what shipped. **Four directions were
+then sketched from a blank slate**, each with a working park, and measured the same way before being
+shown: Fold, Grid, Water and Tether. The owner picked the grid.
+
+### What it is
+
+| Moment | What happens |
+|---|---|
+| At rest | A dot grid on a 16px pitch, pushed back from the field's edge. Still: zero frames. |
+| On focus | The field takes more room (8px to 15px at its edge) on the focus spring, and its edge turns accent. |
+| On commit | The words sink out of the field a character at a time, and one wave runs out through the grid. |
+| After | Still again, measured at zero frames. The peek stack is one row longer, as before. |
+
+**Ported from the sketch's own code, not from a description of it.** The last lens lost most of
+what had been approved between the sketch and the build (D-016). The shader, the room, the wave's
+speed, shape and decay, and the sink's travel and stagger are the sketch's numbers. Two things were
+added in the port, both measured:
+
+1. **A clean collar a few pixels wide outside the field's edge.** The grid compresses just outside
+   the field, so without it a dot can sit against the focus edge, which is measured against what is
+   next to it.
+2. **The wave tapers to exactly nothing before the loop stops.** The sketch's exponential decay left
+   a sub-pixel shift on its last frame.
+
+### What changed in the code
+
+- `GravityField.tsx` keeps its name, its focus arc, its restart-never-queue commit and its idle
+  exit. The starfield, the lens body, the bloom and `onReady` are gone. It takes `keepClear`, every
+  run of text on the screen, and `contentKey`, which redraws once when that copy changes.
+- **The canvas is held at zero opacity until its first real frame**, so a load is two states, the
+  ground and then the grid, not three with a black sheet between them.
+- `Field` loses `glass`. The capture field always draws its own edge in CSS, on the structural rule
+  at rest and accent on focus. `--tl-rim`, the resting accent edge, is no longer read by anything.
+- `CaptureView` renders the sink: a transient copy of the words, keyed by the park's ticket, laid
+  over the field in the same render as the release. It never touches `handlePark`'s order: hold,
+  release, then the copy, then settle. The placeholder is held back until the copy has gone, because
+  two lines of text in the field at once is what read as a glitch. Under reduced motion no copy is
+  made.
+- Tokens: the `lens` group, the star and lens colours and their roles are gone. New: `grid.*` for
+  the shader's numbers, `--tl-grid-dot` and `--tl-grid-dot-near`, and `--tl-duration-sink` and
+  `--tl-ease-sink` for the sink, with `1ms` under reduced motion. `--tl-light-commit-peak` keeps its
+  name and its 0 under reduced motion, and is now the wave's lift.
+
+### Measured, not assumed
+
+| Check | Result |
+|---|---|
+| Frames at rest, focused and idle, after a park | 0, 0, 0 (33 across a park) |
+| Two parks in a row | Two independent sinks, both cleaned up, field empty, 2 parked |
+| Reduced motion | No sink, no wave, 0 frames across a park |
+| No WebGL | Park works, canvas stays hidden, no console errors |
+| Text contrast, worst of nine viewports | Headline 17.98:1, confirm word mid-wave 8.55:1, chips 8.55:1, count 8.60:1 |
+| Focus edge, all round, nine viewports | Worst 5.12:1, median 5.69:1 |
+| Bundle | 114.78 KB JS (down 3.35), 5.54 KB CSS (up 0.10) |
+
+**Two junk utilities left the production CSS with the old shader**: `.antialiased` and `.collapse`,
+both compiled from words in its comments ("a 2px antialiased mask", "the collapse adds"). Nothing used
+either. They are now in the CI leak assertion, which was run against the old build to confirm it
+catches them.

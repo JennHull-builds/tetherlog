@@ -1,9 +1,11 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, RefObject } from "react";
 import type { Capture } from "../../types";
 
 export interface PeekStackProps {
   /** Today's captures, newest first. */
   captures: Capture[];
+  /** The count line, so Capture's grid can keep clear of it. */
+  countRef?: RefObject<HTMLParagraphElement | null>;
 }
 
 /**
@@ -35,13 +37,14 @@ const ROW_INK = ["var(--tl-ink)", "var(--tl-ink-muted)"];
 const ROW_SURFACE = ["var(--tl-field)", "var(--tl-raised)"];
 const ROW_WIDTH = ["100%", "92%"];
 
-export function PeekStack({ captures }: PeekStackProps) {
+export function PeekStack({ captures, countRef }: PeekStackProps) {
   const count = captures.length;
   const rows = captures.slice(0, 2);
 
   return (
     <div className="flex flex-col items-center gap-3">
       <p
+        ref={countRef}
         className="font-mono text-micro tracking-micro text-muted"
         aria-live="off"
       >

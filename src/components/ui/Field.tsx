@@ -24,7 +24,7 @@ export interface FieldProps {
   disabled?: boolean;
   className?: string;
   inputRef?: RefObject<HTMLInputElement | HTMLTextAreaElement | null>;
-  /** The shell, for measuring the well the lens has to bend space around. */
+  /** The shell, for measuring the field the grid makes room around. */
   shellRef?: RefObject<HTMLDivElement | null>;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement | HTMLTextAreaElement>;
   /**
@@ -34,27 +34,19 @@ export interface FieldProps {
    * it. See docs/DECISIONS.md D-014.
    */
   trailing?: ReactNode;
-  /** Focus drives the lens, so the view needs to know, not just the CSS. */
+  /** Focus drives the grid, so the view needs to know, not just the CSS. */
   onFocusChange?: (focused: boolean) => void;
   /**
-   * The luminous rim. OFF by default, and the default is the point.
+   * The capture field's heavier edge. OFF by default, and the default is the
+   * point: only the capture field asks for it.
    *
-   * The rim is the capture field's mass signature, not a generic input
-   * treatment. Making it the default put the accent rim on the API key field
-   * and the reminder hour, so Settings rested with the one colour per screen
-   * appearing three times. Only the capture field asks for it.
+   * Since D-027 it rests on the structural rule like every other field, at the
+   * rim width, and turns accent only on focus. It used to rest in the accent,
+   * which put the one colour per screen on the field and the Park button at
+   * once. Before that it was the default for every field, which put it on the
+   * API key and the reminder hour too.
    */
   rim?: boolean;
-  /**
-   * D-016: the shell goes transparent and borderless, so the WebGL lens body
-   * painted behind it (GravityField.tsx) is what the user actually sees —
-   * fill, border and rim all become the shader's job. Only ever true once
-   * `GravityField`'s `onReady` has fired true; false (the CSS fallback below)
-   * is what the ~2% of devices with no WebGL keep, and what every field
-   * renders as for the first frame or two before the lens context exists.
-   * Meaningless without `rim`: nothing but the capture field asks for either.
-   */
-  glass?: boolean;
 }
 
 /**
@@ -77,7 +69,7 @@ const SHELL_STYLE: CSSProperties = {
   gap: "var(--tl-space-sm)",
   width: "100%",
   padding: "var(--tl-space-md) var(--tl-space-lg)",
-  // Barely lighter than the ground, per docs/LOOK.md. The lens gives it mass.
+  // Barely lighter than the ground, per docs/LOOK.md. The grid gives it room.
   background: "var(--tl-field)",
   borderRadius: "var(--tl-radius-field)",
   borderStyle: "solid",
@@ -129,7 +121,6 @@ export function Field({
   trailing,
   onFocusChange,
   rim = false,
-  glass = false,
 }: FieldProps) {
   const innerRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const [focused, setFocused] = useState(false);
@@ -175,7 +166,7 @@ export function Field({
    *
    * mousedown rather than click, with preventDefault: the shell would
    * otherwise take focus for a frame first, which reads as a flicker and
-   * restarts the lens arc.
+   * restarts the grid's focus arc.
    */
   function handleShellPointerDown(event: React.MouseEvent<HTMLDivElement>) {
     const target = event.target;
@@ -203,26 +194,16 @@ export function Field({
       onMouseDown={handleShellPointerDown}
       style={{
         ...SHELL_STYLE,
-        // The rim brightens on focus. Scale is never a focus indicator here,
+        // The edge brightens on focus. Scale is never a focus indicator here,
         // and neither is the fill: both are carried by this one line plus the
-        // deeper bend in the lens behind it.
+        // extra room the grid gives the field behind it.
         //
         // The width is constant within a variant. Thickening a border on focus
         // moves everything inside it by a pixel, and this field has a caret in
         // it at the time.
         borderWidth: rim ? "var(--tl-rim-width)" : "var(--tl-border-width)",
-        // Glass mode: the shader draws its own rim (uRimStrength), so the CSS
-        // border steps aside rather than doubling it. Transparent, not simply
-        // absent — the width above still reserves the same box, so nothing
-        // reflows when `glass` flips.
-        borderColor: glass
-          ? "transparent"
-          : focused
-            ? "var(--tl-rim-focus)"
-            : rim
-              ? "var(--tl-rim)"
-              : "var(--tl-rule)",
-        background: glass ? "transparent" : focused ? "var(--tl-field-focus)" : "var(--tl-field)",
+        borderColor: focused ? "var(--tl-rim-focus)" : "var(--tl-rule)",
+        background: focused ? "var(--tl-field-focus)" : "var(--tl-field)",
         transition:
           "border-color var(--tl-spring-focus-duration) var(--tl-spring-focus-ease), " +
           "background var(--tl-spring-focus-duration) var(--tl-spring-focus-ease)",

@@ -119,8 +119,8 @@ The real costs, which are modest:
 - **GPU time during transitions only**, roughly 230 to 320ms per interaction, then idle. Not a
   persistent 60fps loop, which is the thing that actually drains a phone.
 - **Context creation, 10 to 40ms.** Mitigated by architecture: the capture field is real DOM and
-  works the instant the page does. The lens layers in behind it. Capture never waits on the GPU.
-- **No WebGL on roughly 2% of devices.** They get the field without the lens and lose nothing
+  works the instant the page does. The effect layers in behind it. Capture never waits on the GPU.
+- **No WebGL on roughly 2% of devices.** They get the field without the effect and lose nothing
   functional.
 - **WebGL cannot sample the DOM**, so it cannot refract real page content. It works here only because
   the background is procedural and the shader owns it. That is a genuine constraint on where the
@@ -128,6 +128,32 @@ The real costs, which are modest:
 
 A Canvas 2D approximation was tried first and was not good enough. Do not reach for it again as a
 cost saving, because there was no cost to save.
+
+---
+
+## Drawn as a grid, since 2026-10-01
+
+**The starfield was replaced** (`docs/DECISIONS.md` D-027). Once built it read as underwhelming and
+glitchy, and a second attempt that inverted the field into a hole read as worse. Four directions
+were then sketched from a blank slate, each with a working park, and the grid was chosen.
+
+**The principle did not change, only what carries it.** Depth is still what the field does to its
+surroundings: the grid makes room for it, pushed back from its edge, and further on focus. Nothing
+is attached to the field's edge, and nothing loops.
+
+| Moment | What happens |
+|---|---|
+| **At rest** | The grid stands back from the field. Still. |
+| **On focus** | The field takes more room, and its edge turns accent. |
+| **On commit** | The words sink out of the field, and one wave runs out through the grid. |
+| **After** | The grid is still again. The log below is one row longer. |
+
+**Why a grid fits where the stars did not.** The other three screens are flat, typographic and
+precise: mono labels, a 24-slot hour distribution, outlined pills. The starfield was the one thing on
+Capture that belonged to none of them. A grid on the same 4px rhythm as the spacing scale does.
+
+**The grid keeps clear of every run of text.** That is what closed the long-standing contrast
+failure on this screen: Capture's copy sits on the ground, not on a light source.
 
 ---
 
@@ -155,10 +181,8 @@ field feel occupied rather than something that congratulates you for using it.
 2. **One light source, one direction, everywhere.** If two elements are lit from different angles the
    illusion collapses into neumorphism.
 3. **Colour appears once per screen.** The primary action. Bucket hues are the exception and they are
-   markers, not surfaces. **The lens atmosphere is a second exception and a deliberate one**: it is
-   scenery rather than an element, it is nobody's affordance, and it is the blue the direction was
-   derived from. It does not license a third. See `docs/DECISIONS.md` D-020, which also records the
-   accent being offered the same blue and kept violet.
+   markers, not surfaces. **The lens atmosphere was a second exception** until the lens was
+   replaced by the grid (D-027). There is no second exception now, and nothing licenses one.
 4. **Never the same colour as the ground plus two soft shadows.** That is the neumorphic move and it
    is the one thing explicitly rejected.
 5. **Depth is what an object does to its surroundings**, not what is attached to its edge.
