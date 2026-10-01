@@ -202,15 +202,28 @@ Three things, all visible in a recording and none visible in the code review tha
 On load the field also changes identity: the CSS fallback paints first, then the glass body replaces it
 once the lens is ready.
 
-**The proposed direction is to invert the object**: a hole rather than a solid. Darker than the
-ground inside, a thin even ring as its only edge, light bent round it in arcs, and on park the
-words drawn into the centre with the ring answering once. A standalone sketch with a working park
-exists and is waiting for the owner's look on a real phone.
+**The first replacement was ruled out on 2026-10-01.** A hole rather than a solid: darker than the
+ground inside, a thin even ring, light bent round it in arcs, the words drawn into the centre on
+park. It was built as a standalone sketch with a working park, looked at, and judged worse than what
+ships. The next round started from a blank slate rather than from the space metaphor.
 
-**Two backlog entries would move with it.** An even ring is lit by nothing, so it no longer
-contradicts `docs/LOOK.md` rule 2, and it is the obvious fix for B-006. Streaks outside the ring
-put more light behind the copy under the field, so B-001 has to be re-measured, not assumed.
+**Four directions from a blank slate are now sketched**, each with a working park, and none of them
+is space:
 
-**Waiting on:** the owner's verdict on the sketch. If it is approved, the port is a decision entry
-of its own, built from the sketch's shader rather than from a description of it: the last lens
-lost most of what was approved between the sketch and the build (D-016).
+| Direction | At rest | On park | WebGL |
+|---|---|---|---|
+| Fold | The field is a sheet with one crease, lit from above | The sheet folds shut over the words and drops away | No |
+| Grid | A fine dot grid that keeps back from the field and from all text | The words sink and one wave runs out through the grid | Yes |
+| Water | The field stands on dark water, its rim faintly reflected | The words drop under the waterline and rings spread | Yes |
+| Tether | One thread under the field | The words become a tag that drops onto the thread, which dips and settles | No |
+
+All four are static at rest, measured at zero animation frames, with a reduced-motion path and a
+double park that never queues.
+
+**Two backlog entries move with whichever is chosen.** None of the four keeps the starfield, which
+is B-001's cause, and all four draw the focus rim as a CSS border rather than in the shader, which is
+B-006's. Both should close by construction, and both have to be measured on the port, not assumed.
+
+**Waiting on:** the owner's pick. Whatever is chosen is ported from the sketch's own code rather than
+from a description of it: the last lens lost most of what was approved between the sketch and the
+build (D-016).
