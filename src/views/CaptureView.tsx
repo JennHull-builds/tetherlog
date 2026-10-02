@@ -44,6 +44,8 @@ interface Sink {
   left: number;
   top: number;
   width: number;
+  /** How tall the field was at the park. It holds that height until this has sunk. */
+  height: number;
 }
 
 /** Each character starts a little after the one before it, up to a cap. */
@@ -361,17 +363,24 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     if (prefersReducedMotion()) return;
     const input = inputRef.current;
     const section = sectionRef.current;
-    if (!input || !section) return;
+    const shell = shellRef.current;
+    if (!input || !section || !shell) return;
     const ir = input.getBoundingClientRect();
     const sr = section.getBoundingClientRect();
+    // The text starts inside the control's own padding, which `controlsBeside` sets.
+    const cs = getComputedStyle(input);
+    const padTop = Number.parseFloat(cs.paddingTop) || 0;
+    const padLeft = Number.parseFloat(cs.paddingLeft) || 0;
+    const padRight = Number.parseFloat(cs.paddingRight) || 0;
     setSinking((current) => [
       ...current,
       {
         id,
         text: words,
-        left: ir.left - sr.left,
-        top: ir.top - sr.top - input.scrollTop,
-        width: input.clientWidth,
+        left: ir.left - sr.left + padLeft,
+        top: ir.top - sr.top + padTop - input.scrollTop,
+        width: input.clientWidth - padLeft - padRight,
+        height: shell.offsetHeight,
       },
     ]);
   }
@@ -519,15 +528,30 @@ export function CaptureView({ onParked }: CaptureViewProps) {
           </h1>
         </header>
 
+        {/*
+          A FIXED HEIGHT: the field at rest, the gap and the reserved line. The
+          field is one line at rest and grows as the words wrap (D-029), and a
+          centred block that changed height would move the headline while
+          somebody types and again at the park. Fixed, the growth spills
+          downward into the empty space below and nothing above it moves.
+        */}
         <form
           onSubmit={(event) => handlePark(event)}
           className="space-y-3"
+          style={{
+            height:
+              "calc(44px + var(--tl-space-sm) * 2 + var(--tl-rim-width) * 2 + 0.75rem + 2.75rem)",
+          }}
           onClick={(event) => event.stopPropagation()}
         >
           <Field
             inputRef={inputRef}
             shellRef={shellRef}
             rim
+            controlsBeside={!recording}
+            holdHeight={
+              sinking.length > 0 ? Math.max(...sinking.map((s) => s.height)) : null
+            }
             className={
               sinking.length > 0
                 ? "tl-capture-input tl-placeholder-hold"
@@ -550,48 +574,37 @@ export function CaptureView({ onParked }: CaptureViewProps) {
               }
             }}
             trailing={
-              <div className="flex items-center justify-end gap-2">
-                {recording ? (
-                  <>
-                    <p
-                      className="mr-auto text-body text-muted"
-                      aria-live="polite"
-                    >
-                      Recording {formatDuration(elapsedMs)}
-                    </p>
-                    <IconButton
-                      label="Stop and park"
-                      tone="primary"
-                      armed
-                      onClick={() => void stopAndParkVoice()}
-                    >
-                      <StopGlyph />
-                    </IconButton>
-                  </>
-                ) : (
-                  <>
-                    <IconButton
-                      label={
-                        voiceOk
-                          ? "Mic"
-                          : "Mic needs HTTPS (Vercel preview or localhost)."
-                      }
-                      disabled={!voiceOk}
-                      onClick={() => void startRecording()}
-                    >
-                      <MicGlyph />
-                    </IconButton>
-                    <IconButton
-                      label="Park"
-                      tone="primary"
-                      type="submit"
-                      armed={armed}
-                    >
-                      <ParkGlyph />
-                    </IconButton>
-                  </>
-                )}
-              </div>
+              recording ? (
+                <div className="flex items-center justify-end gap-2">
+                  <p className="mr-auto text-body text-muted" aria-live="polite">
+                    Recording {formatDuration(elapsedMs)}
+                  </p>
+                  <IconButton
+                    label="Stop and park"
+                    tone="primary"
+                    armed
+                    onClick={() => void stopAndParkVoice()}
+                  >
+                    <StopGlyph />
+                  </IconButton>
+                </div>
+              ) : armed ? (
+                /*
+                  PROGRESSIVE DISCLOSURE: one control, the one that can act.
+                  Park appears with the first character, because until then
+                  there is nothing to park. Mic is there on an empty field,
+                  because voice is the other way to start. Swapped instantly,
+                  with no transition: nothing animates in response to typing.
+                  Keyed apart, so the Park fill never fades out on the Mic.
+                */
+                <IconButton key="park" label="Park" tone="primary" type="submit" armed>
+                  <ParkGlyph />
+                </IconButton>
+              ) : voiceOk ? (
+                <IconButton key="mic" label="Mic" onClick={() => void startRecording()}>
+                  <MicGlyph />
+                </IconButton>
+              ) : null
             }
           />
 

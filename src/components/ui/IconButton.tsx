@@ -103,15 +103,16 @@ export function MicGlyph() {
 }
 
 /**
- * Down, to a line. Not a send arrow: nothing is being transmitted, and the
- * stack the thought lands in is directly below the field.
+ * Down. Not a send arrow, since nothing is being transmitted, and not the
+ * arrow into a tray either: that is the download symbol, and this app has a
+ * real export elsewhere. The words sink down and land in the stack below the
+ * field, so the arrow points where they go (D-029).
  */
 export function ParkGlyph() {
   return (
     <svg {...GLYPH} aria-hidden>
-      <path d="M12 4v10" />
-      <path d="M7.8 9.8 12 14l4.2-4.2" />
-      <path d="M5.5 19h13" />
+      <path d="M12 5v14" />
+      <path d="M6.5 13.5 12 19l5.5-5.5" />
     </svg>
   );
 }

@@ -57,7 +57,7 @@ before any visual work. Three rules from it that contradict everything written b
 
 Phases 1 to 6 are **done, looked at, approved as good enough for now, and pushed.** Capture is two
 elements at rest on a dot grid; the composition is in `docs/DECISIONS.md` D-014 and D-019. **The
-grid replaced the starfield lens on 2026-10-01 and is built, awaiting a look on a real phone**: see
+grid replaced the starfield lens on 2026-10-01 and was looked at on a phone on 2026-10-02**: see
 D-027, which also says what of D-015, D-016, D-019, D-020 and D-022 still holds. **Review is two states**: a full-screen
 one-card triage ritual, then a separate wrap-up. The structure is D-017 and the hand-off, the
 navigation and the wrap-up's layout are D-018. **Phase 7, the sweep, is built and awaiting a look**:
@@ -224,6 +224,14 @@ the brightest pixel behind any glyph is the ground itself: headline 17.98:1, chi
 parked count 8.55:1 or better. **A new piece of copy on Capture has to be added to `keepClear`**, or
 it sits on the dots and nothing will warn you.
 
+**For the first moment of a load the text sits on the CSS dots**, before WebGL takes over and clears
+round it. Those are the dim resting dots only: `--tl-ink` measures 14.29:1 on them and
+`--tl-ink-muted` 6.79:1, so the window passes too.
+
+**When measuring, `Animation.setPlaybackRate` set over CDP survives a page reload.** A sweep that froze
+animations to catch the confirm word mid-wave then reloaded, the canvas's fade-in never ran, the CSS
+dots showed behind the headline, and it read as a regression. Reset the rate before reloading.
+
 **The two measuring rules the starfield taught still apply**, and they are why the numbers above are
 worth trusting:
 
@@ -255,6 +263,13 @@ moving, at the exact moment a person is watching to see whether their thought la
 **Both variable regions are fixed-height slots that are always present:** the line under the field
 (chips, or the confirm word, or nothing) and the peek-stack slot. Reserved space costs nothing on an
 empty screen and it cannot shift.
+
+**The field grows, and the form around it does not.** Since D-029 the field is one line at rest and
+grows to three as the words wrap. The form holding it is a fixed height, so growth spills downward
+into the empty space below and the headline and the field's top edge never move: measured at the
+same pixel at rest and at one, two and three lines. At the park the field **holds** the height it had
+until the words have sunk, then relaxes back to one line on the settle spring. Collapse it at the
+park instead and a two-line thought sinks outside the field.
 
 ### Do not put shell scripts in the build command
 

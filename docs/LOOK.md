@@ -146,7 +146,7 @@ is attached to the field's edge, and nothing loops.
 | **At rest** | The grid stands back from the field. Still. |
 | **On focus** | The field takes more room, and its edge turns accent. |
 | **On commit** | The words sink out of the field, and one wave runs out through the grid. |
-| **After** | The grid is still again. The log below is one row longer. |
+| **After** | The field relaxes back to one line and the grid is still again. The log below is one row longer. |
 
 **Why a grid fits where the stars did not.** The other three screens are flat, typographic and
 precise: mono labels, a 24-slot hour distribution, outlined pills. The starfield was the one thing on
@@ -188,6 +188,9 @@ field feel occupied rather than something that congratulates you for using it.
    is the one thing explicitly rejected.
 5. **Depth is what an object does to its surroundings**, not what is attached to its edge.
 6. **Nothing loops.** Static at rest, always. The distortion redraws on state change only.
+7. **Progressive disclosure.** A control appears when it can act and goes when it cannot. Capture
+   shows Mic on an empty field and Park once there is something to park, in the same place; the
+   tag chips appear with the first character. Nothing on screen waits to be useful (D-029).
 
 ---
 

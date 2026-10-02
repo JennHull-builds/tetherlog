@@ -47,7 +47,26 @@ export interface FieldProps {
    * API key and the reminder hour too.
    */
   rim?: boolean;
+  /**
+   * The trailing controls sit on the same line as the text, pinned to its last
+   * line, so the field is ONE line at rest and grows downward as the words
+   * wrap. Only the capture field asks for it (D-029). Without it the controls
+   * sit underneath, which is what recording uses.
+   */
+  controlsBeside?: boolean;
+  /**
+   * Hold the shell at least this tall, in CSS pixels. Capture holds the height
+   * the field had at the park while the words sink out of it, then lets go and
+   * the field relaxes back to one line on the settle spring.
+   */
+  holdHeight?: number | null;
 }
+
+/**
+ * One tap target tall. The text inside a field with its controls beside it is padded to the 44px
+ * the control beside it needs, so a single line sits centred against it.
+ */
+const TARGET = 44;
 
 /**
  * The shell carries the whole appearance: ground, rim and radius. The control
@@ -59,10 +78,9 @@ export interface FieldProps {
  * screens for no reason anybody can find later.
  */
 const SHELL_STYLE: CSSProperties = {
-  // A COLUMN, always, whether or not there is anything trailing. Controls sit
-  // under the text rather than beside it: at 390px a row leaves about 22
-  // characters visible in the one place a distracted person types, and the
-  // field is also a textarea that grows to three lines.
+  // A COLUMN by default, with any controls under the text. The capture field
+  // overrides this with `controlsBeside`: one control beside the text rather
+  // than two, which is what leaves room for the words at 390px (D-029).
   display: "flex",
   flexDirection: "column",
   alignItems: "stretch",
@@ -121,6 +139,8 @@ export function Field({
   trailing,
   onFocusChange,
   rim = false,
+  controlsBeside = false,
+  holdHeight = null,
 }: FieldProps) {
   const innerRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const [focused, setFocused] = useState(false);
@@ -140,8 +160,12 @@ export function Field({
     const el = innerRef.current;
     if (!(el instanceof HTMLTextAreaElement)) return;
     el.style.height = "auto";
-    const cap = 1.5 * 16 * maxLines + 24;
-    el.style.height = `${Math.min(el.scrollHeight, cap)}px`;
+    // Measured, not assumed: the cap is maxLines of the field's own line
+    // height plus its own padding, which `controlsBeside` changes.
+    const cs = getComputedStyle(el);
+    const line = Number.parseFloat(cs.lineHeight) || 24;
+    const pad = Number.parseFloat(cs.paddingTop) + Number.parseFloat(cs.paddingBottom);
+    el.style.height = `${Math.min(el.scrollHeight, line * maxLines + pad)}px`;
   }, [value, maxLines]);
 
   function handleFocus() {
@@ -184,7 +208,12 @@ export function Field({
     autoComplete,
     enterKeyHint,
     disabled,
-    style: CONTROL_STYLE,
+    style: controlsBeside
+      ? {
+          ...CONTROL_STYLE,
+          paddingBlock: `calc((${TARGET}px - var(--tl-text-input) * var(--tl-leading-body)) / 2)`,
+        }
+      : CONTROL_STYLE,
     className: `placeholder:text-muted ${className}`,
   };
 
@@ -194,6 +223,15 @@ export function Field({
       onMouseDown={handleShellPointerDown}
       style={{
         ...SHELL_STYLE,
+        ...(controlsBeside
+          ? {
+              flexDirection: "row",
+              alignItems: "flex-end",
+              padding:
+                "var(--tl-space-sm) var(--tl-space-sm) var(--tl-space-sm) var(--tl-space-lg)",
+            }
+          : null),
+        minHeight: holdHeight ?? undefined,
         // The edge brightens on focus. Scale is never a focus indicator here,
         // and neither is the fill: both are carried by this one line plus the
         // extra room the grid gives the field behind it.
@@ -206,7 +244,8 @@ export function Field({
         background: focused ? "var(--tl-field-focus)" : "var(--tl-field)",
         transition:
           "border-color var(--tl-spring-focus-duration) var(--tl-spring-focus-ease), " +
-          "background var(--tl-spring-focus-duration) var(--tl-spring-focus-ease)",
+          "background var(--tl-spring-focus-duration) var(--tl-spring-focus-ease), " +
+          "min-height var(--tl-spring-settle-duration) var(--tl-spring-settle-ease)",
       }}
     >
       {maxLines > 1 ? (
@@ -232,7 +271,11 @@ export function Field({
           }
         />
       )}
-      {trailing}
+      {controlsBeside && trailing ? (
+        <div style={{ flex: "0 0 auto" }}>{trailing}</div>
+      ) : (
+        trailing
+      )}
     </div>
   );
 }

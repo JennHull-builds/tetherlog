@@ -36,8 +36,9 @@ landed (D-025). `git log` has both originals if they are ever wanted.
 | Phase 7 | **Built 2026-09-22, awaiting a look.** The sweep: the build spec deleted, every
 document swept against D-009, the prose-leak traced to its real source and guarded. See D-024,
 D-025 and D-026. |
-| Capture's ground | **Built 2026-10-01, awaiting a look on a real phone.** The grid replaced the starfield lens. B-001, B-006 and B-007 closed with it. See D-027. |
-| Review and colour | **Built 2026-10-02, awaiting a look.** Review is a compact card on a visible deck; there is no secondary colour anywhere. See D-028. |
+| Capture's ground | **Built 2026-10-01, looked at on a phone 2026-10-02, no issues.** The grid replaced the starfield lens. B-001, B-006 and B-007 closed with it. See D-027. |
+| Capture's field | **Built 2026-10-02.** One line that grows, one control that is Mic or Park, a plain down arrow. See D-029. |
+| Review and colour | **Built 2026-10-02, looked at on a phone.** Review is a compact card on a visible deck; there is no secondary colour anywhere. See D-028. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -1597,4 +1598,60 @@ the wave.
 | Reduced motion, confirm | Advances, no travel, no errors |
 | Selected chip | `--tl-ink` on `--tl-field-focus`, about 15:1 |
 | Bundle | 114.74 KB JS, 5.41 KB CSS (down 0.04 and 0.13) |
+
+## D-029: One line that grows, and one control that can act
+
+**2026-10-02. Built.** The owner asked for the field to be one line rather than two, for a plain
+down arrow instead of the download icon, and set a standing preference: anything that shows and
+hides as the person interacts. Progressive disclosure is now `docs/LOOK.md` rule 7.
+
+### One control, not two
+
+D-014 put Mic and Park under the text, because both beside it left about 22 characters visible at
+390px. **Only one of them can act at a time**, so only one is shown: Mic on an empty field, Park from
+the first character, in the same place. That is what makes one line possible: a single 44px control
+beside the text leaves room for the words. While recording, the timer and Stop sit under the text as
+before, because recording is a different state and the words "Recording" and the time need the
+width.
+
+They swap instantly, with no transition, because nothing animates in response to typing. They are
+keyed apart: as one element, the Park fill faded out on the Mic for a frame after every park.
+
+### One line that grows
+
+The field is one 44px line at rest, 64px with its padding and edge, and grows to three lines as the
+words wrap, with the control pinned to the last line. Two things keep that from moving anything:
+
+- **The form around the field is a fixed height.** Growth spills downward into the empty space
+  below. Measured at 390: the headline at 233px and the field's top at 316px at rest, after one
+  character, at two lines and at three.
+- **The field holds its height while the words sink**, then relaxes back to one line on the settle
+  spring. Collapsing at the park would leave the second line of a two-line thought sinking outside
+  the field.
+
+The sink copy now starts inside the control's own padding, which `controlsBeside` adds, so it still
+lands exactly on the typed words.
+
+**The prop was first called `inline`, and that word compiled into a real `.inline` rule in
+production CSS**, caught by the leak assertion before it was pushed. A prop name is source, and
+source is scanned: name props so they are never an exact utility.
+
+### A plain down arrow
+
+The arrow into a tray is the download symbol, and the app has a real export elsewhere. The words
+sink down and land in the stack below the field, so the arrow points where they go. The label a
+screen reader hears is still "Park".
+
+### Measured
+
+| Check | Result |
+|---|---|
+| Frames at rest, focused, after a park | 0, 0, 32 across a park, then 0 |
+| Two parks in a row, reduced motion, no WebGL | All as D-027: independent sinks, no travel, park works |
+| Text contrast, worst of nine viewports | Unchanged: headline 17.98:1, chips, confirm word and count 8.55:1 or better |
+| Focus edge, all round | Worst 5.66:1, median 5.69:1 |
+| Bundle | 115.01 KB JS, 5.42 KB CSS |
+
+The voice-unavailable state no longer shows a disabled Mic with an explanation; it shows nothing,
+because a control that cannot act is not disclosed.
 
