@@ -1,18 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
-export type BucketTone = "do" | "later" | "drop" | "wonder";
-
-const TONE: Record<BucketTone, string> = {
-  do: "var(--color-do)",
-  later: "var(--color-tag-later)",
-  drop: "var(--color-drop)",
-  wonder: "var(--color-tag-wonder)",
-};
-
 export interface TriageCardProps {
-  /** Which bucket is being suggested. Drives the leading-edge bar only. */
-  tone: BucketTone;
-  /** The bucket in words. The bar is the marker; this is the carrier. */
+  /** The suggested bucket, in words. Words are the only carrier: D-028. */
   label: string;
   /** When the thought was parked. Mono, because it is machine output. */
   time: string;
@@ -28,16 +17,17 @@ export interface TriageCardProps {
 }
 
 /**
- * ONE thought, filling the view. The unit of the triage ritual.
+ * ONE thought, on top of the deck. The unit of the triage ritual.
  *
- * COLOUR IS NEVER THE CARRIER. The bucket hue exists once, as a 4px bar on the
- * leading edge, and the same bucket is written in words beside it. Read the
- * card in greyscale and nothing is missing. See docs/DECISIONS.md D-017.
+ * NO COLOUR. The bucket is written in words and nothing else: there is no
+ * secondary palette in this app. It used to carry a 4px bar in the bucket's
+ * hue on its leading edge, which was never an approved colour. See
+ * docs/DECISIONS.md D-028.
  *
- * DEPTH IS VALUE, NOT A SHADOW. The card is --tl-field, the nearest surface in
- * the system, sitting on the ground with the next thought's peek one step back
- * on --tl-raised behind it. No border, no box-shadow: an edge attached to the
- * object is the neumorphic move docs/LOOK.md rejects.
+ * AN EDGE, NOT A SHADOW. The card is --tl-field with the structural rule as its
+ * edge, the same edge the capture field rests on, so the cards under it in the
+ * deck can be seen as cards at all: surface steps on this ground measure 1.10:1
+ * to 1.24:1, which is invisible. No box-shadow, ever.
  *
  * THE FOOTER IS PINNED. The card is a fixed height whatever is in it, so
  * Confirm is in the same place on card one and card seven. Triage is the one
@@ -45,7 +35,6 @@ export interface TriageCardProps {
  * a target you have to find again every time.
  */
 export function TriageCard({
-  tone,
   label,
   time,
   domId,
@@ -64,24 +53,12 @@ export function TriageCard({
       style={{
         position: "relative",
         background: "var(--tl-field)",
+        border: "var(--tl-border-width) solid var(--tl-rule)",
         borderRadius: "var(--tl-radius-lg)",
         padding: "var(--tl-space-lg)",
-        paddingLeft: "calc(var(--tl-space-lg) + 4px)",
         ...style,
       }}
     >
-      <span
-        aria-hidden
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: "4px",
-          background: TONE[tone],
-        }}
-      />
-
       <header className="flex items-baseline justify-between gap-3">
         <p id={`${domId}-label`} className="text-small font-medium text-ink">
           {label}
@@ -91,10 +68,9 @@ export function TriageCard({
 
       {/*
         THE THOUGHT SITS IN THE MIDDLE OF THE CARD, not at the top of it. A
-        short thought in a card that fills the view otherwise leaves a hole
-        between the last line and the footer, which reads as an unfinished
-        card rather than as the air docs/LOOK.md asks for. Centred, the same
-        emptiness is above and below it and the card reads as one object.
+        short thought otherwise leaves a hole between the last line and the
+        footer, which reads as an unfinished card. Centred, the same space is
+        above and below it and the card reads as one object.
 
         The footer does not move with it. The thought is content and may sit a
         few pixels differently from card to card; Confirm is a target and may
@@ -109,39 +85,50 @@ export function TriageCard({
   );
 }
 
-export interface TriagePeekProps {
-  /** The next thought's own words. Never an empty bar. */
-  text: string;
+export interface TriageDeckProps {
+  /** How many cards wait under this one: 0, 1, or 2 and more. */
+  under: number;
 }
 
 /**
- * The next thought, at the fold.
+ * The cards still waiting, as the edges of a deck under the one on top.
  *
- * Same three depth cues as the capture peek stack and no fourth: occlusion (it
- * starts under the card), width (it is narrower) and value (--tl-raised is one
- * step back from --tl-field, and the ink steps down to --tl-ink-muted).
+ * At most two edges, because a third is not more information: the count above
+ * the card says how many there are. Each sits a step lower and a step narrower
+ * than the one above it, and is occluded by it, so only its bottom edge shows.
+ * Same edge token as the card, so a stack reads as a stack: a surface step on
+ * this ground alone is invisible, which is why the old peek had to carry the
+ * next thought's words to be seen at all. See docs/DECISIONS.md D-028.
  *
- * It carries the next thought's actual words. A textless sliver was tried on
- * Capture as the "there is more below" cue and every surface token measures
- * 1.10:1 to 1.24:1 on this ground, so it was not faint, it was invisible.
- * See docs/DECISIONS.md D-014.
+ * Rendered before the card, inside the same box, and never animated: the card
+ * on top is what moves. Deepest layer first, so the nearer one paints over it.
  */
-export function TriagePeek({ text }: TriagePeekProps) {
+export function TriageDeck({ under }: TriageDeckProps) {
+  const layers = Math.min(Math.max(under, 0), 2);
   return (
-    <div
-      aria-hidden
-      className="truncate text-body text-muted"
-      style={{
-        width: "92%",
-        // Occlusion: it starts under the card above it, which is what makes it
-        // read as behind rather than merely below.
-        margin: "calc(var(--tl-space-sm) * -1) auto 0",
-        background: "var(--tl-raised)",
-        borderRadius: "var(--tl-radius)",
-        padding: "var(--tl-space-sm) var(--tl-space-md)",
-      }}
-    >
-      {text}
-    </div>
+    <>
+      {Array.from({ length: layers }, (_, i) => {
+        const step = layers - i;
+        return (
+          <div
+            key={step}
+            aria-hidden
+            style={{
+              // Shifted down a step and in a step per layer. No z-index: these
+              // render before the card, which sits above them on z-10. A
+              // negative one would paint behind an ancestor's background.
+              position: "absolute",
+              top: `calc(var(--tl-space-sm) * ${step})`,
+              bottom: `calc(var(--tl-space-sm) * ${-step})`,
+              left: `calc(var(--tl-space-md) * ${step})`,
+              right: `calc(var(--tl-space-md) * ${step})`,
+              background: step === 1 ? "var(--tl-raised)" : "var(--tl-ground)",
+              border: "var(--tl-border-width) solid var(--tl-rule)",
+              borderRadius: "var(--tl-radius-lg)",
+            }}
+          />
+        );
+      })}
+    </>
   );
 }

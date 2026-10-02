@@ -7,7 +7,7 @@
  * This is the ONLY file in the repo that may contain a colour literal.
  * Components read --tl-<role>. Never --tl-ref-*. Never hex. See CLAUDE.md.
  *
- * 133 tokens.
+ * 123 tokens.
  */
 
 :root {
@@ -27,11 +27,6 @@
   --tl-ref-color-accent-contrast: #08090c;
   --tl-ref-color-accent-rim: #a99bff8f;
   --tl-ref-color-accent-rim-focus: #a99bffc7;
-  --tl-ref-color-bucket-now: #ff9f7d;
-  --tl-ref-color-bucket-later: #e5c473;
-  --tl-ref-color-bucket-wonder: #bbaaff;
-  --tl-ref-color-bucket-do: #74dcac;
-  --tl-ref-color-bucket-drop: #78828f;
   --tl-ref-color-danger: #f0907c;
   --tl-ref-space-base: 0.25rem;
   --tl-ref-space-xs: 4px;
@@ -102,11 +97,6 @@
   --tl-rim-focus: #a99bffc7;
   --tl-on-mark: #08090c;
   --tl-danger: #f0907c;
-  --tl-bucket-now: #ff9f7d;
-  --tl-bucket-later: #e5c473;
-  --tl-bucket-wonder: #bbaaff;
-  --tl-bucket-do: #74dcac;
-  --tl-bucket-drop: #78828f;
   --tl-space-xs: 4px;
   --tl-space-sm: 8px;
   --tl-space-md: 16px;

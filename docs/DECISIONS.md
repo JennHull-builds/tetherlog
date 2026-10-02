@@ -37,6 +37,7 @@ landed (D-025). `git log` has both originals if they are ever wanted.
 document swept against D-009, the prose-leak traced to its real source and guarded. See D-024,
 D-025 and D-026. |
 | Capture's ground | **Built 2026-10-01, awaiting a look on a real phone.** The grid replaced the starfield lens. B-001, B-006 and B-007 closed with it. See D-027. |
+| Review and colour | **Built 2026-10-02, awaiting a look.** Review is a compact card on a visible deck; there is no secondary colour anywhere. See D-028. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -874,7 +875,7 @@ not be called something else.
 
 | | |
 |---|---|
-| **Bucket colour** | A 4px bar on the leading edge, and the bucket written in words beside it. Read the card in greyscale and nothing is missing. |
+| **Bucket colour** | A 4px bar on the leading edge, and the bucket written in words beside it. Read the card in greyscale and nothing is missing. **Removed by D-028: no bucket colour anywhere.** |
 | **Depth** | Value and occlusion, no border and no shadow. The card is `--tl-field`, the peek behind it is `--tl-raised` and starts underneath it. The same three cues as Capture's peek stack. |
 | **The one accent** | Confirm, full width. The three overrides are unselected chips at `--tl-ink-muted`, 8.03:1 on the card, receding by value and weight as the build spec asked. |
 | **Element count** | Four per card, down from five. The old card rendered the suggested bucket twice: once as a selected confirm chip and again in the row of all four buckets. |
@@ -1535,3 +1536,65 @@ added in the port, both measured:
 both compiled from words in its comments ("a 2px antialiased mask", "the collapse adds"). Nothing used
 either. They are now in the CI leak assertion, which was run against the old build to confirm it
 catches them.
+
+## D-028: One colour, a deck in Review, and the grid from the first paint
+
+**2026-10-02. Built, awaiting a look on a real phone.** Three changes the owner asked for after
+looking at D-027 live.
+
+### There is no secondary colour
+
+The Review card carried a 4px bar in the bucket's hue, a selected tag chip on Capture filled with
+one, and the wrap-up put a hued dot beside each bucket. `docs/LOOK.md` rule 3 had written bucket
+hues in as an exception and D-017 specified the bar. **The owner never approved a second colour**,
+so all of it is gone: the five bucket colour tokens, their theme mappings, the bar, the dots and the
+chip tones.
+
+**A bucket is its word.** It already was on every one of those surfaces, so nothing that was
+communicated is lost; the hue was always a second carrier. A selected chip is now carried by three
+things at once and none of them a hue: the edge and label step up to `--tl-ink`, and the surface
+lifts to `--tl-field-focus`. The Capture tag chips also gained `aria-pressed`, which they never had,
+so a screen reader hears which bucket is chosen.
+
+### Review is a deck, not a page
+
+D-017 made the triage card fill the view, and it said why: a capped card "read as an item on a page
+rather than as the page." Seen on a phone, the full-height card spent most of the screen on empty
+surface around a short thought, so that is reversed.
+
+- **One compact card**, `clamp(19rem, 46dvh, 26rem)` tall, still a fixed height so Confirm is in the
+  same place on every card.
+- **The cards still waiting are visible as edges under it**: at most two, each a step lower and a
+  step narrower, occluded by the one above. They carry the structural rule as their edge, and so
+  does the card, because a surface step on this ground (1.10:1 to 1.24:1) is invisible: that is why
+  the old peek had to carry the next thought's words to be seen at all. The words are gone from it;
+  the count above the card says how many.
+- **The count, the status line and the deck are one group, centred.** Every part is a fixed height,
+  so centring never moves anything between cards.
+- The leave and rise animations are unchanged. The edges never move; the card on top does.
+
+### The grid is there from the first paint
+
+D-027 faded the whole grid in once WebGL had drawn, a beat after the page appeared, which read as an
+overlay arriving. Filmed: content at about 1.28s, then the grid fading in from about 1.45s.
+
+The same dots are now painted in CSS under the canvas from the first frame, on the token pitch and
+anchored bottom-left so they land where the shader counts from. WebGL's first frame puts every dot
+where the CSS one already is, crossfades in, and only then lets the field make room, on the settle
+spring. Measured far from the field, 96.8% of dot pixels coincide between the two, and the largest
+difference is an anti-aliasing edge. Filmed again, the first contentful frame has the grid in it and
+no frame after it changes the screen beyond the dots nearest the field.
+
+**A side effect worth having:** a device with no WebGL now gets the grid too, without the room or
+the wave.
+
+### Measured
+
+| Check | Result |
+|---|---|
+| Review at 390 and 1280, four captures | Two edges under cards 1 and 2, one under 3, none under the last |
+| Confirm, slowed | Card leaves and the next rises; the edges stay put; no console errors |
+| Reduced motion, confirm | Advances, no travel, no errors |
+| Selected chip | `--tl-ink` on `--tl-field-focus`, about 15:1 |
+| Bundle | 114.74 KB JS, 5.41 KB CSS (down 0.04 and 0.13) |
+

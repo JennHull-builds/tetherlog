@@ -84,12 +84,6 @@
   --color-mark-text: var(--tl-on-mark);
   --color-danger: var(--tl-danger);
 
-  --color-tag-now: var(--tl-bucket-now);
-  --color-tag-later: var(--tl-bucket-later);
-  --color-tag-wonder: var(--tl-bucket-wonder);
-  --color-do: var(--tl-bucket-do);
-  --color-drop: var(--tl-bucket-drop);
-
   --font-sans: var(--tl-ref-type-font-body);
   --font-mono: var(--tl-ref-type-font-mono);
 
@@ -273,7 +267,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   /*
-   * "Cards swap without travel." The bucket bar changing and the card leaving
+   * "Cards swap without travel." The bucket word changing and the card leaving
    * the queue is the confirmation. Not `animation: none` on its own: `both`
    * fill can otherwise leave a 0-opacity start applied in some engines.
    */

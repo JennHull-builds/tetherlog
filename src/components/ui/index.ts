@@ -1,6 +1,6 @@
 export { Button, type ButtonProps, type ButtonVariant } from "./Button";
 export { Card, type CardProps } from "./Card";
-export { Chip, type ChipProps, type ChipTone } from "./Chip";
+export { Chip, type ChipProps } from "./Chip";
 export { Field, type FieldProps } from "./Field";
 export {
   IconButton,
@@ -13,8 +13,7 @@ export {
 export { PeekStack, type PeekStackProps } from "./PeekStack";
 export {
   TriageCard,
-  TriagePeek,
-  type BucketTone,
+  TriageDeck,
   type TriageCardProps,
-  type TriagePeekProps,
+  type TriageDeckProps,
 } from "./TriageCard";

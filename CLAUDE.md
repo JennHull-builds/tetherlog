@@ -52,6 +52,8 @@ before any visual work. Three rules from it that contradict everything written b
 - **Depth is what an object does to its surroundings**, never a shadow attached to its edge.
 - **Never same-colour-as-ground plus two soft shadows.** That is neumorphism and it is the one thing
   explicitly rejected.
+- **One colour, the violet, on the primary action.** There is no secondary palette. Bucket hues
+  were never approved and were removed in D-028: a bucket is its word, a selected chip is ink.
 
 Phases 1 to 6 are **done, looked at, approved as good enough for now, and pushed.** Capture is two
 elements at rest on a dot grid; the composition is in `docs/DECISIONS.md` D-014 and D-019. **The
@@ -235,11 +237,14 @@ from the field, which compresses the dots just outside it, and the focus edge is
 whatever is next to it. Without the collar a dot can sit against the edge; with it the focus edge
 measures 5.12:1 at its worst, all the way round. See `docs/BACKLOG.md` B-006, closed.
 
-**A page load is two states, and it used to be three.** A WebGL context created with `alpha: false`
-starts opaque black, and this canvas covers the viewport, so the old lens loaded as the ground, then
-pure black, then the shader. The canvas is now held at zero opacity until its first real frame, so a
-load is the ground and then the grid. If a black flash ever comes back, look at `drawn` in
-`GravityField.tsx`.
+**The grid is there from the first paint.** The same dots are painted in CSS under the canvas, on the
+token pitch and anchored to the same bottom-left origin the shader counts from, so the first frame
+that shows the page shows the grid. WebGL arrives later and crossfades in place, its first frame
+putting every dot exactly where the CSS one is (96.8% of dot pixels coincide, measured); only then
+does the field make room, on the settle spring. Before 2026-10-02 the whole grid faded in a beat
+after the page appeared, which was reported as an overlay arriving. Before that, the lens loaded as
+ground, then pure black (an `alpha: false` context starts opaque black), then the shader. **If
+either comes back, look at the CSS layer and `drawn` in `GravityField.tsx`.**
 
 ### Nothing on Capture may change the layout
 

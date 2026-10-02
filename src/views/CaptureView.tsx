@@ -31,12 +31,6 @@ const TAGS: { value: CaptureTag; label: string }[] = [
   { value: "?", label: "?" },
 ];
 
-const TAG_TONE = {
-  now: "now",
-  later: "later",
-  "?": "wonder",
-} as const;
-
 /** Stable empty default: useLiveQuery returns its third argument while loading. */
 const NO_CAPTURES: Capture[] = [];
 
@@ -626,8 +620,8 @@ export function CaptureView({ onParked }: CaptureViewProps) {
               {TAGS.map((option) => (
                 <Chip
                   key={option.value}
-                  tone={TAG_TONE[option.value]}
                   selected={tag === option.value}
+                  aria-pressed={tag === option.value}
                   tabIndex={showChips ? undefined : -1}
                   onClick={() =>
                     setTag(tag === option.value ? undefined : option.value)

@@ -1,27 +1,9 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 
-export type ChipTone =
-  | "now"
-  | "later"
-  | "wonder"
-  | "do"
-  | "drop"
-  | "neutral";
-
 export interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   selected?: boolean;
-  tone?: ChipTone;
   children: ReactNode;
 }
-
-const TONE_COLOR: Record<ChipTone, string> = {
-  now: "var(--color-tag-now)",
-  later: "var(--color-tag-later)",
-  wonder: "var(--color-tag-wonder)",
-  do: "var(--color-do)",
-  drop: "var(--color-drop)",
-  neutral: "var(--tl-mark)",
-};
 
 const badgeShell: CSSProperties = {
   display: "inline-flex",
@@ -36,18 +18,20 @@ const badgeShell: CSSProperties = {
   borderRadius: "var(--tl-radius-full)",
 };
 
-/** NIL DS Badge pattern + TetherLog bucket tones. */
+/**
+ * A choice a person makes. Monochrome on purpose: there is no secondary
+ * palette, so a bucket is its word and nothing else (D-028). Selected is
+ * carried by three things at once, none of them a hue: the edge and the label
+ * step up to full ink, and the surface lifts one step off the ground.
+ */
 export function Chip({
   selected = false,
-  tone = "neutral",
   className = "",
   type = "button",
   style,
   children,
   ...rest
 }: ChipProps) {
-  const color = TONE_COLOR[tone];
-
   return (
     <button
       type={type}
@@ -64,12 +48,9 @@ export function Chip({
       <span
         style={{
           ...badgeShell,
-          border: `var(--tl-border-width) solid ${selected ? color : "var(--tl-rule)"}`,
-          // A selected chip is a bucket-coloured fill, so the label must be
-          // the GROUND colour, not ink. Ink on these hues measures 1.52:1 to
-          // 1.85:1; ground on them measures 5.11:1 to 11.92:1.
-          color: selected ? "var(--tl-on-mark)" : "var(--tl-ink-muted)",
-          background: selected ? color : "transparent",
+          border: `var(--tl-border-width) solid ${selected ? "var(--tl-ink)" : "var(--tl-rule)"}`,
+          color: selected ? "var(--tl-ink)" : "var(--tl-ink-muted)",
+          background: selected ? "var(--tl-field-focus)" : "transparent",
         }}
       >
         {children}

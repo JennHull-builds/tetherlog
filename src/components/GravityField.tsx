@@ -38,10 +38,14 @@ import { springs } from "../motion/springs.generated";
  *    text on this screen is passed in through `keepClear` and the dots fade
  *    out around it. A new piece of copy on Capture needs adding there.
  *
- * 5. NO BLACK SHEET ON LOAD. A context made with `alpha: false` starts opaque
- *    black. The canvas is held at zero opacity until its first real frame is
- *    drawn, so the load is the ground and then the grid, never ground, black,
- *    grid.
+ * 5. THE GRID IS THERE FROM THE FIRST PAINT. The same dots are painted in CSS
+ *    underneath the canvas, on the same pitch and the same origin, so the first
+ *    frame that shows the page shows the grid. WebGL arrives later, held at
+ *    zero opacity until its first real frame (a context made with
+ *    `alpha: false` starts opaque black), then crossfades in place: its first
+ *    frame puts every dot exactly where the CSS one is, and only then does the
+ *    field make room, on the settle spring. Fading the whole grid in a beat
+ *    after the page appeared was reported as an overlay arriving.
  */
 
 export interface Well {
@@ -97,6 +101,7 @@ uniform vec2 uWell;       // field centre, origin bottom-left
 uniform vec2 uHalf;       // field half extents
 uniform float uRadius;    // field corner radius
 uniform float uFocus;     // 0 at rest, 1 focused, along the focus spring
+uniform float uArrive;    // 0 on the first frame, so the dots match the CSS ones, then 1
 uniform float uT;         // ms since the park, negative when there is no wave
 uniform float uDuration;  // ms the wave lasts
 uniform float uLight;     // how far the wave lifts the dots it passes
@@ -143,7 +148,7 @@ void main() {
 
     // The field makes room: the grid is pushed back from its edge, further
     // on focus, and the push fades out with distance.
-    float room = mix(uRoomRest, uRoomFocus, uFocus) * exp(-dd / 42.0);
+    float room = mix(uRoomRest, uRoomFocus, uFocus) * exp(-dd / 42.0) * uArrive;
 
     // One wave out from the field after a park. It tapers to exactly nothing
     // before the loop stops, so the last frame never jumps.
@@ -261,7 +266,7 @@ function createGrid(canvas: HTMLCanvasElement): Grid | null {
 
   const u: Uniforms = {};
   for (const name of [
-    "uScale", "uWell", "uHalf", "uRadius", "uFocus", "uT", "uDuration",
+    "uScale", "uWell", "uHalf", "uRadius", "uFocus", "uArrive", "uT", "uDuration",
     "uLight", "uPitch", "uDotRadius", "uRoomRest", "uRoomFocus", "uSpeed",
     "uGround", "uDot", "uDotNear", "uClear",
   ]) {
@@ -328,9 +333,11 @@ export function GravityField({
     to: 0,
     startedAt: 0,
     commitAt: 0,
+    // When the first frame was drawn: the field makes room from there.
+    arrivedAt: 0,
   });
 
-  const draw = useCallback((focus: number, t: number) => {
+  const draw = useCallback((focus: number, t: number, arrive: number) => {
     const grid = gridRef.current;
     const canvas = canvasRef.current;
     const w = wellRef.current;
@@ -354,6 +361,7 @@ export function GravityField({
     gl.uniform2f(u.uHalf, w.width / 2, w.height / 2);
     gl.uniform1f(u.uRadius, Math.min(w.radius, w.width / 2, w.height / 2));
     gl.uniform1f(u.uFocus, focus);
+    gl.uniform1f(u.uArrive, arrive);
     gl.uniform1f(u.uT, t);
     gl.uniform1f(u.uDuration, grid.durationMs);
     gl.uniform1f(u.uLight, grid.light);
@@ -406,6 +414,19 @@ export function GravityField({
       }
     }
 
+    let arrive = 1;
+    if (arc.arrivedAt === 0) {
+      arc.arrivedAt = now;
+      arrive = 0;
+      running = true;
+    } else {
+      const a = (now - arc.arrivedAt) / springs.settle.durationMs;
+      if (a < 1) {
+        arrive = sampleSpring(springs.settle, a);
+        running = true;
+      }
+    }
+
     let t = -1;
     if (arc.commitAt !== 0) {
       const elapsed = now - arc.commitAt;
@@ -417,7 +438,7 @@ export function GravityField({
       }
     }
 
-    draw(focus, t);
+    draw(focus, t, arrive);
 
     // The idle exit. Nothing is scheduled from here and nothing polls.
     frameRef.current = running ? requestAnimationFrame(tick) : 0;
@@ -436,7 +457,9 @@ export function GravityField({
       const arc = arcRef.current;
       arc.startedAt = 0;
       arc.commitAt = 0;
-      draw(arc.to, -1);
+      // Arrived already: under reduced motion the field simply has its room.
+      arc.arrivedAt = arc.arrivedAt || performance.now();
+      draw(arc.to, -1, 1);
       return;
     }
 
@@ -455,6 +478,8 @@ export function GravityField({
     function init() {
       if (cancelled) return;
       gridRef.current = createGrid(canvas!);
+      // A new context starts from the CSS grid again, so it arrives again.
+      arcRef.current.arrivedAt = 0;
       if (gridRef.current) schedule();
     }
 
@@ -548,20 +573,42 @@ export function GravityField({
   }, [schedule]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden
-      /*
-       * z-0, NOT a negative z-index. A negative one paints the canvas behind
-       * the background of an ancestor, and App's wrapper carries bg-ground, so
-       * the old starfield rendered perfectly into a canvas nobody could see.
-       * The content above it sets z-10 for the same reason.
-       */
-      className="pointer-events-none fixed inset-0 z-0 h-full w-full"
-      style={{
-        opacity: drawn ? 1 : 0,
-        transition: "opacity var(--tl-spring-settle-duration) var(--tl-ease-standard)",
-      }}
-    />
+    <>
+      {/*
+        The grid in CSS, from the first paint, and the whole of it on a device
+        with no WebGL. Same token pitch and colour as the shader, and the same
+        origin: the shader counts dots from the bottom-left corner of the
+        viewport, so the tiles are anchored bottom-left and offset by half a
+        tile to put each dot on a multiple of the pitch. It cannot keep clear
+        of text, which is fine at rest: --tl-ink-muted measures 6.79:1 on these
+        dim dots. Only the bright ones near the field need the shader.
+      */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at center, var(--tl-grid-dot) calc(var(--tl-grid-dot-radius) * 1px - 0.3px), transparent calc(var(--tl-grid-dot-radius) * 1px + 0.6px))",
+          backgroundSize: "calc(var(--tl-grid-pitch) * 1px) calc(var(--tl-grid-pitch) * 1px)",
+          backgroundPosition:
+            "left calc(var(--tl-grid-pitch) * -0.5px) bottom calc(var(--tl-grid-pitch) * -0.5px)",
+        }}
+      />
+      <canvas
+        ref={canvasRef}
+        aria-hidden
+        /*
+         * z-0, NOT a negative z-index. A negative one paints the canvas behind
+         * the background of an ancestor, and App's wrapper carries bg-ground,
+         * so the old starfield rendered perfectly into a canvas nobody could
+         * see. The content above it sets z-10 for the same reason.
+         */
+        className="pointer-events-none fixed inset-0 z-0 h-full w-full"
+        style={{
+          opacity: drawn ? 1 : 0,
+          transition: "opacity var(--tl-spring-settle-duration) var(--tl-ease-standard)",
+        }}
+      />
+    </>
   );
 }

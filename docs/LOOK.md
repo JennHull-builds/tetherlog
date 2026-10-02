@@ -180,9 +180,10 @@ field feel occupied rather than something that congratulates you for using it.
    every reference.
 2. **One light source, one direction, everywhere.** If two elements are lit from different angles the
    illusion collapses into neumorphism.
-3. **Colour appears once per screen.** The primary action. Bucket hues are the exception and they are
-   markers, not surfaces. **The lens atmosphere was a second exception** until the lens was
-   replaced by the grid (D-027). There is no second exception now, and nothing licenses one.
+3. **Colour appears once per screen: the violet, on the primary action.** There is no secondary
+   palette. Bucket hues were written in here as an exception and never approved by the owner; they
+   were removed on 2026-10-02 (D-028), and a bucket is its word. The lens atmosphere was the other
+   exception until the grid replaced it (D-027). Nothing licenses a second colour.
 4. **Never the same colour as the ground plus two soft shadows.** That is the neumorphic move and it
    is the one thing explicitly rejected.
 5. **Depth is what an object does to its surroundings**, not what is attached to its edge.

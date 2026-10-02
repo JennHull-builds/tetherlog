@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Button, Chip, Field, TriageCard, TriagePeek } from "../components/ui";
-import type { BucketTone } from "../components/ui";
+import { Button, Chip, Field, TriageCard, TriageDeck } from "../components/ui";
 import {
   addWin,
   applyTriage,
@@ -59,55 +58,6 @@ function timeLabel(createdAt: number): string {
     minute: "2-digit",
     hour12: false,
   });
-}
-
-const DOT_TONE: Record<TriageBucket, string> = {
-  do: "var(--color-do)",
-  later: "var(--color-tag-later)",
-  drop: "var(--color-drop)",
-  wonder: "var(--color-tag-wonder)",
-};
-
-/** The type size a marker is sitting beside, so it lands on the first line. */
-const DOT_LINE: Record<"body" | "small" | "none", string | undefined> = {
-  body: "calc(var(--tl-text-body) * var(--tl-leading-body))",
-  small: "calc(var(--tl-text-small) * var(--tl-leading-body))",
-  none: undefined,
-};
-
-/**
- * A bucket hue as a marker beside words, never as the words themselves.
- *
- * It centres itself in a box exactly one line tall, so it sits on the FIRST
- * line of whatever it labels rather than drifting to the middle of a two-line
- * sentence: the carry-forward line wraps as soon as a thought is longer than a
- * few words, which is most of them. `line` has to name the size it is sitting
- * beside, because the box cannot read the type size of its own parent. `none`
- * is for a single-line row that centres its own children.
- */
-function BucketDot({
-  bucket,
-  line = "body",
-}: {
-  bucket: TriageBucket;
-  line?: "body" | "small" | "none";
-}) {
-  return (
-    <span
-      aria-hidden
-      className="flex shrink-0 items-center"
-      style={{ height: DOT_LINE[line] }}
-    >
-      <span
-        style={{
-          width: "8px",
-          height: "8px",
-          borderRadius: "var(--tl-radius-full)",
-          background: DOT_TONE[bucket],
-        }}
-      />
-    </span>
-  );
 }
 
 interface CaptureAudioProps {
@@ -237,7 +187,6 @@ export function ReviewView() {
   const carryTaken = triagedToday.some((capture) => capture.carryForward);
 
   const current = queue[0];
-  const next = queue[1];
   const done = ritual.filter(
     (capture) => !untriagedIds.has(capture.id) || confirmed.has(capture.id),
   ).length;
@@ -374,7 +323,6 @@ export function ReviewView() {
         <TriageState
           capture={current}
           suggestion={suggestionFor(current)}
-          next={next}
           position={done + 1}
           total={done + queue.length}
           status={status}
@@ -406,7 +354,6 @@ export function ReviewView() {
 interface TriageStateProps {
   capture: Capture;
   suggestion: TriageSuggestion;
-  next?: Capture;
   position: number;
   total: number;
   status: string | null;
@@ -436,7 +383,6 @@ interface TriageStateProps {
 function TriageState({
   capture,
   suggestion,
-  next,
   position,
   total,
   status,
@@ -485,12 +431,9 @@ function TriageState({
         <p className="mt-1 text-small text-muted">{suggestion.suggestedAction}</p>
       )}
       {suggestion.carryForward && (
-        // The fix the build spec asked for: this was `text-do` at 2.79:1,
-        // with the colour carrying the whole meaning. Ink plus a marker.
-        <p className="mt-3 flex items-start gap-2 text-small text-ink">
-          <BucketDot bucket="do" line="small" />
-          <span>Carry forward (max one)</span>
-        </p>
+        // Words in full ink, and nothing else. This was `text-do` at 2.79:1,
+        // then ink beside a bucket-hued dot; D-028 removed the hue.
+        <p className="mt-3 text-small text-ink">Carry forward (max one)</p>
       )}
     </>
   );
@@ -502,7 +445,6 @@ function TriageState({
    */
   const ghostNode = (
     <TriageCard
-      tone={bucket as BucketTone}
       label={BUCKET_LABELS[bucket]}
       time={timeLabel(capture.createdAt)}
       domId={`ghost-${capture.id}`}
@@ -513,13 +455,19 @@ function TriageState({
 
   return (
     <section
-      className="flex flex-col"
+      className="flex flex-col justify-center"
       style={{
         paddingInline: "var(--tl-gutter)",
         paddingBlock: "var(--tl-space-md)",
         height: "calc(100dvh - 5.5rem)",
       }}
     >
+      {/*
+        ONE GROUP, CENTRED: the count, the status line and the deck. Every part
+        of it is a fixed height, so centring it never moves Confirm between
+        cards. It used to be a card filling the whole view, which on a phone was
+        a tall surface with a short thought floating in it. See D-028.
+      */}
       <header className="shrink-0">
         <div className="flex h-9 items-center justify-between gap-3">
           <p className="font-mono text-micro tracking-micro text-muted" role="status">
@@ -546,55 +494,54 @@ function TriageState({
       </header>
 
       {/*
-        THE CARD FILLS THE VIEW. Not a list, and not a floating panel either: a
-        card capped to a fixed height and centred was tried, and at 390 it left
-        a band of bare ground above and below and read as an item on a page
-        rather than as the page. The emptiness inside a tall card is answered by
-        centring the thought within it, not by shrinking the card.
+        THE DECK. One card on top at a fixed, compact height, and the edges of
+        the cards still waiting under it. It replaced a card that filled the
+        view (D-017), which spent most of a phone screen on empty surface.
 
-        z-index, because the card has to paint over the peek tucked beneath it.
-        Occlusion is the first of the three depth cues and it needs the card in
-        front to exist at all.
+        The edges render first and the card sits above them on z-10: the card
+        has to occlude them for them to read as under it. The slot is the
+        card's own box, so the leaving ghost is pinned to exactly the card.
       */}
-      <div ref={slotRef} className="relative z-10 min-h-0 flex-1">
-        <div key={capture.id} className="tl-triage-rising h-full">
-          <TriageCard
-            cardRef={cardRef}
-            tone={bucket as BucketTone}
-            label={BUCKET_LABELS[bucket]}
-            time={timeLabel(capture.createdAt)}
-            domId={`triage-${capture.id}`}
-            footer={
-              <div className="space-y-3">
-                <Button
-                  fullWidth
-                  onClick={() => onConfirm(capture, bucket, suggestion, ghostNode)}
-                >
-                  Confirm {BUCKET_LABELS[bucket]}
-                </Button>
-                <div className="flex flex-wrap gap-2">
-                  {overrides.map((item) => (
-                    <Chip
-                      key={item}
-                      tone={item}
-                      onClick={() => onConfirm(capture, item, suggestion, ghostNode)}
-                    >
-                      {BUCKET_LABELS[item]}
-                    </Chip>
-                  ))}
+      <div
+        className="relative shrink-0"
+        style={{
+          height: "clamp(19rem, 46dvh, 26rem)",
+          marginBottom: "calc(var(--tl-space-sm) * 2)",
+        }}
+      >
+        <TriageDeck under={total - position} />
+        <div ref={slotRef} className="relative z-10 h-full">
+          <div key={capture.id} className="tl-triage-rising h-full">
+            <TriageCard
+              cardRef={cardRef}
+              label={BUCKET_LABELS[bucket]}
+              time={timeLabel(capture.createdAt)}
+              domId={`triage-${capture.id}`}
+              footer={
+                <div className="space-y-3">
+                  <Button
+                    fullWidth
+                    onClick={() => onConfirm(capture, bucket, suggestion, ghostNode)}
+                  >
+                    Confirm {BUCKET_LABELS[bucket]}
+                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    {overrides.map((item) => (
+                      <Chip
+                        key={item}
+                        onClick={() => onConfirm(capture, item, suggestion, ghostNode)}
+                      >
+                        {BUCKET_LABELS[item]}
+                      </Chip>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            }
-          >
-            {renderBody(`triage-${capture.id}`)}
-          </TriageCard>
+              }
+            >
+              {renderBody(`triage-${capture.id}`)}
+            </TriageCard>
+          </div>
         </div>
-      </div>
-
-      {/* The fold. A fixed slot whether or not there is a next thought, so the
-          card is the same height on the first card and on the last one. */}
-      <div className="relative h-10 shrink-0 overflow-hidden">
-        {next && <TriagePeek text={next.text} />}
       </div>
     </section>
   );
@@ -675,8 +622,8 @@ function WrapUp({
             many" should answer it the same way, and before this one used 15px
             body text while the other used 34px display.
 
-            The bucket marker moved onto the label rather than being dropped.
-            Colour is still never the only carrier: the word is right there.
+            The label is the word alone. It carried a bucket-hued dot until
+            D-028: there is no secondary palette.
           */}
           <ul className="grid grid-cols-2 gap-x-6 gap-y-8">
             {BUCKETS.map((bucket) => (
@@ -684,18 +631,14 @@ function WrapUp({
                 <span className="text-display font-light leading-display tracking-display tabular-nums text-ink">
                   {counts[bucket]}
                 </span>
-                <span className="flex items-center gap-2 font-mono text-micro uppercase tracking-micro text-muted">
-                  <BucketDot bucket={bucket} line="none" />
+                <span className="font-mono text-micro uppercase tracking-micro text-muted">
                   {BUCKET_LABELS[bucket]}
                 </span>
               </li>
             ))}
           </ul>
           {carryForward ? (
-            <p className="flex items-start gap-2 text-body text-ink">
-              <BucketDot bucket="do" />
-              <span>Carry forward: {carryForward.text}</span>
-            </p>
+            <p className="text-body text-ink">Carry forward: {carryForward.text}</p>
           ) : (
             <p className="text-body text-muted">No carry-forward chosen tonight.</p>
           )}
