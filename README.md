@@ -8,6 +8,8 @@ ND capture log — dumb-fast park, agent-powered evening review, pattern detecti
 
 See `ARCHITECTURE.md` for how it fits together, `PRODUCT.md` for the full spec.
 
+Made by [Jennifer Hull](https://jenniferhull.co.za).
+
 ## Privacy
 
 Captures stay on your device. Optional AI uses **your** API key (BYOK), stored in the browser only. Capture and patterns work without a key.

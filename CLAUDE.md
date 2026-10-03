@@ -7,8 +7,16 @@
 >
 > **Never commit any of the following:**
 >
-> - **The owner's name, email, handle, or any personal identifier.** Refer to "the user", "the
->   owner", or "the primary user". Never a real name, not even in a commit message.
+> - **The owner's email address, phone number, or anything that locates them** beyond a
+>   country. Email is the spam risk, and `npm run privacy:check` fails on any address.
+> - **Personal context written about the owner.** In specs, product docs and code comments write
+>   "the user", "the owner" or "the primary user", never a real person: a spec about one named
+>   person reads as personal context, and that is unprofessional in a public repo.
+>
+> **Professional attribution is allowed, and wanted:** the owner's name and a link to
+> jenniferhull.co.za in the README, the LICENSE, package metadata or a credits line. Corrected
+> 2026-10-03 at the owner's direction. This bullet used to ban the name outright, which blocked
+> attribution; the intent was always personal context, never professional identity.
 > - **Verbatim quotes from private conversation.** Carry the decision and the reasoning, never the
 >   words. "The warm palette was ruled out" is fine; quoting what was said is not.
 > - **Health, diagnosis or personal circumstance** beyond what the product spec already states about
