@@ -479,7 +479,17 @@ export function CaptureView({ onParked }: CaptureViewProps) {
                 <Button size="sm" onClick={() => void startRecording()}>
                   Mic
                 </Button>
-              ) : undefined
+              ) : (
+                // Voice is unavailable: nothing is disclosed (D-029), but the
+                // slot keeps the height of a button, or the box would grow by
+                // the footer's button the moment the first character swaps
+                // Park in.
+                <span style={{ visibility: "hidden" }} aria-hidden>
+                  <Button size="sm" tabIndex={-1}>
+                    Mic
+                  </Button>
+                </span>
+              )
             }
             hint={recording ? `Recording ${formatDuration(elapsedMs)}` : false}
             maxRows={3}
