@@ -131,9 +131,13 @@ rules are gone; the spacing did not change, so nothing regrouped. See `docs/DECI
 
 ## B-004: The recording timer announces four times a second
 
-**Carried from D-014, still open.**
+**Closed on Capture 2026-11-03 by D-030, not tested with a screen reader.** The timer is now the
+Composer's hint, which is not a live region, and a separate region says "Recording" once. It still
+ticks on screen. What follows is the entry as it stood.
 
-The voice recording timer carries `aria-live="polite"` and updates every 250ms, which is four
+**Carried from D-014.**
+
+The voice recording timer carried `aria-live="polite"` and updates every 250ms, which is four
 announcements a second on a screen reader. It shipped that way and no phase has changed it, because
 it is not a composition question and should not be guessed at without testing on a real screen
 reader.
@@ -257,3 +261,25 @@ B-006's. Both should close by construction, and both have to be measured on the 
 **Waiting on:** the owner's pick. Whatever is chosen is ported from the sketch's own code rather than
 from a description of it: the last lens lost most of what was approved between the sketch and the
 build (D-016).
+
+---
+
+## B-008: Fonts total 105.7 KB across the four screens, 90 KB budget
+
+**Found 2026-11-03 in D-030. Waiting on the owner. Capture's first load is inside the budget.**
+
+Capture's first load transfers 80.3 KB of fonts: Plex Sans 400 and 700, Plex Mono 400, and Geist Mono
+20.1 KB for the nav. Visiting Review, Patterns and Settings adds Geist Sans, and the total is
+105.7 KB. Nothing is wasted yet: both families are on screen somewhere. It resolves when the other
+three screens move onto the kit and Geist is deleted, which brings the total to about 80 KB. Until
+then the budget holds per screen and not per session.
+
+## B-009: The kit's small button is 27 to 29 px tall on a phone
+
+**Found 2026-11-03 in D-030. Waiting on the owner.**
+
+Measured at 390px: Mic 60 by 29, Park 67 by 29, and the three chips 58, 73 and 42 wide by 27. The old
+controls were 44 px discs. Below 44 px is not a comfortable tap target, and Park is the control that
+matters most. Nothing was overridden, because the brief says the kit ships as it is. The fix is a
+kit decision: a larger size for Composer's button, or a `min-height` the consumer may set. Both need
+a change in nil-ds, which this repository does not make.

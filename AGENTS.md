@@ -57,13 +57,22 @@ historical phase prompts reference it; it was never committed. This file is the 
 The `@source not "../.cursorrules"` line in `src/index.css` is kept deliberately, so the guard is
 already in place if one is ever added.
 
-**The current work is the UI overhaul, and all seven of its phases are built.** What is decided is
+**Capture is now on nil-ds (D-030, 2026-11-03).** It is the kit's Composer in the kit's dark theme,
+consumed as a dependency pinned to one full commit hash over https. That reverses D-001's "NIL DS is
+out" and keeps its lesson: never a copy, never a branch name, never a path outside this repo. The
+grid is off Capture (`src/components/GravityField.tsx` stays, unused) and the design before the move
+is the git tag `pre-nil-ds`. **`docs/LOOK.md` is no longer binding for any screen that is on nil-ds,
+which is Capture only so far.** Review, Patterns, Settings and the nav move later. Wherever this file
+says "LOOK.md is binding" or "no `--nil-*`", read it as true for those three screens and false for
+Capture.
+
+**Before D-030, the current work was the UI overhaul, and all seven of its phases are built.** What is decided is
 in `docs/DECISIONS.md`. Start there: it opens with a status table and a map of which file does what.
 **`docs/BUILD-SPEC.md` no longer exists.** It held the phases and was deleted by Phase 7 once they
 had all landed, exactly as it said it would be; `git log` has it and D-025 records what moved where.
 Any instruction that sends you to it is out of date.
 
-**`docs/LOOK.md` is the visual direction and it is binding.** It was derived from reference images
+**`docs/LOOK.md` is the visual direction and it is binding for screens not yet on nil-ds.** It was derived from reference images
 rather than adjectives, which is the third attempt and the first one grounded in pictures. Read it
 before any visual work. Three rules from it that contradict everything written before:
 
@@ -443,6 +452,30 @@ visibly the face you specified, it is not loading. Self-host fonts; do not link
 `fonts.googleapis.com`, because that sends the user's IP to Google on every load and contradicts the
 privacy promise in the Settings copy.
 
+### nil-ds is a pinned git dependency, and four things about it will bite
+
+Added with D-030. Each was hit while moving Capture.
+
+1. **npm writes the lockfile entry as `git+ssh`, and Vercel has no SSH key.** After any install that
+   touches the dependency, open `package-lock.json`, find `node_modules/nil-ds` and check that
+   `resolved` starts `git+https`. The root `dependencies` entry in the lockfile must match
+   `package.json`. Pin the 40 character hash, never `v0.2` or any branch.
+2. **A newer npm rewrites the whole lockfile and drops every `libc` field** from the optional native
+   packages. Do not commit that. Restore the committed lockfile and add only the new package entries
+   to it.
+3. **Import the kit's styles only with `layer(nil)`**, after the `@layer theme, base, nil, components,
+   utilities;` line at the top of `src/index.css`. Its `core.css` carries an unlayered-style global
+   reset (D-005). Never import its Tailwind theme file (it redefines `--color-ink`, `--color-raised`,
+   `--color-muted`, `--color-line`, `--color-mark`, `--color-mark-text` and `--color-danger`) or its
+   font file (it links Google Fonts). Capture reads `var(--nil-*)` directly.
+4. **`.tl-capture-form` is a hand-built sum of the Composer's own paddings and borders.** If the kit
+   changes the Composer or its button, that sum goes stale and the headline starts moving when
+   somebody types. Re-measure it in a browser after every change to the pinned hash: the headline and
+   the box's top edge must sit at the same pixel at rest and at one, two and three lines.
+
+`eslint.config.js` lifts the ban on `--nil-*` for exactly the files that are on the kit, and nowhere
+else. Add a file to that list only when its whole screen has moved.
+
 ### An edit that reports success is not a verified result
 
 The failure mode in this repo is plausible output, not errors. Nothing crashes, nothing logs, the
@@ -528,7 +561,9 @@ can go back into `build`.
 
 - **Zero runtime.** Springs are solved at build time into CSS `linear()` easings. No animation
   library is installed and none should be without a decision recorded in `docs/DECISIONS.md`.
-- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Measured at D-027:
+- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Measured at D-030:
+  **111.90 KB JS, 9.45 KB CSS, 80.3 KB fonts on Capture's first load** (105.7 KB after visiting every
+  screen, which is B-008). The kit's core styles cost about 4 KB of CSS. Measured at D-027, before it:
   **114.78 KB JS, 5.54 KB CSS, 44.5 KB fonts.** Roughly 15 KB of JS headroom and 6.5 KB of CSS.
   The grid gave back 3.35 KB of JS against the lens it replaced, and the sink cost 0.10 KB of CSS.
   Phase 7 measured 118.13 KB JS and 5.44 KB CSS; Phase 5 cost 1.08 KB of JS, D-019 and D-020 0.72 KB
