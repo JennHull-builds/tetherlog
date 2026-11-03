@@ -1,5 +1,15 @@
+/*
+ * LAYER ORDER, declared before anything is imported. nil-ds sits in its own
+ * layer between Tailwind's base and its components, so a utility always beats
+ * a kit rule and the kit's global reset can never silence one (D-005, D-030).
+ * Never import the kit's core.css without layer(nil).
+ */
+@layer theme, base, nil, components, utilities;
+
 @import "tailwindcss";
 @import "./styles/tokens.generated.css";
+@import "nil-ds/src/tokens/tokens.css" layer(nil);
+@import "nil-ds/src/core/core.css" layer(nil);
 
 /*
  * Tailwind v4 scans the repository for class names and cannot tell prose from
@@ -51,6 +61,39 @@
   font-family: "Geist Mono";
   src: url("/fonts/GeistMono-latin.woff2") format("woff2-variations");
   font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
+ * IBM Plex for nil-ds, self-hosted for the same reason as Geist above. The kit's
+ * own fonts.css is never imported: it links Google Fonts. Latin subset, only
+ * the weights Capture needs: Sans 400 and 700 (the kit heading's 800 resolves
+ * to 700, the heaviest cut in this package) and Mono 400. The kit also asks for
+ * Mono 500, but only on the button brackets, and 14.9 KB of font for a
+ * bracket would put Capture's first load over the 90 KB budget, so those
+ * brackets render in the 400 cut. D-030.
+ */
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -180,11 +223,12 @@
  * copies, so the words are simply gone: the state changes, nothing travels.
  */
 .tl-sink {
-  font-family: var(--tl-font-body);
-  font-size: var(--tl-text-input);
-  letter-spacing: var(--tl-tracking-input);
-  line-height: var(--tl-leading-body);
-  color: var(--tl-ink);
+  /* The same face, size and leading as nil-ds Composer's text box, so the copy
+     lands exactly over the words it replaces. */
+  font-family: var(--nil-font-mono);
+  font-size: var(--nil-type-scale-base);
+  line-height: 1.5;
+  color: var(--nil-color-text);
   white-space: pre-wrap;
 }
 
@@ -210,13 +254,36 @@
  * thought is still sinking, then comes back on the settle spring. The overlap
  * was the single thing that made a park read as a glitch.
  */
-.tl-capture-input::placeholder {
+/* While the box holds its height for the sink, the footer stays at the bottom
+   where it was instead of rising under the sinking words. */
+.tl-capture-input .nil-composer__row {
+  flex: 1 1 auto;
+}
+
+.tl-capture-input .nil-composer__input::placeholder {
   transition: opacity var(--tl-spring-settle-duration) var(--tl-ease-standard);
 }
 
-.tl-capture-input.tl-placeholder-hold::placeholder {
+.tl-capture-input.tl-placeholder-hold .nil-composer__input::placeholder {
   opacity: 0;
   transition: none;
+}
+
+/*
+ * Capture's fixed-height block: the Composer at rest, the gap, and the reserved
+ * line. Composer at one line is two borders, the row (padding and one 1.5
+ * leading line of base type) and the footer (border, padding and a small
+ * Button: 1.45 leading of xs type, 4px padding and two 2px borders). If the kit
+ * changes any of those this goes stale and the headline moves when somebody
+ * types, so the block is measured in the browser, not trusted. D-030.
+ */
+.tl-capture-form {
+  height: calc(
+    var(--nil-border-width) * 2 +
+      (var(--nil-spacing-sm) * 4 + 1rem * 1.5 + var(--nil-border-width) +
+          var(--nil-type-scale-xs) * 1.45 + 4px * 2 + var(--nil-border-width-thick) * 2) +
+      0.75rem + 2.75rem
+  );
 }
 
 /*
@@ -323,35 +390,27 @@
 }
 
 /*
- * NIL's core.css painted the body. Tailwind's preflight sets no background or
- * colour, and App.tsx only paints its own max-w-lg wrapper, so without this the
- * page gutters go white on any screen wider than lg.
+ * The body's colour, background, face, size and leading now come from the kit's
+ * core.css (layer nil), because <html data-theme="dark"> opts the page into
+ * nil-ds. That is the expected, visible change on Review, Patterns and
+ * Settings: Plex instead of Geist for anything that inherits the body face.
+ * Those screens still paint their own wrapper with bg-ground (App.tsx), so
+ * their surfaces do not move. D-030.
  *
- * core.css also carried an UNLAYERED `*, *::before, *::after { margin: 0;
- * padding: 0 }`. Unlayered rules beat every @layer, so that one reset silently
- * neutralised all 72 padding, margin and space-y utilities in the app. It is
- * deliberately not re-created: Tailwind's preflight already resets margin and
- * box-sizing inside @layer base, where utilities correctly win.
- * See docs/DECISIONS.md D-005.
+ * What the kit's reset does is limited by layers, not by omission: core.css
+ * carries an `*, *::before, *::after { margin: 0; padding: 0 }` that, unlayered,
+ * once silenced 72 utilities (D-005). It is imported with layer(nil) above, so
+ * every utility beats it. Never add a second, unlayered reset here.
  */
 body {
-  background-color: var(--tl-ground);
-  color: var(--tl-ink);
-  font-family: var(--tl-font-body);
-  font-size: var(--tl-text-body);
-  line-height: var(--tl-leading-body);
   min-height: 100svh;
   font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 html {
-  /* Dark, decided 2026-09-18. See docs/DECISIONS.md D-011. This also tells the
-     browser to paint form controls, scrollbars and the overscroll area dark. */
+  /* Dark, decided 2026-09-18 (D-011). The kit's [data-theme='dark'] rule also
+     sets color-scheme and paints the root, so no background is set here. */
   color-scheme: dark;
-  background-color: var(--tl-ground);
 }
 
 #root {
