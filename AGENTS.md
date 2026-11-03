@@ -29,9 +29,20 @@
 >   exactly this reason.
 >
 > **Commits are authored under a GitHub noreply address**, set locally for this repo
-> (`git config --local user.email`). Do not commit with a personal email. `npm run build` warns if
-> the identity drifts. Note that commits made before 2026-09-18 still carry a personal address in
-> git history; that is known and was accepted rather than rewriting published history.
+> (`git config --local user.email`). Do not commit with a personal email. `npm run verify` warns if
+> the identity drifts (`npm run build` does not; the check moved off the build in D-008). Note that
+> commits made before 2026-09-18 still carry a personal address in git history; that is known and
+> was accepted rather than rewriting published history.
+>
+> **A fresh clone has no local identity, so it commits as whatever the machine is set to.** A Claude
+> Code cloud session is a fresh clone on a VM whose global git identity may be a personal address.
+> Before the first commit in any new clone, copy the identity from the last commit and check it:
+>
+> ```bash
+> git config --local user.name "$(git log -1 --format=%an)"
+> git config --local user.email "$(git log -1 --format=%ae)"
+> git config user.email   # must end in users.noreply.github.com
+> ```
 >
 > **Before every commit, check the diff for these.** A scrub after the fact does not remove anything
 > from git history; it only stops it getting worse.
