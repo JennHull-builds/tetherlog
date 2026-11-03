@@ -481,7 +481,7 @@ export function CaptureView({ onParked }: CaptureViewProps) {
                 </Button>
               ) : (
                 // Voice is unavailable: nothing is disclosed (D-029), but the
-                // slot keeps the height of a button, or the box would grow by
+                // slot keeps the height of a button, or the box would get taller by
                 // the footer's button the moment the first character swaps
                 // Park in.
                 <span style={{ visibility: "hidden" }} aria-hidden>
