@@ -41,32 +41,12 @@
  * Self-hosted, never fonts.googleapis.com: a CDN link sends the user's IP to
  * Google on every load and contradicts the privacy promise in Settings.
  *
- * NAMING A FONT DOES NOT LOAD IT. NIL named 'IBM Plex Sans' for months with no
- * @font-face anywhere and every screen quietly rendered in system-ui, because
- * the fallback was plausible. These two blocks are what make the token real.
- * If a headline is not visibly Geist, look here first. See CLAUDE.md.
- *
- * Both are variable wght faces, latin subset, 45.5 KB for the pair.
- * swap: text is readable in the fallback immediately and never invisible.
+ * NAMING A FONT DOES NOT LOAD IT. These blocks are what make the kit's
+ * font tokens real. If a headline is not visibly Plex, look here first.
  */
-@font-face {
-  font-family: "Geist";
-  src: url("/fonts/Geist-latin.woff2") format("woff2-variations");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Geist Mono";
-  src: url("/fonts/GeistMono-latin.woff2") format("woff2-variations");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
 
 /*
- * IBM Plex for nil-ds, self-hosted for the same reason as Geist above. The kit's
+ * IBM Plex for nil-ds, self-hosted, never from Google Fonts. The kit's
  * own fonts.css is never imported: it links Google Fonts. Latin subset, only
  * the weights Capture needs: Sans 400 and 700 (the kit heading's 800 resolves
  * to 700, the heaviest cut in this package) and Mono 400. The kit also asks for
@@ -110,55 +90,25 @@
  * gives you two scales at once. See CLAUDE.md.
  */
 @theme {
-  --color-ground: var(--tl-ground);
-  --color-raised: var(--tl-raised);
-  --color-field: var(--tl-field);
-  --color-field-focus: var(--tl-field-focus);
+  /* Tailwind names for the kit's semantic colours. Nothing here has a value of
+     its own: every line points at a --nil-* token, so the kit's theme is the
+     only place a colour is decided and no kit value is overridden (D-031). */
+  --color-ground: var(--nil-color-bg);
+  --color-raised: var(--nil-color-surface);
+  --color-ink: var(--nil-color-text);
+  --color-muted: var(--nil-color-text-muted);
+  --color-line: var(--nil-color-border);
+  --color-danger: var(--nil-color-text-danger);
 
-  --color-ink: var(--tl-ink);
-  --color-muted: var(--tl-ink-muted);
-  --color-faint: var(--tl-ink-faint);
+  --font-sans: var(--nil-font-body);
+  --font-mono: var(--nil-font-mono);
 
-  --color-line: var(--tl-rule);
-  --color-hairline: var(--tl-hairline);
+  --text-micro: var(--nil-type-scale-xs);
+  --text-small: var(--nil-type-scale-sm);
+  --text-body: var(--nil-type-scale-base);
 
-  --color-mark: var(--tl-mark);
-  --color-mark-high: var(--tl-mark-high);
-  --color-mark-text: var(--tl-on-mark);
-  --color-danger: var(--tl-danger);
-
-  --font-sans: var(--tl-ref-type-font-body);
-  --font-mono: var(--tl-ref-type-font-mono);
-
-  /* FIVE STEPS, and nothing on a screen may use a size outside them. */
-  --text-micro: var(--tl-text-micro);
-  --text-small: var(--tl-text-small);
-  --text-body: var(--tl-text-body);
-  --text-input: var(--tl-text-input);
-  --text-display: var(--tl-text-display);
-
-  /* The display step is the only one that ever sets its own leading: at 34px
-     the body's 1.5 is a gap, not a line. Declared in tokens.json since Phase 3
-     and unread by anything until Review's triage card wrapped a thought onto
-     four lines. */
-  --leading-display: var(--tl-leading-display);
-
-  --tracking-display: var(--tl-tracking-display);
-  --tracking-input: var(--tl-tracking-input);
-  --tracking-micro: var(--tl-tracking-micro);
-
-  --spacing: var(--tl-ref-space-base);
-
-  --radius-sm: var(--tl-radius-sm);
-  --radius-md: var(--tl-radius);
-  --radius-lg: var(--tl-radius-lg);
-  --radius-field: var(--tl-radius-field);
-  --radius-full: var(--tl-radius-full);
-
-  --ease-focus: var(--tl-spring-focus-ease);
-  --ease-commit: var(--tl-spring-commit-ease);
-  --ease-settle: var(--tl-spring-settle-ease);
-  --ease-dismiss: var(--tl-spring-dismiss-ease);
+  /* The kit's spacing steps are 4, 8, 16, 24, 32 and 64px, which is a 4px base. */
+  --spacing: 0.25rem;
 }
 
 /*
@@ -393,7 +343,7 @@
  * The body's colour, background, face, size and leading now come from the kit's
  * core.css (layer nil), because <html data-theme="dark"> opts the page into
  * nil-ds. That is the expected, visible change on Review, Patterns and
- * Settings: Plex instead of Geist for anything that inherits the body face.
+ * Settings: Plex only: the Geist files are gone.
  * Those screens still paint their own wrapper with bg-ground (App.tsx), so
  * their surfaces do not move. D-030.
  *
@@ -422,4 +372,14 @@ html {
   .no-print {
     display: none !important;
   }
+}
+
+/*
+ * The two native checkboxes on Settings take the kit's focus ring, the same
+ * outline the kit gives its own controls, read from the kit's accent token.
+ * Without it they fall back to the browser's ring, which nobody measured.
+ */
+input[type="checkbox"]:focus-visible {
+  outline: var(--nil-border-width-thick) solid var(--nil-color-accent);
+  outline-offset: 2px;
 }

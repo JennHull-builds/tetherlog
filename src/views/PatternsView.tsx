@@ -1,31 +1,20 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Button } from "../components/ui";
+import { Button, Heading, Readout, Text } from "nil-ds";
 import { db, getSettings } from "../db";
 import { aiWeeklyDigest, buildWeeklyStats } from "../lib/agent";
 import { copyText, downloadFile, shareText } from "../lib/hands";
 import type { Capture } from "../types";
 
 /**
- * Patterns.
+ * Patterns, on nil-ds (D-031): the kit's Readout for each number, Heading and
+ * Text for the words, Button for the controls, all in the kit's dark theme.
  *
- * THE NUMBER SITS IN THE PAGE. No cards, no borders, no wells drawn around the
- * readouts: a numeral in the display face on the bare ground is the whole
- * treatment, and space is what separates one from the next. The ruled ground
- * the old blueprint called for came from the rejected Monolith direction, and
- * the only rule-weight token that would not be a visible boundary is the
- * hairline, which measures 1.08:1 and cannot be seen at all.
- *
- * NO COLOUR ON THIS SCREEN, and that is not an omission. docs/LOOK.md gives
- * the one colour per screen to the primary action, and a screen you arrive at
- * to read has none. The bars are ink, because data is not decoration, and the
- * digest control is a ghost for the same reason it is on Review: it is the one
- * action here that leaves the device.
- *
- * WHAT MAY BE SHOWN is fixed by CLAUDE.md product rule 2 and it is a product rule
- * rather than a layout one. No dial, no gauge, no target, no change arrow, no
- * day-over-day comparison, and `perDay` is never drawn as a sequence. A row of
- * daily bars with gaps in it is a streak display whatever the heading says.
+ * WHAT MAY BE SHOWN is fixed by AGENTS.md product rule 2 and it is a product
+ * rule rather than a layout one. No dial, no gauge, no target, no change arrow,
+ * no day-over-day comparison, and `perDay` is never drawn as a sequence. A row
+ * of daily bars with gaps in it is a streak display whatever the heading says.
+ * The kit has Dial and Ring; neither belongs here.
  */
 
 const NO_CAPTURES: Capture[] = [];
@@ -61,18 +50,18 @@ export function PatternsView() {
 
   return (
     <section
-      className="space-y-12"
+      className="flex flex-col gap-12"
       style={{
-        paddingInline: "var(--tl-gutter)",
-        paddingBlock: "var(--tl-space-lg)",
+        paddingInline: "var(--nil-spacing-md)",
+        paddingBlock: "var(--nil-spacing-lg)",
       }}
     >
-      <h1 className="text-display font-light leading-display tracking-display text-ink">
+      <Heading level={1} style={{ fontSize: "var(--nil-type-scale-xl)" }}>
         What keeps showing up
-      </h1>
+      </Heading>
 
       {stats.totalCaptures === 0 ? (
-        <p className="text-body text-muted">Nothing to see yet.</p>
+        <Text muted>Nothing to see yet.</Text>
       ) : (
         <>
           {/*
@@ -85,28 +74,28 @@ export function PatternsView() {
             "how many" in the same voice. See docs/DECISIONS.md D-021.
           */}
           <section className="grid grid-cols-2 gap-x-6 gap-y-9">
-            <Readout label="Total captures" value={String(stats.totalCaptures)} />
-            <Readout label="Active days" value={String(stats.activeDays)} />
-            <Readout label="Busiest hour" value={busiestHour} />
-            <Readout label="Stuck items" value={String(stats.stuckCount)} />
+            <Readout size="md" label="Total captures" value={String(stats.totalCaptures)} />
+            <Readout size="md" label="Active days" value={String(stats.activeDays)} />
+            <Readout size="md" label="Busiest hour" value={busiestHour} />
+            <Readout size="md" label="Stuck items" value={String(stats.stuckCount)} />
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-body font-medium text-ink">Time of day</h2>
+          <section className="flex flex-col gap-4">
+            <SectionTitle>Time of day</SectionTitle>
             <HourDistribution heatmap={stats.heatmap} max={maxHeat} />
           </section>
 
           {stats.topRepeats.length > 0 && (
-            <section className="space-y-4">
-              <h2 className="text-body font-medium text-ink">Repeats</h2>
+            <section className="flex flex-col gap-4">
+              <SectionTitle>Repeats</SectionTitle>
               <ul className="space-y-2">
                 {stats.topRepeats.map((item) => (
                   <li
                     key={item.text}
-                    className="flex items-baseline justify-between gap-4 text-body text-ink"
+                    className="flex items-baseline justify-between gap-4"
                   >
-                    <span className="min-w-0 truncate">{item.text}</span>
-                    <span className="shrink-0 font-mono text-micro tracking-micro text-muted">
+                    <Text className="min-w-0 truncate">{item.text}</Text>
+                    <span className="nil-label shrink-0">
                       &times;{item.count}
                     </span>
                   </li>
@@ -117,12 +106,11 @@ export function PatternsView() {
         </>
       )}
 
-      <section className="no-print space-y-4">
+      <section className="no-print flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-body font-medium text-ink">Weekly digest</h2>
+          <SectionTitle>Weekly digest</SectionTitle>
           <Button
             variant="ghost"
-            className="py-1"
             onClick={() => void runDigest()}
             disabled={!hasKey || loading}
           >
@@ -130,25 +118,25 @@ export function PatternsView() {
           </Button>
         </div>
         {!hasKey && (
-          <p className="text-small text-muted">
+          <Text size="sm" muted>
             Add Gemini key in Settings for narrative digest. Stats above always work.
-          </p>
+          </Text>
         )}
-        {digest && <p className="text-body text-ink">{digest}</p>}
+        {digest && <Text>{digest}</Text>}
         <div className="flex flex-wrap gap-2">
-          <Button variant="ghost" className="py-2" onClick={() => void copyText(digestMarkdown)}>
+          <Button variant="ghost" onClick={() => void copyText(digestMarkdown)}>
             Copy digest
           </Button>
           <Button
             variant="ghost"
-            className="py-2"
+           
             onClick={() => downloadFile("weekly-digest.md", digestMarkdown, "text/markdown")}
           >
             Download markdown
           </Button>
           <Button
             variant="ghost"
-            className="py-2"
+           
             onClick={() => void shareText("Weekly digest", digest ?? digestMarkdown)}
           >
             Share
@@ -159,18 +147,11 @@ export function PatternsView() {
   );
 }
 
-/**
- * A number in the page. The label is the only mono on this screen besides the
- * repeat counts, which is the role docs/LOOK.md reserves it for.
- */
-function Readout({ label, value }: { label: string; value: string }) {
+function SectionTitle({ children }: { children: string }) {
   return (
-    <div className="flex flex-col gap-1">
-      <p className="text-display font-light leading-display tracking-display tabular-nums text-ink">
-        {value}
-      </p>
-      <p className="font-mono text-micro uppercase tracking-micro text-muted">{label}</p>
-    </div>
+    <Heading level={3} style={{ fontSize: "var(--nil-type-scale-base)" }}>
+      {children}
+    </Heading>
   );
 }
 
@@ -184,8 +165,8 @@ interface HourDistributionProps {
  *
  * An empty hour used to be a zero-height bar at 0.15 opacity, which is nothing
  * at all: the day appeared to have fewer hours in it than it has. Every hour
- * now draws at least a 2px mark on the baseline, in the structural rule token
- * at 3.22:1, so "nothing happened here" is something you can actually see.
+ * now draws at least a 2px mark on the baseline, in the kit's muted text
+ * colour, so "nothing happened here" is something you can actually see.
  * Rendering something nobody can see is worse than rendering nothing, because
  * it reads as done. See docs/DECISIONS.md D-014.
  */
@@ -203,8 +184,8 @@ function HourDistribution({ heatmap, max }: HourDistributionProps) {
             title={`${hour}:00, ${count === 1 ? "1 capture" : `${count} captures`}`}
             style={{
               height: count ? `max(2px, ${(count / max) * 100}%)` : "2px",
-              background: count ? "var(--tl-ink-muted)" : "var(--tl-rule)",
-              borderRadius: "var(--tl-radius-sm)",
+              background: count ? "var(--nil-color-text)" : "var(--nil-color-text-muted)",
+              borderRadius: "var(--nil-radius-sm)",
               // Staggered by 8ms, so the row reads left to right once and then
               // is still. The only decorative motion in the app, and it is
               // defensible because this is a screen you arrive at to read.
@@ -214,7 +195,7 @@ function HourDistribution({ heatmap, max }: HourDistributionProps) {
         ))}
       </div>
       <div
-        className="grid gap-px font-mono text-micro tracking-micro text-muted"
+        className="nil-label grid gap-px"
         style={{ gridTemplateColumns: "repeat(24, minmax(0, 1fr))" }}
       >
         {Array.from({ length: 24 }, (_, hour) => (

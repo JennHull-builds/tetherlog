@@ -1,7 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
+import { Card } from "nil-ds";
 
 export interface TriageCardProps {
-  /** The suggested bucket, in words. Words are the only carrier: D-028. */
+  /** The suggested bucket, in words. Words are the only carrier. */
   label: string;
   /** When the thought was parked. Mono, because it is machine output. */
   time: string;
@@ -17,17 +18,12 @@ export interface TriageCardProps {
 }
 
 /**
- * ONE thought, on top of the deck. The unit of the triage ritual.
+ * ONE thought, on top of the deck. The unit of the triage ritual, drawn with
+ * the kit's Card in the kit's dark theme (D-031).
  *
- * NO COLOUR. The bucket is written in words and nothing else: there is no
- * secondary palette in this app. It used to carry a 4px bar in the bucket's
- * hue on its leading edge, which was never an approved colour. See
- * docs/DECISIONS.md D-028.
- *
- * AN EDGE, NOT A SHADOW. The card is --tl-field with the structural rule as its
- * edge, the same edge the capture field rests on, so the cards under it in the
- * deck can be seen as cards at all: surface steps on this ground measure 1.10:1
- * to 1.24:1, which is invisible. No box-shadow, ever.
+ * The article is the focus target and the accessible name, so a screen reader
+ * hears the bucket and the thought before it is asked to agree. The Card inside
+ * it is the visible surface.
  *
  * THE FOOTER IS PINNED. The card is a fixed height whatever is in it, so
  * Confirm is in the same place on card one and card seven. Triage is the one
@@ -49,38 +45,33 @@ export function TriageCard({
       ref={cardRef}
       tabIndex={-1}
       aria-labelledby={`${domId}-label ${domId}-text`}
-      className={`flex h-full flex-col overflow-hidden outline-none ${className}`}
-      style={{
-        position: "relative",
-        background: "var(--tl-field)",
-        border: "var(--tl-border-width) solid var(--tl-rule)",
-        borderRadius: "var(--tl-radius-lg)",
-        padding: "var(--tl-space-lg)",
-        ...style,
-      }}
+      className={`h-full outline-none ${className}`}
+      style={style}
     >
-      <header className="flex items-baseline justify-between gap-3">
-        <p id={`${domId}-label`} className="text-small font-medium text-ink">
-          {label}
-        </p>
-        <p className="font-mono text-micro tracking-micro text-muted">{time}</p>
-      </header>
+      <Card
+        padding="var(--nil-spacing-md)"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          overflow: "hidden",
+        }}
+      >
+        <header className="flex items-baseline justify-between gap-3">
+          <p id={`${domId}-label`} className="nil-label" style={{ color: "var(--nil-color-text)" }}>
+            {label}
+          </p>
+          <p className="nil-label">{time}</p>
+        </header>
 
-      {/*
-        THE THOUGHT SITS IN THE MIDDLE OF THE CARD, not at the top of it. A
-        short thought otherwise leaves a hole between the last line and the
-        footer, which reads as an unfinished card. Centred, the same space is
-        above and below it and the card reads as one object.
+        {/* The thought sits in the middle of the card, so a short one does not
+            leave a hole above the footer. The footer does not move with it. */}
+        <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-4">
+          <div>{children}</div>
+        </div>
 
-        The footer does not move with it. The thought is content and may sit a
-        few pixels differently from card to card; Confirm is a target and may
-        not.
-      */}
-      <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-5">
-        <div>{children}</div>
-      </div>
-
-      {footer ? <div className="shrink-0">{footer}</div> : null}
+        {footer ? <div className="shrink-0">{footer}</div> : null}
+      </Card>
     </article>
   );
 }
@@ -96,12 +87,8 @@ export interface TriageDeckProps {
  * At most two edges, because a third is not more information: the count above
  * the card says how many there are. Each sits a step lower and a step narrower
  * than the one above it, and is occluded by it, so only its bottom edge shows.
- * Same edge token as the card, so a stack reads as a stack: a surface step on
- * this ground alone is invisible, which is why the old peek had to carry the
- * next thought's words to be seen at all. See docs/DECISIONS.md D-028.
- *
- * Rendered before the card, inside the same box, and never animated: the card
- * on top is what moves. Deepest layer first, so the nearer one paints over it.
+ * Rendered before the card and never animated. No z-index: the card sits above
+ * on z-10, and a negative one would paint behind an ancestor's background.
  */
 export function TriageDeck({ under }: TriageDeckProps) {
   const layers = Math.min(Math.max(under, 0), 2);
@@ -114,17 +101,14 @@ export function TriageDeck({ under }: TriageDeckProps) {
             key={step}
             aria-hidden
             style={{
-              // Shifted down a step and in a step per layer. No z-index: these
-              // render before the card, which sits above them on z-10. A
-              // negative one would paint behind an ancestor's background.
               position: "absolute",
-              top: `calc(var(--tl-space-sm) * ${step})`,
-              bottom: `calc(var(--tl-space-sm) * ${-step})`,
-              left: `calc(var(--tl-space-md) * ${step})`,
-              right: `calc(var(--tl-space-md) * ${step})`,
-              background: step === 1 ? "var(--tl-raised)" : "var(--tl-ground)",
-              border: "var(--tl-border-width) solid var(--tl-rule)",
-              borderRadius: "var(--tl-radius-lg)",
+              top: `calc(var(--nil-spacing-sm) * ${step})`,
+              bottom: `calc(var(--nil-spacing-sm) * ${-step})`,
+              left: `calc(var(--nil-spacing-md) * ${step})`,
+              right: `calc(var(--nil-spacing-md) * ${step})`,
+              background: step === 1 ? "var(--nil-color-surface)" : "var(--nil-color-bg)",
+              border: "var(--nil-border-width) solid var(--nil-color-border)",
+              borderRadius: "var(--nil-radius-default)",
             }}
           />
         );

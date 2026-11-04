@@ -266,7 +266,7 @@ build (D-016).
 
 ## B-008: Fonts total 105.7 KB across the four screens, 90 KB budget
 
-**Found 2026-11-03 in D-030. Waiting on the owner. Capture's first load is inside the budget.**
+**Closed 2026-11-04 in D-031: Geist is deleted and the total is 60.1 KB.** What follows is the original finding.
 
 Capture's first load transfers 80.3 KB of fonts: Plex Sans 400 and 700, Plex Mono 400, and Geist Mono
 20.1 KB for the nav. Visiting Review, Patterns and Settings adds Geist Sans, and the total is
@@ -280,6 +280,6 @@ then the budget holds per screen and not per session.
 
 Measured at 390px: Mic 60 by 29, Park 67 by 29, and the three chips 58, 73 and 42 wide by 27. The old
 controls were 44 px discs. Below 44 px is not a comfortable tap target, and Park is the control that
-matters most. Nothing was overridden, because the brief says the kit ships as it is. The fix is a
+matters most. Nothing was overridden, because the brief says the kit ships as it is. D-031 measured the whole app: the nav buttons are 29 high, Confirm 32, the bucket buttons 27, every export and backup button 30, Save settings 32, and the kit's Input is 42. Only the kit can raise these. The fix is a
 kit decision: a larger size for Composer's button, or a `min-height` the consumer may set. Both need
 a change in nil-ds, which this repository does not make.

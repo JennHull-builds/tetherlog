@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Button, Chip, Field, TriageCard, TriageDeck } from "../components/ui";
+import { Button, Heading, Input, Readout, Text } from "nil-ds";
+import { TriageCard, TriageDeck } from "../components/ui";
 import {
   addWin,
   applyTriage,
@@ -76,9 +77,7 @@ function CaptureAudio({ blob, durationMs }: CaptureAudioProps) {
     <div className="mt-3 space-y-1">
       <audio controls src={url} preload="metadata" className="w-full" />
       {typeof durationMs === "number" && durationMs > 0 && (
-        <p className="font-mono text-micro tracking-micro text-muted">
-          {formatDuration(durationMs)}
-        </p>
+        <p className="nil-label">{formatDuration(durationMs)}</p>
       )}
     </div>
   );
@@ -405,35 +404,33 @@ function TriageState({
    */
   const renderBody = (prefix: string) => (
     <>
-      {/*
-        THE THOUGHT IS THIS SCREEN'S HEADLINE, so it is set at the display
-        step. The build spec's Review blueprint said --text-lg, which was
-        a Depth Field size and does not exist in the live five-step scale; that
-        section is marked superseded for exactly this reason. Nothing else on
-        the triage state uses the display step, so the one-headline-per-screen
-        rule holds and the headline is the one thing the screen is about.
-        See docs/DECISIONS.md D-018.
-      */}
+      {/* The thought is this screen's headline, set at the kit's xl step. */}
       <p
         id={`${prefix}-text`}
-        className="text-display font-light leading-display tracking-display text-ink"
+        style={{
+          margin: 0,
+          fontFamily: "var(--nil-font-body)",
+          fontSize: "var(--nil-type-scale-lg)",
+          lineHeight: 1.3,
+          color: "var(--nil-color-text)",
+          overflowWrap: "anywhere",
+        }}
       >
         {capture.text}
       </p>
       {capture.audioBlob && capture.text === VOICE_TEXT_PLACEHOLDER && (
-        <p className="mt-2 text-small text-muted">No transcript yet</p>
+        <Text size="sm" muted className="mt-2">No transcript yet</Text>
       )}
       {capture.audioBlob && (
         <CaptureAudio blob={capture.audioBlob} durationMs={capture.durationMs} />
       )}
-      <p className="mt-3 text-small text-muted">{suggestion.reason}</p>
+      <Text size="sm" muted className="mt-3">{suggestion.reason}</Text>
       {suggestion.suggestedAction && (
-        <p className="mt-1 text-small text-muted">{suggestion.suggestedAction}</p>
+        <Text size="sm" muted className="mt-1">{suggestion.suggestedAction}</Text>
       )}
       {suggestion.carryForward && (
-        // Words in full ink, and nothing else. This was `text-do` at 2.79:1,
-        // then ink beside a bucket-hued dot; D-028 removed the hue.
-        <p className="mt-3 text-small text-ink">Carry forward (max one)</p>
+        // Words in full ink, and nothing else.
+        <Text size="sm" className="mt-3">Carry forward (max one)</Text>
       )}
     </>
   );
@@ -457,8 +454,8 @@ function TriageState({
     <section
       className="flex flex-col justify-center"
       style={{
-        paddingInline: "var(--tl-gutter)",
-        paddingBlock: "var(--tl-space-md)",
+        paddingInline: "var(--nil-spacing-md)",
+        paddingBlock: "var(--nil-spacing-md)",
         height: "calc(100dvh - 5.5rem)",
       }}
     >
@@ -470,13 +467,13 @@ function TriageState({
       */}
       <header className="shrink-0">
         <div className="flex h-9 items-center justify-between gap-3">
-          <p className="font-mono text-micro tracking-micro text-muted" role="status">
+          <p className="nil-label" role="status">
             {position} of {total}
           </p>
           {hasKey && (
             <Button
               variant="ghost"
-              className="py-1"
+              size="sm"
               disabled={loading}
               onClick={onAskAgent}
             >
@@ -487,9 +484,9 @@ function TriageState({
         {/* ONE reserved line, three jobs: empty, the agent's provenance, or a
             failure. Always this tall, so the card below it cannot move. */}
         <div className="flex h-8 items-center">
-          <p className="text-small text-muted" role="status">
+          <Text size="sm" muted role="status">
             {status ?? ""}
-          </p>
+          </Text>
         </div>
       </header>
 
@@ -506,7 +503,7 @@ function TriageState({
         className="relative shrink-0"
         style={{
           height: "clamp(19rem, 46dvh, 26rem)",
-          marginBottom: "calc(var(--tl-space-sm) * 2)",
+          marginBottom: "calc(var(--nil-spacing-sm) * 2)",
         }}
       >
         <TriageDeck under={total - position} />
@@ -520,19 +517,22 @@ function TriageState({
               footer={
                 <div className="space-y-3">
                   <Button
-                    fullWidth
+                    variant="primary"
+                    className="w-full"
                     onClick={() => onConfirm(capture, bucket, suggestion, ghostNode)}
                   >
                     Confirm {BUCKET_LABELS[bucket]}
                   </Button>
                   <div className="flex flex-wrap gap-2">
                     {overrides.map((item) => (
-                      <Chip
+                      <Button
                         key={item}
+                        size="sm"
+                        variant="ghost"
                         onClick={() => onConfirm(capture, item, suggestion, ghostNode)}
                       >
                         {BUCKET_LABELS[item]}
-                      </Chip>
+                      </Button>
                     ))}
                   </div>
                 </div>
@@ -602,19 +602,19 @@ function WrapUp({
 
   return (
     <section
-      className="tl-triage-rising space-y-10 print:block"
+      className="tl-triage-rising flex flex-col gap-10 print:block"
       style={{
-        paddingInline: "var(--tl-gutter)",
-        paddingBlock: "var(--tl-space-lg)",
+        paddingInline: "var(--nil-spacing-md)",
+        paddingBlock: "var(--nil-spacing-lg)",
       }}
     >
-      <h1 className="text-display font-light tracking-display text-ink">
+      <Heading level={1} style={{ fontSize: "var(--nil-type-scale-xl)" }}>
         Evening review
-      </h1>
+      </Heading>
 
       {triagedToday.length > 0 ? (
-        <section className="space-y-4">
-          <h2 className="text-body font-medium text-ink">Review summary</h2>
+        <section className="flex flex-col gap-4">
+          <SectionTitle>Review summary</SectionTitle>
           {/*
             THE SAME READOUT PATTERNS USES, decided 2026-09-22 (D-021): the
             numeral in the display face, the label in mono beneath it, a 2x2 at
@@ -627,34 +627,29 @@ function WrapUp({
           */}
           <ul className="grid grid-cols-2 gap-x-6 gap-y-8">
             {BUCKETS.map((bucket) => (
-              <li key={bucket} className="flex flex-col gap-1">
-                <span className="text-display font-light leading-display tracking-display tabular-nums text-ink">
-                  {counts[bucket]}
-                </span>
-                <span className="font-mono text-micro uppercase tracking-micro text-muted">
-                  {BUCKET_LABELS[bucket]}
-                </span>
+              <li key={bucket}>
+                <Readout size="md" label={BUCKET_LABELS[bucket]} value={String(counts[bucket])} />
               </li>
             ))}
           </ul>
           {carryForward ? (
-            <p className="text-body text-ink">Carry forward: {carryForward.text}</p>
+            <Text>Carry forward: {carryForward.text}</Text>
           ) : (
-            <p className="text-body text-muted">No carry-forward chosen tonight.</p>
+            <Text muted>No carry-forward chosen tonight.</Text>
           )}
         </section>
       ) : (
-        <p className="text-body text-muted">Nothing to sort tonight.</p>
+        <Text muted>Nothing to sort tonight.</Text>
       )}
 
-      <section className="space-y-3">
-        <h2 className="text-body font-medium text-ink">Wins</h2>
-        <p className="text-small text-muted">What moved today?</p>
-        <div className="flex gap-2">
+      <section className="flex flex-col gap-3">
+        <SectionTitle>Wins</SectionTitle>
+        <div className="flex items-end gap-2">
           <div className="min-w-0 flex-1">
-            <Field
+            <Input
+              label="What moved today?"
               value={winDraft}
-              onChange={setWinDraft}
+              onChange={(event) => setWinDraft(event.target.value)}
               placeholder="Even tiny counts"
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
@@ -669,7 +664,7 @@ function WrapUp({
           </Button>
         </div>
         {wins.length > 0 && (
-          <ul className="space-y-1 text-body text-ink">
+          <ul className="space-y-1" style={{ color: "var(--nil-color-text)" }}>
             {wins.map((win) => (
               <li key={win.id}>• {win.text}</li>
             ))}
@@ -678,18 +673,18 @@ function WrapUp({
       </section>
 
       {triagedToday.length > 0 && (
-        <section className="no-print space-y-3">
-          <h2 className="text-body font-medium text-ink">Hands</h2>
-          <p className="text-small text-muted">
+        <section className="no-print flex flex-col gap-3">
+          <SectionTitle>Hands</SectionTitle>
+          <Text size="sm" muted>
             Export your do items. No paid integrations.
-          </p>
+          </Text>
           <div className="flex flex-wrap gap-2">
-            <Button variant="ghost" className="py-2" onClick={() => void copyText(formatDoList(triagedToday))}>
+            <Button variant="ghost" onClick={() => void copyText(formatDoList(triagedToday))}>
               Copy do list
             </Button>
             <Button
               variant="ghost"
-              className="py-2"
+             
               onClick={() =>
                 void copyText(formatReviewMarkdown(dayKey, triagedToday, winTexts))
               }
@@ -698,7 +693,7 @@ function WrapUp({
             </Button>
             <Button
               variant="ghost"
-              className="py-2"
+             
               onClick={() =>
                 downloadFile(
                   `tetherlog-${dayKey}.ics`,
@@ -709,24 +704,24 @@ function WrapUp({
             >
               Download .ics
             </Button>
-            <Button variant="ghost" className="py-2" onClick={() => mailtoDoList(triagedToday)}>
+            <Button variant="ghost" onClick={() => mailtoDoList(triagedToday)}>
               Email do list
             </Button>
             <Button
               variant="ghost"
-              className="py-2"
+             
               onClick={() =>
                 void shareText("TetherLog review", formatDoList(triagedToday))
               }
             >
               Share
             </Button>
-            <Button variant="ghost" className="py-2" onClick={() => window.print()}>
+            <Button variant="ghost" onClick={() => window.print()}>
               Print
             </Button>
           </div>
           {doCaptures.length > 0 && (
-            <ul className="space-y-1 text-body text-ink">
+            <ul className="space-y-1" style={{ color: "var(--nil-color-text)" }}>
               {doCaptures.map((item) => (
                 <li key={item.id}>• {item.text}</li>
               ))}
@@ -740,18 +735,26 @@ function WrapUp({
           never a prompt. Untriaged is parked, not failure. */}
       {!includeBacklog && backlogCount > 0 && (
         <section className="no-print">
-          <Button variant="ghost" className="py-2" onClick={onIncludeBacklog}>
+          <Button variant="ghost" onClick={onIncludeBacklog}>
             Include untriaged backlog ({backlogCount})
           </Button>
         </section>
       )}
 
       {!hasKey && (
-        <p className="no-print text-small text-muted">
+        <Text size="sm" muted className="no-print">
           No API key, so using rule-based triage. Add your Gemini key in Settings
           for AI. Capture and review still work without it.
-        </p>
+        </Text>
       )}
     </section>
+  );
+}
+
+function SectionTitle({ children }: { children: string }) {
+  return (
+    <Heading level={3} style={{ fontSize: "var(--nil-type-scale-base)" }}>
+      {children}
+    </Heading>
   );
 }

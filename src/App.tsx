@@ -10,13 +10,7 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>("capture");
 
   return (
-    <div
-      className={`flex min-h-dvh flex-col ${
-        // Capture is on nil-ds (D-030) and takes its ground and ink from the
-        // kit through <html data-theme>; the other three still paint their own.
-        screen === "capture" ? "" : "bg-ground text-ink"
-      }`}
-    >
+    <div className="flex min-h-dvh flex-col">
       <main className="mx-auto w-full max-w-lg flex-1">
         {screen === "capture" && (
           <CaptureView onParked={() => undefined} />
