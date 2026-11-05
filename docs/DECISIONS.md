@@ -1658,7 +1658,7 @@ because a control that cannot act is not disclosed.
 
 ---
 
-## D-030: The backup never holds the API key
+## D-032: The backup never holds the API key
 
 `exportAllData` returned the whole settings table, so the JSON backup held `geminiApiKey` in plain
 text, against the rule that the key lives in the browser only and is never included in an export.
