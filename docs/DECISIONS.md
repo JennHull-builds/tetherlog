@@ -15,7 +15,7 @@ landed (D-025). `git log` has both originals if they are ever wanted.
 |---|---|
 | `CLAUDE.md` | Binding rules and the gotcha list. Read before touching anything. |
 | `PRODUCT.md` | Product spec. Binding. |
-| `docs/LOOK.md` | Visual direction. Binding. |
+| `docs/LOOK.md` | Visual direction. Binding for screens not yet on nil-ds; not binding for any screen that is (D-030). |
 | `docs/DECISIONS.md` | This file. What was decided and why. |
 | `docs/BACKLOG.md` | Known, measured, deliberately not fixed yet. Nothing there blocks shipping. |
 | `ROADMAP.md` | Feature delivery order, product-level. |
@@ -39,6 +39,8 @@ D-025 and D-026. |
 | Capture's ground | **Built 2026-10-01, looked at on a phone 2026-10-02, no issues.** The grid replaced the starfield lens. B-001, B-006 and B-007 closed with it. See D-027. |
 | Capture's field | **Built 2026-10-02.** One line that grows, one control that is Mic or Park, a plain down arrow. See D-029. |
 | Review and colour | **Built 2026-10-02, looked at on a phone.** Review is a compact card on a visible deck; there is no secondary colour anywhere. See D-028. |
+| Capture on nil-ds | **Built 2026-11-03, awaiting a look on a phone.** Capture is the kit's Composer in the kit's dark theme, on a pinned dependency. The grid is off Capture. See D-030. |
+| Review, Patterns, Settings and the nav on nil-ds | **Built 2026-11-04, awaiting a look on a phone.** The whole app is on the kit and Geist is gone. See D-031. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -1655,6 +1657,161 @@ screen reader hears is still "Park".
 The voice-unavailable state no longer shows a disabled Mic with an explanation; it shows nothing,
 because a control that cannot act is not disclosed.
 
+---
+
+## D-030: TetherLog moves onto nil-ds, Capture first
+
+**2026-11-03. Decided by the owner. Built the same day, awaiting a look on a phone.**
+
+The custom UI kept costing more than it gave, and the app stalled. nil-ds is the owner's own
+design-system kit, and TetherLog now consumes it as a pinned dependency so the kit is proven in a
+real product as it ships.
+
+**This reverses D-001's "NIL DS is out" and keeps its lesson.** D-001 was about a vendored copy that
+drifted and a sibling path that broke Vercel. Neither can happen here: the dependency is a git URL
+over https, pinned to a full commit hash, never a branch and never a copy, and nothing references a
+path outside the repository. A change in the kit reaches TetherLog only when somebody changes the
+hash, so nothing drifts quietly.
+
+### What changed
+
+- **`package.json` depends on nil-ds at one commit** (`git+https`, 40 characters). npm writes the
+  lockfile entry as `git+ssh`, and Vercel has no SSH key, so the `resolved` value in
+  `package-lock.json` is rewritten to https by hand.
+- **The kit sits in its own CSS layer.** `src/index.css` declares
+  `@layer theme, base, nil, components, utilities;` and imports the kit's tokens and core styles with
+  `layer(nil)`, so a utility always beats a kit rule and the kit's global reset can never silence one.
+  That is D-005's lesson applied before it could repeat. The kit's Tailwind theme file is never
+  imported: it redefines seven colour names this app's `@theme` uses on every screen.
+- **`<html data-theme="dark">`** opts the page into the kit's dark theme. The body's colour,
+  background, face and size now come from the kit instead of from `--tl-*`.
+- **IBM Plex is self-hosted** with the `@fontsource` packages at exact versions, latin subset:
+  Sans 400 and 700, Mono 400. The kit's own font file links Google Fonts, which would send the
+  person's IP to Google on every load, so it is never imported. The kit's heading asks for weight 800
+  and gets 700, the heaviest cut in the package. The kit also asks for Mono 500 on button brackets;
+  that cut costs 14.9 KB, which would have put Capture's first load over the font budget, so the
+  brackets render in 400. The two Geist preload links are gone from `index.html`: Capture does not
+  use Geist Sans, and the Plex files have hashed names that a static link cannot name.
+- **Capture is the kit's Composer, controlled** (`value` and `onValueChange`), so `handlePark` keeps
+  D-004's four steps in their order. The chips are the kit's small Button (selected is the
+  secondary variant, unselected is ghost, and the state is also in `aria-pressed`). The count and
+  the stack are restyled with kit tokens. The headline is the kit's Heading at the kit's `xl` size.
+- **One control that can act (D-029) through the kit's two new props.** `emptyAction` carries the
+  Mic on an empty box and the Stop control while recording; `sendLabel` makes the Composer's button
+  say Park. While recording the elapsed time is the Composer's hint. With no voice support the slot
+  holds an invisible button so the box keeps its height and nothing is disclosed, as before.
+- **The grid is off Capture.** `src/components/GravityField.tsx` and its tokens stay in the repo,
+  unused. Nothing on Capture waits on the GPU any more because nothing on it uses one.
+- **The words still sink.** The transient copy now lays over Composer's text box, clipped to it, and
+  the Composer holds its height until the words have gone. While it holds, the footer stays where it
+  was instead of rising under the sinking words.
+- **No UI string changed.** The labels that used to be read out only (Mic, Park, Stop and park) are now
+  also the visible words on the kit's text buttons, and the kit upper-cases them with CSS.
+
+### What stops being binding
+
+`docs/LOOK.md` is not binding for any screen that is on nil-ds, Capture first. It still describes
+Review, Patterns and Settings until they move. Its three rules (generous radius, depth that is not a
+shadow, one colour) do not apply to Capture, which is the kit as it ships: small corners, two pixel
+borders, the kit's accent on the primary action. No `--nil-*` value is overridden anywhere.
+
+### The look was preserved first
+
+The git tag `pre-nil-ds` marks the design as it was, the grid and the violet and all.
+
+### Measured
+
+| Check | Result |
+|---|---|
+| JS gzipped | 115.02 KB before, 111.90 KB after (the grid is no longer imported) |
+| CSS gzipped | 5.41 KB before, 9.45 KB after (the kit's core styles); budget 12 KB |
+| Fonts, Capture's first load | 45.6 KB before, 80.3 KB after (Plex 60.1 KB, Geist Mono 20.1 KB for the nav); budget 90 KB |
+| Fonts, after visiting all four screens | 45.6 KB before, 105.7 KB after. Over 90 KB in total: see B-008 in `docs/BACKLOG.md` |
+| Frames at rest, focused and idle, and after a park | 0, 0, 0, at 390px and 1280px, with and without reduced motion |
+| Headline and box top, at rest and at one, two and three lines and after a park | Identical to a tenth of a pixel |
+| Worst text contrast on Capture, rendered pixels, three viewports | 4.61:1 (the Park label, white on the accent); every other run 4.74:1 or better |
+| Focus indicator | 4.30:1 on the ground and 3.70:1 on the surface; the minimum is 3:1 |
+| Offline, with WebGL switched off | Two parks in a row both saved |
+
+### What is not decided here
+
+Review, Patterns, Settings and the nav move later, each on its own entry. Their text still inherits
+the kit's body face, which is the visible side effect of the kit's base styles: the same layouts in
+Plex Sans where they used to be in Geist, and the light headline weight on Review's card renders at
+400 because no light Plex cut is shipped.
+
+## D-031: The rest of the app moves onto nil-ds
+
+**2026-11-04. Decided by the owner as the second half of D-030. Built the same day, awaiting a look on a phone.**
+
+Review, Patterns, Settings and the nav now use the kit's components and `var(--nil-*)` in the kit's
+dark theme, exactly as D-030 did for Capture. No `--nil-*` value is overridden. The pin moves to the
+tip of the kit's v0.2 branch, `a5619696eedb44d6b4006ecc8aa3e08b23b752a5`, which brings Dialog, the
+danger Button and the contrast fixes.
+
+### What changed
+
+- **Components.** Heading, Text, Button, Input, Readout and Card come from the kit. The nav is four
+  kit Buttons: the current screen is the secondary variant with `aria-current="page"`, the rest are
+  ghost. Patterns and the Review summary use the kit's Readout at its `md` size, because the `lg` size
+  is 56 px and `06:00` does not fit half of a 390 px screen.
+- **Deleted.** The hand-built Button, Card, Chip, Field and IconButton, and the Geist font files. The
+  triage card and deck stay as `TriageCard` and `TriageDeck`, redrawn with the kit's Card and tokens.
+- **Tailwind names point at the kit.** The `@theme` block in `src/index.css` maps `ink`, `muted`,
+  `ground`, `raised`, `line` and `danger` to `--nil-color-*`, the font names to the kit's, the three
+  text sizes to the kit's scale and `--spacing` to 0.25rem (the kit steps are multiples of 4 px).
+  Nothing in it has a value of its own.
+- **Fonts.** IBM Plex only: Sans 400 and 700, Mono 400, 60.1 KB across all four screens. Mono 500
+  stays out for the reason in D-030.
+- **Tokens that remain.** `tokens.json` and its generated files are unchanged, and the motion and
+  sound tokens are still read (the sink, the settle and dismiss springs, the confirm duration, the park
+  tone). The colour, type, spacing, radius and border tokens, and the grid tokens, are read by no screen.
+  They were not pruned: the generator, its check and `GravityField.tsx` are built around them and the
+  owner asked for the grid to stay in the repo. Deleting them is a later, separate change.
+- **The lint rule flipped.** It now bans any `--tl-*` read that is not motion or sound, as well as
+  colour literals and primitives. See AGENTS.md.
+- **One UI string was added: the nav's `aria-label="Screens"`.** A screen reader now hears the
+  four buttons as a named group. The owner said yes on 2026-11-05. Section titles on Review, Patterns
+  and Settings are level 2 headings, so a screen reader moving by heading no longer jumps from the
+  page title to level 3.
+- **No other UI string changed.** Settings' API key field and reminder hour, and Review's win field, use the
+  kit's Input, which requires a visible label. Each borrows the heading or line that already sat above
+  it ("Gemini API key (BYOK)", "Hour (0–23)", "What moved today?") instead of adding a word. The two
+  native checkboxes stay native: the kit's Toggle would add ON and OFF.
+
+### Not used, on purpose
+
+- **Dialog and the danger Button.** No screen has a destructive action. Import merges and never
+  clears, and Review's confirm is optimistic with a recovery. Adding a confirmation would add strings.
+- **Dial, Ring and the Lightbox.** Patterns may not show a gauge (product rule 2).
+
+### What stops being true
+
+`docs/LOOK.md` and every rule in it (generous radius, depth that is not a shadow, one violet colour)
+describe the design at the `pre-nil-ds` tag and bind nothing. The kit's accent is the only colour and
+sits on primary actions and focus rings.
+
+### Measured
+
+Rendered pixels, at 390, 1280 and 320 px wide, every screen, Review's triage and wrap-up states both.
+
+| Check | Result |
+|---|---|
+| JS gzipped | 111.90 KB before, 111.19 KB after (limit 130) |
+| CSS gzipped | 9.45 KB before, 8.77 KB after (limit 12) |
+| Fonts, all four screens | 105.7 KB before, 60.1 KB after (limit 90) |
+| Text contrast | 168 runs per viewport. Every run is 4.5:1 or better except two groups the kit owns: the bracket glyphs on the primary button (2.71:1, decorative and hidden from screen readers) and the disabled Generate button (2.3:1, exempt as an inactive control) |
+| Focus indicator | 36 controls per viewport, minimum 3.70:1 |
+| Frames at rest | 0 on every screen, and 0 after parks |
+| Horizontal overflow | None at 390, 1280 or 320 |
+| Capture | Headline and box top at the same pixel at rest and at one, two and three lines; double park does not queue; the field is empty and focused after Enter; reduced motion identical |
+| Network | Only localhost |
+
+### Tap targets
+
+Under 44 px at 390, all the kit's: the nav buttons 91 by 29, Mic 60 by 29, the Capture chips 27 high,
+AI triage 104 by 27, Confirm 324 by 32, Review's bucket buttons 27 high, every Hands, Backup and
+Patterns button 30 high, Save settings 32, Add 30, and the kit's Input 42 high. B-009.
 
 ---
 

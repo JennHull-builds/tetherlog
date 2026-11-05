@@ -4,7 +4,7 @@
 
 Written 2026-09-18 from a set of twelve visual references. It exists because the look had previously
 been specified in adjectives, and words like "modern", "sleek" and "minimal" map to hundreds of
-different screens. It is binding. `CLAUDE.md` points here.
+different screens. It is binding for any screen not yet on nil-ds. It is not binding for a screen that is, Capture first (D-030). `CLAUDE.md` points here.
 
 The references themselves live in `docs/references/` and are **not committed**: they are third-party
 images and video, and this repo is public and MIT. This file is the durable artefact.

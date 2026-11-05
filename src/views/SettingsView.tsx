@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Button, Field } from "../components/ui";
+import { Button, Heading, Input, Text } from "nil-ds";
 import { exportAllData, getSettings, importAllData, saveSettings } from "../db";
 import { downloadFile } from "../lib/hands";
 import { readDurationMs } from "../lib/motion";
@@ -11,7 +11,7 @@ import { readDurationMs } from "../lib/motion";
  *
  * SPACE, NOT RULES, decided 2026-09-22 in Phase 7 (D-026). Sections are
  * separated by a double step of space and nothing else. This screen used a 1px
- * --tl-rule and was the only one of the three that did: Patterns and Review's
+ * rule and was the only one of the three that did: Patterns and Review's
  * wrap-up both separate on space, with the same heading treatment Settings
  * uses, so the odd one out was here. Every section already opens with a
  * full-ink heading, which is the separator; a line under it is a second signal
@@ -25,21 +25,14 @@ import { readDurationMs } from "../lib/motion";
  * text reads as fine print.
  */
 /**
- * A checked native checkbox paints itself in the BROWSER's accent, a blue that
- * belongs to nobody here and put a foreign colour on the one screen
- * docs/LOOK.md calls the quietest. accent-color hands it back to a token.
- *
- * INK, NOT THE ACCENT. Handing it --tl-mark was tried first and it looked
- * good, which is the trap: with two checkboxes and Save, the one colour per
- * screen then appeared three times on Settings, which is the exact finding
- * D-014 paid for when the luminous rim was briefly every field's default. Ink
- * is not a colour, it is unmistakably on, and Save keeps the screen's accent.
- *
- * The control stays native. It is the real thing with the real keyboard
- * behaviour, and a hand-built replacement would be a worse switch.
+ * A checked native checkbox paints itself in the BROWSER's accent unless it is
+ * handed a colour. It gets the kit's text colour: ink is not a hue, it is
+ * unmistakably on, and the kit's accent stays on the Save button. The control
+ * stays native, with the real keyboard behaviour. The kit's Toggle would add
+ * ON and OFF words, and this screen's strings do not change (D-031).
  */
 const CHECKBOX: React.CSSProperties = {
-  accentColor: "var(--tl-ink)",
+  accentColor: "var(--nil-color-text)",
   width: "1rem",
   height: "1rem",
 };
@@ -107,31 +100,31 @@ export function SettingsView() {
   return (
     <section
       style={{
-        paddingInline: "var(--tl-gutter)",
-        paddingBlock: "var(--tl-space-lg)",
+        paddingInline: "var(--nil-spacing-md)",
+        paddingBlock: "var(--nil-spacing-lg)",
       }}
     >
-      <h1 className="text-display font-light leading-display tracking-display text-ink">
+      <Heading level={1} style={{ fontSize: "var(--nil-type-scale-xl)" }}>
         Your device only
-      </h1>
+      </Heading>
 
       <Section first>
-        <h2 className="text-body font-medium text-ink">Gemini API key (BYOK)</h2>
-        <p className="text-small text-ink">
+        <Text>
           Your key stays on this device. We never see it. Without a key, capture,
           patterns, and rule-based review still work. AI triage and digest stay off.
-        </p>
-        <Field
+        </Text>
+        <Input
+          label="Gemini API key (BYOK)"
           type="password"
           value={apiKey}
-          onChange={setApiKey}
+          onChange={(event) => setApiKey(event.target.value)}
           placeholder="Paste key from Google AI Studio"
         />
       </Section>
 
       <Section>
-        <h2 className="text-body font-medium text-ink">Evening review reminder</h2>
-        <label className="flex items-center gap-3 text-body text-ink">
+        <SectionTitle>Evening review reminder</SectionTitle>
+        <label className="flex min-h-11 items-center gap-3" style={LABEL_TEXT}>
           <input
             type="checkbox"
             checked={reminderEnabled}
@@ -140,23 +133,21 @@ export function SettingsView() {
           />
           Remind me to review
         </label>
-        <div className="flex items-center gap-3">
-          <div className="w-24">
-            <Field
-              type="number"
-              min={0}
-              max={23}
-              value={String(reminderHour)}
-              onChange={(value) => setReminderHour(Number(value))}
-            />
-          </div>
-          <span className="text-small text-muted">Hour (0&ndash;23)</span>
+        <div className="w-40">
+          <Input
+            label="Hour (0–23)"
+            type="number"
+            min={0}
+            max={23}
+            value={String(reminderHour)}
+            onChange={(event) => setReminderHour(Number(event.target.value))}
+          />
         </div>
       </Section>
 
       <Section>
-        <h2 className="text-body font-medium text-ink">Sound</h2>
-        <label className="flex items-center gap-3 text-body text-ink">
+        <SectionTitle>Sound</SectionTitle>
+        <label className="flex min-h-11 items-center gap-3" style={LABEL_TEXT}>
           <input
             type="checkbox"
             checked={soundEnabled}
@@ -165,23 +156,19 @@ export function SettingsView() {
           />
           Play a sound when you park
         </label>
-        <p className="text-small text-muted">
+        <Text size="sm" muted>
           One quiet tone, only when a thought lands. On by default.
-        </p>
+        </Text>
       </Section>
 
       <Section>
-        <h2 className="text-body font-medium text-ink">Backup</h2>
+        <SectionTitle>Backup</SectionTitle>
         <div className="flex flex-wrap gap-2">
-          <Button variant="ghost" className="py-2" onClick={() => void handleExport()}>
+          <Button variant="ghost" onClick={() => void handleExport()}>
             Export JSON
           </Button>
-          {/*
-            A real button that opens the picker, not a <label> painted to look
-            like one. The old version hand-rolled the Button's border, padding
-            and radius on a label and drifted from it the moment either moved.
-          */}
-          <Button variant="ghost" className="py-2" onClick={() => importRef.current?.click()}>
+          {/* A real button that opens the picker, not a label painted to look like one. */}
+          <Button variant="ghost" onClick={() => importRef.current?.click()}>
             Import JSON
           </Button>
           <input
@@ -196,25 +183,36 @@ export function SettingsView() {
         </div>
       </Section>
 
-      <div className="mt-10 space-y-3">
-        <Button fullWidth onClick={() => void handleSave()}>
+      <div className="mt-10 flex flex-col items-start gap-3">
+        <Button variant="primary" onClick={() => void handleSave()}>
           Save settings
         </Button>
         {/* A reserved line, so confirming never moves the button above it. */}
-        <div className="flex h-6 items-center justify-center">
-          <p className="text-body text-muted" aria-live="polite" aria-atomic="true">
+        <div className="flex h-6 items-center">
+          <Text muted aria-live="polite" aria-atomic="true">
             {saved ? "Saved." : ""}
-          </p>
+          </Text>
         </div>
       </div>
     </section>
   );
 }
 
-/**
- * One setting, with a rule above it. The rule is the structural token: a
- * boundary a person needs to see is never the decorative hairline.
- */
+const LABEL_TEXT: React.CSSProperties = {
+  fontFamily: "var(--nil-font-body)",
+  fontSize: "var(--nil-type-scale-base)",
+  color: "var(--nil-color-text)",
+};
+
+function SectionTitle({ children }: { children: string }) {
+  return (
+    <Heading level={2} style={{ fontSize: "var(--nil-type-scale-base)" }}>
+      {children}
+    </Heading>
+  );
+}
+
+/** One setting. Sections are separated by space and nothing else (D-026). */
 function Section({
   first = false,
   children,
@@ -224,10 +222,10 @@ function Section({
 }) {
   return (
     <div
-      className="space-y-3"
+      className="flex flex-col gap-3"
       style={{
-        marginTop: "var(--tl-space-lg)",
-        paddingTop: first ? 0 : "var(--tl-space-lg)",
+        marginTop: "var(--nil-spacing-lg)",
+        paddingTop: first ? 0 : "var(--nil-spacing-lg)",
       }}
     >
       {children}

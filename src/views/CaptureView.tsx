@@ -1,15 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { GravityField, type Well } from "../components/GravityField";
-import {
-  Chip,
-  Field,
-  IconButton,
-  MicGlyph,
-  ParkGlyph,
-  PeekStack,
-  StopGlyph,
-} from "../components/ui";
+import { Button, Composer, Heading, Text } from "nil-ds";
+import { PeekStack } from "../components/ui";
 import { getCapturesForDay, getSettings, parkCapture, type ParkCaptureOptions } from "../db";
 import { prefersReducedMotion, readDurationMs } from "../lib/motion";
 import { playParkSound } from "../lib/sound";
@@ -44,6 +36,10 @@ interface Sink {
   left: number;
   top: number;
   width: number;
+  /** The text box's visible height: the copy is clipped to it, as the words were. */
+  clip: number;
+  /** How far the text box had scrolled, so a long thought sinks from where it showed. */
+  scrolled: number;
   /** How tall the field was at the park. It holds that height until this has sunk. */
   height: number;
 }
@@ -111,20 +107,10 @@ export function CaptureView({ onParked }: CaptureViewProps) {
   const [recording, setRecording] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [voiceError, setVoiceError] = useState<string | null>(null);
-  const [focused, setFocused] = useState(false);
-  const [commitKey, setCommitKey] = useState(0);
-  const [well, setWell] = useState<Well | null>(null);
   const [sinking, setSinking] = useState<Sink[]>([]);
 
-  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
-  const shellRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
-  // Every run of text on this screen. The grid keeps clear of each one: its
-  // brightest dots would fail AA behind muted copy. See GravityField rule 4.
-  const headlineRef = useRef<HTMLHeadingElement | null>(null);
-  const confirmRef = useRef<HTMLParagraphElement | null>(null);
-  const chipsRef = useRef<HTMLDivElement | null>(null);
-  const errorRef = useRef<HTMLParagraphElement | null>(null);
   const countRef = useRef<HTMLParagraphElement | null>(null);
   const timersRef = useRef<number[]>([]);
   const sessionRef = useRef<VoiceSession | null>(null);
@@ -190,45 +176,6 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     return () => window.clearInterval(id);
   }, [recording]);
 
-  /**
-   * Where the grid has to make room. Measured from the DOM rather than
-   * assumed, because the field grows to three lines and the phone keyboard
-   * moves it. ResizeObserver only, no polling: the identity guard means an
-   * unchanged rect does not re-render, so the grid is not asked to redraw.
-   */
-  useLayoutEffect(() => {
-    const el = shellRef.current;
-    if (!el) return;
-
-    function measure() {
-      const node = shellRef.current;
-      if (!node) return;
-      const r = node.getBoundingClientRect();
-      const radius =
-        Number.parseFloat(getComputedStyle(node).borderTopLeftRadius) || 0;
-
-      setWell((prev) =>
-        prev &&
-        prev.x === r.x &&
-        prev.y === r.y &&
-        prev.width === r.width &&
-        prev.height === r.height &&
-        prev.radius === radius
-          ? prev
-          : { x: r.x, y: r.y, width: r.width, height: r.height, radius },
-      );
-    }
-
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    window.addEventListener("resize", measure);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, []);
-
   // Runs on every keystroke and does nothing on almost all of them.
   useEffect(() => {
     const caret = caretRef.current;
@@ -264,9 +211,6 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     // this is acknowledgment, not a reward chime, so it stays quiet.
     if (settings?.soundEnabled) playParkSound();
 
-    // The grid's wave. A counter, so two parks in a second give two distinct
-    // effect runs and the second restarts the wave rather than queueing.
-    setCommitKey((key) => key + 1);
     setStatus("parked");
 
     // 600ms, or 1200ms under reduced motion: the token carries both, and the
@@ -363,23 +307,22 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     if (prefersReducedMotion()) return;
     const input = inputRef.current;
     const section = sectionRef.current;
-    const shell = shellRef.current;
+    const shell = input?.closest<HTMLElement>(".nil-composer");
     if (!input || !section || !shell) return;
     const ir = input.getBoundingClientRect();
     const sr = section.getBoundingClientRect();
-    // The text starts inside the control's own padding, which `controlsBeside` sets.
-    const cs = getComputedStyle(input);
-    const padTop = Number.parseFloat(cs.paddingTop) || 0;
-    const padLeft = Number.parseFloat(cs.paddingLeft) || 0;
-    const padRight = Number.parseFloat(cs.paddingRight) || 0;
+    // Composer's text box has no padding of its own (the shell's row carries
+    // it), so the words start exactly at the box's edge.
     setSinking((current) => [
       ...current,
       {
         id,
         text: words,
-        left: ir.left - sr.left + padLeft,
-        top: ir.top - sr.top + padTop - input.scrollTop,
-        width: input.clientWidth - padLeft - padRight,
+        left: ir.left - sr.left,
+        top: ir.top - sr.top,
+        width: input.clientWidth,
+        clip: input.clientHeight,
+        scrolled: input.scrollTop,
         height: shell.offsetHeight,
       },
     ]);
@@ -477,163 +420,131 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     void settlePark(ticket);
   }
 
-  const armed = recording || text.trim().length > 0;
   const showChips = !recording && text.trim().length > 0;
-  // Whatever changes the copy on screen, so the grid redraws once around it.
-  const contentKey = [
-    status,
-    showChips,
-    captures.length,
-    parkError ?? "",
-    voiceError ?? "",
-  ].join("|");
+  const heldHeight =
+    sinking.length > 0 ? Math.max(...sinking.map((x) => x.height)) : null;
 
   return (
     <section
       ref={sectionRef}
       className="relative flex min-h-[calc(100dvh-5.5rem)] flex-col pt-16 pb-6"
-      style={{ paddingInline: "var(--tl-gutter)" }}
+      style={{ paddingInline: "var(--nil-spacing-md)" }}
       // Click anywhere on the screen to start typing, on a pointer device only.
-      // On touch this made every stray tap on the sky open the keyboard.
+      // On touch this made every stray tap open the keyboard.
       onClick={() => {
         if (!recording && hasFinePointer()) inputRef.current?.focus();
       }}
     >
-      <GravityField
-        well={well}
-        focused={focused}
-        commitKey={commitKey}
-        keepClear={[headlineRef, confirmRef, chipsRef, errorRef, countRef]}
-        contentKey={contentKey}
-      />
-
-      <div className="relative z-10 flex flex-1 flex-col justify-center gap-8">
+      <div className="flex flex-1 flex-col justify-center gap-8">
         {/*
-          TWO ELEMENTS AT REST NOW: the headline and the field. The sub-line
-          ("Park it. Sort it tonight.") is gone, decided 2026-09-22, and it went
-          for a product reason before a contrast one: it told a person to sort
-          it tonight, and the app does not push anyone to do their review at
-          night. D-014 kept it and docs/LOOK.md defended it; both are superseded
-          on this point by D-019.
-
-          It also happened to be the worst-measuring text in the app, because
-          13px muted copy sat on the bare starfield with no surface under it.
+          TWO ELEMENTS AT REST: the headline and the box. One control inside
+          the box (D-029): the Mic on an empty box, Park from the first
+          character, Stop and park while recording. D-030 moved this screen
+          onto nil-ds, so the look is the kit's, unmodified.
         */}
         <header>
-          <h1
-            ref={headlineRef}
-            className="text-display font-light tracking-display text-ink"
-          >
+          <Heading level={1} style={{ fontSize: "var(--nil-type-scale-xl)" }}>
             What's pulling you?
-          </h1>
+          </Heading>
         </header>
 
         {/*
-          A FIXED HEIGHT: the field at rest, the gap and the reserved line. The
-          field is one line at rest and grows as the words wrap (D-029), and a
+          A FIXED HEIGHT: the box at rest, the gap and the reserved line. The
+          box is one line at rest and grows as the words wrap (D-029), and a
           centred block that changed height would move the headline while
           somebody types and again at the park. Fixed, the growth spills
           downward into the empty space below and nothing above it moves.
         */}
-        <form
-          onSubmit={(event) => handlePark(event)}
-          className="space-y-3"
-          style={{
-            height:
-              "calc(44px + var(--tl-space-sm) * 2 + var(--tl-rim-width) * 2 + 0.75rem + 2.75rem)",
-          }}
+        <div
+          className="tl-capture-form space-y-3"
           onClick={(event) => event.stopPropagation()}
         >
-          <Field
-            inputRef={inputRef}
-            shellRef={shellRef}
-            rim
-            controlsBeside={!recording}
-            holdHeight={
-              sinking.length > 0 ? Math.max(...sinking.map((s) => s.height)) : null
-            }
-            className={
-              sinking.length > 0
-                ? "tl-capture-input tl-placeholder-hold"
-                : "tl-capture-input"
-            }
+          <Composer
+            ref={inputRef}
+            label="Capture"
             value={text}
-            onChange={setText}
-            onFocusChange={setFocused}
+            onValueChange={setText}
+            onSend={() => handlePark()}
+            sendLabel="Park"
+            emptyAction={
+              recording ? (
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => void stopAndParkVoice()}
+                >
+                  Stop and park
+                </Button>
+              ) : voiceOk ? (
+                <Button size="sm" onClick={() => void startRecording()}>
+                  Mic
+                </Button>
+              ) : (
+                // Voice is unavailable: nothing is disclosed (D-029), but the
+                // slot keeps the height of a button, or the box would get taller by
+                // the footer's button the moment the first character swaps
+                // Park in.
+                <span style={{ visibility: "hidden" }} aria-hidden>
+                  <Button size="sm" tabIndex={-1}>
+                    Mic
+                  </Button>
+                </span>
+              )
+            }
+            hint={recording ? `Recording ${formatDuration(elapsedMs)}` : false}
+            maxRows={3}
+            prefix=">"
             placeholder={
               recording ? "Recording… stop when done" : "One line is enough"
             }
             autoComplete="off"
             enterKeyHint="done"
-            maxLines={3}
             disabled={recording}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                handlePark();
-              }
-            }}
-            trailing={
-              recording ? (
-                <div className="flex items-center justify-end gap-2">
-                  <p className="mr-auto text-body text-muted" aria-live="polite">
-                    Recording {formatDuration(elapsedMs)}
-                  </p>
-                  <IconButton
-                    label="Stop and park"
-                    tone="primary"
-                    armed
-                    onClick={() => void stopAndParkVoice()}
-                  >
-                    <StopGlyph />
-                  </IconButton>
-                </div>
-              ) : armed ? (
-                /*
-                  PROGRESSIVE DISCLOSURE: one control, the one that can act.
-                  Park appears with the first character, because until then
-                  there is nothing to park. Mic is there on an empty field,
-                  because voice is the other way to start. Swapped instantly,
-                  with no transition: nothing animates in response to typing.
-                  Keyed apart, so the Park fill never fades out on the Mic.
-                */
-                <IconButton key="park" label="Park" tone="primary" type="submit" armed>
-                  <ParkGlyph />
-                </IconButton>
-              ) : voiceOk ? (
-                <IconButton key="mic" label="Mic" onClick={() => void startRecording()}>
-                  <MicGlyph />
-                </IconButton>
-              ) : null
+            className={
+              sinking.length > 0
+                ? "tl-capture-input tl-placeholder-hold"
+                : "tl-capture-input"
             }
+            style={{
+              // Hold the height the box had until the words have sunk, then
+              // relax on the settle spring. Collapse it at the park instead and
+              // a two-line thought sinks outside the box.
+              minHeight: heldHeight ?? undefined,
+              transition:
+                "border-color var(--nil-motion-duration-fast) var(--nil-motion-easing-standard), min-height var(--tl-spring-settle-duration) var(--tl-spring-settle-ease)",
+            }}
           />
+          <p className="nil-sr-only" aria-live="polite">
+            {recording ? "Recording" : ""}
+          </p>
 
           {/*
             ONE reserved line, three jobs: empty at rest, the tag chips once
             there is something to tag, the confirm word after a park. It is
             always this tall, so nothing on the screen ever moves, and the two
-            can never collide because a park empties the field.
+            can never collide because a park empties the box.
 
             No transition on the chips. Nothing animates in response to typing.
           */}
           <div className="relative flex h-11 items-center">
-            <p
-              ref={confirmRef}
-              className="absolute text-body text-muted"
+            <Text
+              size="sm"
+              muted
+              className="absolute"
               aria-live="polite"
               aria-atomic="true"
             >
               {status === "parked" ? "Parked." : ""}
-            </p>
+            </Text>
             <div
-              ref={chipsRef}
               className="flex flex-wrap gap-2"
               style={{ visibility: showChips ? "visible" : "hidden" }}
             >
               {TAGS.map((option) => (
-                <Chip
+                <Button
                   key={option.value}
-                  selected={tag === option.value}
+                  size="sm"
+                  variant={tag === option.value ? "secondary" : "ghost"}
                   aria-pressed={tag === option.value}
                   tabIndex={showChips ? undefined : -1}
                   onClick={() =>
@@ -641,28 +552,32 @@ export function CaptureView({ onParked }: CaptureViewProps) {
                   }
                 >
                   {option.label}
-                </Chip>
+                </Button>
               ))}
             </div>
           </div>
 
           {(parkError || voiceError) && (
-            <p ref={errorRef} className="text-body text-danger" role="alert">
+            <Text
+              size="sm"
+              role="alert"
+              style={{ color: "var(--nil-color-text-danger)" }}
+            >
               {parkError ?? voiceError}
-            </p>
+            </Text>
           )}
-        </form>
+        </div>
       </div>
 
       {/*
         A FIXED slot, always here, whether or not anything is in it. Rendering
-        the stack conditionally shrank the flex-1 block above it, so the field
+        the stack conditionally shrank the flex-1 block above it, so the box
         rose by about 66px the first time anything was parked: the one screen
         that must never move, moving, at the exact moment a person is watching
         it to see whether their thought landed. Reserved space costs nothing on
         an empty screen and it cannot shift.
       */}
-      <div className="relative z-10 h-32 overflow-hidden">
+      <div className="relative h-32 overflow-hidden">
         {captures.length > 0 && (
           <PeekStack captures={captures} countRef={countRef} />
         )}
@@ -673,13 +588,19 @@ export function CaptureView({ onParked }: CaptureViewProps) {
           key={s.id}
           aria-hidden
           className="tl-sink pointer-events-none absolute z-20"
-          style={{ left: s.left, top: s.top, width: s.width }}
+          style={{
+            left: s.left,
+            top: s.top,
+            width: s.width,
+            height: s.clip + 12, // room for the 9px drop
+            overflow: "hidden",
+          }}
           onAnimationEnd={(event) => {
             if ((event.target as HTMLElement).dataset.last === undefined) return;
             setSinking((current) => current.filter((x) => x.id !== s.id));
           }}
         >
-          {renderSink(s.text)}
+          <div style={{ marginTop: -s.scrolled }}>{renderSink(s.text)}</div>
         </div>
       ))}
     </section>

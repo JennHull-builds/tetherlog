@@ -39,6 +39,11 @@ const looksLikePath = (t) =>
 // Named in prose as gone, historical, or hypothetical. Each one is a file the
 // docs discuss the absence of, which is the opposite of a stale reference.
 const KNOWN_ABSENT = new Set([
+  // Geist and its files were removed when the whole app moved onto nil-ds (D-031).
+  "public/fonts/",
+  // The old Field and the other hand-built controls were deleted in D-031.
+  "Field.tsx",
+  "src/components/ui/Field.tsx",
   ".cursorrules",
   // Never existed in any form. ROADMAP.md and D-025 both discuss the ghost.
   "CURSORRULES.md",

@@ -53,7 +53,7 @@ hex=$(grep -rnE '#[0-9a-fA-F]{3,8}\b' src \
 
 if [ -n "$hex" ]; then
   echo "✗ Colour literal outside $GENERATED." >&2
-  echo "  Components read semantic tokens: var(--tl-<role>). See CLAUDE.md." >&2
+  echo "  Components read the kit's semantic tokens, var(--nil-<role>); --tl-* only for motion and sound. See AGENTS.md." >&2
   echo "$hex" | sed 's/^/    /' >&2
   fail=1
 fi

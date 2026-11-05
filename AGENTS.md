@@ -57,13 +57,22 @@ historical phase prompts reference it; it was never committed. This file is the 
 The `@source not "../.cursorrules"` line in `src/index.css` is kept deliberately, so the guard is
 already in place if one is ever added.
 
-**The current work is the UI overhaul, and all seven of its phases are built.** What is decided is
+**The whole app is on nil-ds (D-030 for Capture, D-031 for the rest, 2026-11-04).** Every screen and
+the nav use the kit's components and `var(--nil-*)` in the kit's dark theme, consumed as a dependency
+pinned to one full commit hash over https. That reverses D-001's "NIL DS is out" and keeps its
+lesson: never a copy, never a branch name, never a path outside this repo. The grid is off the app
+(`src/components/GravityField.tsx` and its grid tokens stay, unused) and the design before the move
+is the git tag `pre-nil-ds`. **`docs/LOOK.md` is no longer binding for any screen.** Wherever this
+file still says "LOOK.md is binding", "no `--nil-*`" or "the violet", read it as describing the
+design at `pre-nil-ds`. The product rules below do not change.
+
+**Before D-030, the current work was the UI overhaul, and all seven of its phases are built.** What is decided is
 in `docs/DECISIONS.md`. Start there: it opens with a status table and a map of which file does what.
 **`docs/BUILD-SPEC.md` no longer exists.** It held the phases and was deleted by Phase 7 once they
 had all landed, exactly as it said it would be; `git log` has it and D-025 records what moved where.
 Any instruction that sends you to it is out of date.
 
-**`docs/LOOK.md` is the visual direction and it is binding.** It was derived from reference images
+**`docs/LOOK.md` was the visual direction before D-030 and is no longer binding (D-031).** It was derived from reference images
 rather than adjectives, which is the third attempt and the first one grounded in pictures. Read it
 before any visual work. Three rules from it that contradict everything written before:
 
@@ -443,6 +452,43 @@ visibly the face you specified, it is not loading. Self-host fonts; do not link
 `fonts.googleapis.com`, because that sends the user's IP to Google on every load and contradicts the
 privacy promise in the Settings copy.
 
+### nil-ds is a pinned git dependency, and four things about it will bite
+
+Added with D-030. Each was hit while moving Capture.
+
+1. **npm writes the lockfile entry as `git+ssh`, and Vercel has no SSH key.** After any install that
+   touches the dependency, open `package-lock.json`, find `node_modules/nil-ds` and check that
+   `resolved` starts `git+https`. The root `dependencies` entry in the lockfile must match
+   `package.json`. Pin the 40 character hash, never `v0.2` or any branch.
+2. **A newer npm rewrites the whole lockfile and drops every `libc` field** from the optional native
+   packages. Do not commit that. Restore the committed lockfile and add only the new package entries
+   to it.
+3. **Import the kit's styles only with `layer(nil)`**, after the `@layer theme, base, nil, components,
+   utilities;` line at the top of `src/index.css`. Its `core.css` carries an unlayered-style global
+   reset (D-005). Never import its Tailwind theme file (it redefines `--color-ink`, `--color-raised`,
+   `--color-muted`, `--color-line`, `--color-mark`, `--color-mark-text` and `--color-danger`) or its
+   font file (it links Google Fonts). Capture reads `var(--nil-*)` directly.
+4. **`.tl-capture-form` is a hand-built sum of the Composer's own paddings and borders.** If the kit
+   changes the Composer or its button, that sum goes stale and the headline starts moving when
+   somebody types. Re-measure it in a browser after every change to the pinned hash: the headline and
+   the box's top edge must sit at the same pixel at rest and at one, two and three lines.
+
+5. **The kit's Heading sets `margin: 0` inline, and an inline style beats every utility.** Put a
+   Heading inside a `space-y-*` stack and it gets no space under it, so a title sits against the
+   text below it and nothing errors. Lay out anything that holds a Heading with `flex flex-col gap-*`
+   (gap is not a margin). Found in D-031 on the first screenshot of Review's wrap-up.
+6. **The kit's Input needs a `label`, and it renders it.** There is no visually hidden option, so a
+   field that had no visible label has to borrow a string the screen already shows (Settings and
+   Review's Wins do) or the screen gains a new string.
+7. **Kit buttons are 27 to 32 px tall and nothing here may stretch them** (B-009). Do not add
+   `min-height` or padding to a kit Button to reach 44 px: that overrides the kit. The native
+   checkboxes are the exception, because they are not the kit's: their label rows are 44 px.
+
+`eslint.config.js` bans, for components and views: colour literals, `--tl-ref-*`, `--nil-primitive-*`
+and any `--tl-*` read that is not a motion or sound token (`spring`, `duration`, `ease`, `sound`).
+`GravityField.tsx` is exempt because it is unused. Test it with a throwaway file before relying on
+it: the negative lookahead in the selector is the part that is easy to break.
+
 ### An edit that reports success is not a verified result
 
 The failure mode in this repo is plausible output, not errors. Nothing crashes, nothing logs, the
@@ -528,7 +574,10 @@ can go back into `build`.
 
 - **Zero runtime.** Springs are solved at build time into CSS `linear()` easings. No animation
   library is installed and none should be without a decision recorded in `docs/DECISIONS.md`.
-- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Measured at D-027:
+- **Budget: JS ≤ 130 KB gzipped, CSS ≤ 12 KB gzipped, fonts ≤ 90 KB transfer.** Measured at D-031:
+  **111.19 KB JS, 8.77 KB CSS, 60.1 KB fonts across all four screens** (Plex Sans 400 and 700, Plex
+  Mono 400; Geist is gone and B-008 is closed). At D-030 it was 111.90 KB JS, 9.45 KB CSS and 80.3 KB
+  fonts on Capture alone. The kit's core styles cost about 4 KB of CSS. Measured at D-027, before it:
   **114.78 KB JS, 5.54 KB CSS, 44.5 KB fonts.** Roughly 15 KB of JS headroom and 6.5 KB of CSS.
   The grid gave back 3.35 KB of JS against the lens it replaced, and the sink cost 0.10 KB of CSS.
   Phase 7 measured 118.13 KB JS and 5.44 KB CSS; Phase 5 cost 1.08 KB of JS, D-019 and D-020 0.72 KB
@@ -537,8 +586,8 @@ can go back into `build`.
   **Phase 7 gave 0.28 KB of CSS back** by closing the prose leak (D-024), and left JS unmoved. This
   line said 117.99 KB JS and 5.71 KB CSS, which was never quite right: the tree at that commit built
   118.14 and 5.72. Small, and the point of writing it down is that it drifts silently otherwise.
-  **Fonts are 44.5 KB, not the 89 KB a naive `du` reports**, because the same two files sit in
-  `public/fonts/` and are copied into `dist/fonts/`. Count one of them.
+  **Fonts since D-031 are IBM Plex only**, three files from `@fontsource`, bundled by Vite and
+  hashed into `dist/assets/`. `public/fonts/` and Geist are gone.
 
   Two deliberate holds protect the rest: React is pinned at 19.2.8 (D-010) and zod uses the `mini`
   export (D-012). Record the numbers in the commit when they move.
