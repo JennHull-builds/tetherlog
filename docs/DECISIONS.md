@@ -1812,3 +1812,16 @@ Rendered pixels, at 390, 1280 and 320 px wide, every screen, Review's triage and
 Under 44 px at 390, all the kit's: the nav buttons 91 by 29, Mic 60 by 29, the Capture chips 27 high,
 AI triage 104 by 27, Confirm 324 by 32, Review's bucket buttons 27 high, every Hands, Backup and
 Patterns button 30 high, Save settings 32, Add 30, and the kit's Input 42 high. B-009.
+
+---
+
+## D-032: The backup never holds the API key
+
+`exportAllData` returned the whole settings table, so the JSON backup held `geminiApiKey` in plain
+text, against the rule that the key lives in the browser only and is never included in an export.
+The export now drops that one field from each settings row. Everything else in the file is unchanged.
+
+Import keeps the key already on the device when the backup has none, because `bulkPut` would
+otherwise replace the settings row and delete it. A backup made before this fix that does hold a key
+still restores it, overwriting the key on the device. Sharing an old backup shares its key, so a
+backup made before this fix should be deleted or regenerated.
