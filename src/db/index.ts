@@ -157,6 +157,13 @@ export async function exportAllData() {
     db.settings.toArray(),
   ]);
 
+  // The BYOK key lives on this device only and must never leave in a backup.
+  const settingsForExport = settings.map((row) => {
+    const copy: AppSettings = { ...row };
+    delete copy.geminiApiKey;
+    return copy;
+  });
+
   // Strip Blobs — JSON backup stays text-safe; audio remains on-device in Dexie.
   const capturesForExport = captures.map((capture) => {
     const copy: Omit<Capture, "audioBlob"> & { audioBlob?: Blob } = {
@@ -171,7 +178,7 @@ export async function exportAllData() {
     exportedAt: new Date().toISOString(),
     captures: capturesForExport,
     wins,
-    settings,
+    settings: settingsForExport,
   };
 }
 
@@ -188,7 +195,18 @@ export async function importAllData(payload: {
       await db.wins.bulkPut(payload.wins);
     }
     if (payload.settings?.length) {
-      await db.settings.bulkPut(payload.settings);
+      // New backups carry no key. Keep the one already saved on this device
+      // unless the backup itself holds one (older backups did), in which case
+      // that key is restored as before.
+      const existing = await db.settings.toArray();
+      const keyById = new Map(existing.map((row) => [row.id, row.geminiApiKey]));
+      await db.settings.bulkPut(
+        payload.settings.map((row) =>
+          row.geminiApiKey === undefined && keyById.get(row.id)
+            ? { ...row, geminiApiKey: keyById.get(row.id) }
+            : row,
+        ),
+      );
     }
   });
 }

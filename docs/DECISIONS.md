@@ -1655,3 +1655,16 @@ screen reader hears is still "Park".
 The voice-unavailable state no longer shows a disabled Mic with an explanation; it shows nothing,
 because a control that cannot act is not disclosed.
 
+
+---
+
+## D-032: The backup never holds the API key
+
+`exportAllData` returned the whole settings table, so the JSON backup held `geminiApiKey` in plain
+text, against the rule that the key lives in the browser only and is never included in an export.
+The export now drops that one field from each settings row. Everything else in the file is unchanged.
+
+Import keeps the key already on the device when the backup has none, because `bulkPut` would
+otherwise replace the settings row and delete it. A backup made before this fix that does hold a key
+still restores it, overwriting the key on the device. Sharing an old backup shares its key, so a
+backup made before this fix should be deleted or regenerated.
