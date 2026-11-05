@@ -40,6 +40,7 @@ D-025 and D-026. |
 | Capture's field | **Built 2026-10-02.** One line that grows, one control that is Mic or Park, a plain down arrow. See D-029. |
 | Review and colour | **Built 2026-10-02, looked at on a phone.** Review is a compact card on a visible deck; there is no secondary colour anywhere. See D-028. |
 | Capture on nil-ds | **Built 2026-11-03, awaiting a look on a phone.** Capture is the kit's Composer in the kit's dark theme, on a pinned dependency. The grid is off Capture. See D-030. |
+| Review, Patterns, Settings and the nav on nil-ds | **Built 2026-11-04, awaiting a look on a phone.** The whole app is on the kit and Geist is gone. See D-031. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -1738,3 +1739,76 @@ Review, Patterns, Settings and the nav move later, each on its own entry. Their 
 the kit's body face, which is the visible side effect of the kit's base styles: the same layouts in
 Plex Sans where they used to be in Geist, and the light headline weight on Review's card renders at
 400 because no light Plex cut is shipped.
+
+## D-031: The rest of the app moves onto nil-ds
+
+**2026-11-04. Decided by the owner as the second half of D-030. Built the same day, awaiting a look on a phone.**
+
+Review, Patterns, Settings and the nav now use the kit's components and `var(--nil-*)` in the kit's
+dark theme, exactly as D-030 did for Capture. No `--nil-*` value is overridden. The pin moves to the
+tip of the kit's v0.2 branch, `a5619696eedb44d6b4006ecc8aa3e08b23b752a5`, which brings Dialog, the
+danger Button and the contrast fixes.
+
+### What changed
+
+- **Components.** Heading, Text, Button, Input, Readout and Card come from the kit. The nav is four
+  kit Buttons: the current screen is the secondary variant with `aria-current="page"`, the rest are
+  ghost. Patterns and the Review summary use the kit's Readout at its `md` size, because the `lg` size
+  is 56 px and `06:00` does not fit half of a 390 px screen.
+- **Deleted.** The hand-built Button, Card, Chip, Field and IconButton, and the Geist font files. The
+  triage card and deck stay as `TriageCard` and `TriageDeck`, redrawn with the kit's Card and tokens.
+- **Tailwind names point at the kit.** The `@theme` block in `src/index.css` maps `ink`, `muted`,
+  `ground`, `raised`, `line` and `danger` to `--nil-color-*`, the font names to the kit's, the three
+  text sizes to the kit's scale and `--spacing` to 0.25rem (the kit steps are multiples of 4 px).
+  Nothing in it has a value of its own.
+- **Fonts.** IBM Plex only: Sans 400 and 700, Mono 400, 60.1 KB across all four screens. Mono 500
+  stays out for the reason in D-030.
+- **Tokens that remain.** `tokens.json` and its generated files are unchanged, and the motion and
+  sound tokens are still read (the sink, the settle and dismiss springs, the confirm duration, the park
+  tone). The colour, type, spacing, radius and border tokens, and the grid tokens, are read by no screen.
+  They were not pruned: the generator, its check and `GravityField.tsx` are built around them and the
+  owner asked for the grid to stay in the repo. Deleting them is a later, separate change.
+- **The lint rule flipped.** It now bans any `--tl-*` read that is not motion or sound, as well as
+  colour literals and primitives. See AGENTS.md.
+- **One UI string was added: the nav's `aria-label="Screens"`.** A screen reader now hears the
+  four buttons as a named group. The owner said yes on 2026-11-05. Section titles on Review, Patterns
+  and Settings are level 2 headings, so a screen reader moving by heading no longer jumps from the
+  page title to level 3.
+- **No other UI string changed.** Settings' API key field and reminder hour, and Review's win field, use the
+  kit's Input, which requires a visible label. Each borrows the heading or line that already sat above
+  it ("Gemini API key (BYOK)", "Hour (0–23)", "What moved today?") instead of adding a word. The two
+  native checkboxes stay native: the kit's Toggle would add ON and OFF.
+
+### Not used, on purpose
+
+- **Dialog and the danger Button.** No screen has a destructive action. Import merges and never
+  clears, and Review's confirm is optimistic with a recovery. Adding a confirmation would add strings.
+- **Dial, Ring and the Lightbox.** Patterns may not show a gauge (product rule 2).
+
+### What stops being true
+
+`docs/LOOK.md` and every rule in it (generous radius, depth that is not a shadow, one violet colour)
+describe the design at the `pre-nil-ds` tag and bind nothing. The kit's accent is the only colour and
+sits on primary actions and focus rings.
+
+### Measured
+
+Rendered pixels, at 390, 1280 and 320 px wide, every screen, Review's triage and wrap-up states both.
+
+| Check | Result |
+|---|---|
+| JS gzipped | 111.90 KB before, 111.19 KB after (limit 130) |
+| CSS gzipped | 9.45 KB before, 8.77 KB after (limit 12) |
+| Fonts, all four screens | 105.7 KB before, 60.1 KB after (limit 90) |
+| Text contrast | 168 runs per viewport. Every run is 4.5:1 or better except two groups the kit owns: the bracket glyphs on the primary button (2.71:1, decorative and hidden from screen readers) and the disabled Generate button (2.3:1, exempt as an inactive control) |
+| Focus indicator | 36 controls per viewport, minimum 3.70:1 |
+| Frames at rest | 0 on every screen, and 0 after parks |
+| Horizontal overflow | None at 390, 1280 or 320 |
+| Capture | Headline and box top at the same pixel at rest and at one, two and three lines; double park does not queue; the field is empty and focused after Enter; reduced motion identical |
+| Network | Only localhost |
+
+### Tap targets
+
+Under 44 px at 390, all the kit's: the nav buttons 91 by 29, Mic 60 by 29, the Capture chips 27 high,
+AI triage 104 by 27, Confirm 324 by 32, Review's bucket buttons 27 high, every Hands, Backup and
+Patterns button 30 high, Save settings 32, Add 30, and the kit's Input 42 high. B-009.

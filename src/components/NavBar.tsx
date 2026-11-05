@@ -1,3 +1,4 @@
+import { Button } from "nil-ds";
 import type { Screen } from "../types";
 
 const NAV: { id: Screen; label: string }[] = [
@@ -12,33 +13,29 @@ interface NavBarProps {
   onNavigate: (screen: Screen) => void;
 }
 
+/** Four kit Buttons: the current screen is the secondary variant and carries
+ *  aria-current, the others are ghost. D-031. */
 export function NavBar({ screen, onNavigate }: NavBarProps) {
   return (
     <nav
-      className="no-print sticky bottom-0 border-t-2 border-line bg-raised"
-      style={{ borderTopWidth: "var(--tl-border-width)" }}
+      aria-label="Screens"
+      className="no-print sticky bottom-0"
+      style={{
+        background: "var(--nil-color-bg)",
+        borderTop: "var(--nil-border-width) solid var(--nil-color-border)",
+      }}
     >
       <div className="mx-auto grid max-w-lg grid-cols-4 gap-1 px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {NAV.map((item) => (
-          <button
+          <Button
             key={item.id}
-            type="button"
+            size="sm"
+            variant={screen === item.id ? "secondary" : "ghost"}
+            aria-current={screen === item.id ? "page" : undefined}
             onClick={() => onNavigate(item.id)}
-            className={`px-2 py-2 font-mono text-micro tracking-micro ${
-              screen === item.id
-                ? "bg-field font-medium text-ink"
-                : "text-muted"
-            }`}
-            style={{
-              borderRadius: "var(--tl-radius)",
-              border:
-                screen === item.id
-                  ? "var(--tl-border-width) solid var(--tl-rule)"
-                  : "var(--tl-border-width) solid transparent",
-            }}
           >
             {item.label}
-          </button>
+          </Button>
         ))}
       </div>
     </nav>
