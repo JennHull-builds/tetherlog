@@ -1770,9 +1770,13 @@ danger Button and the contrast fixes.
   owner asked for the grid to stay in the repo. Deleting them is a later, separate change.
 - **The lint rule flipped.** It now bans any `--tl-*` read that is not motion or sound, as well as
   colour literals and primitives. See AGENTS.md.
-- **No UI string changed.** Settings' API key field and reminder hour, and Review's win field, use the
+- **One UI string was added: the nav's `aria-label="Screens"`.** A screen reader now hears the
+  four buttons as a named group. The owner said yes on 2026-11-05. Section titles on Review, Patterns
+  and Settings are level 2 headings, so a screen reader moving by heading no longer jumps from the
+  page title to level 3.
+- **No other UI string changed.** Settings' API key field and reminder hour, and Review's win field, use the
   kit's Input, which requires a visible label. Each borrows the heading or line that already sat above
-  it ("Gemini API key (BYOK)", "Hour (0-23)", "What moved today?") instead of adding a word. The two
+  it ("Gemini API key (BYOK)", "Hour (0–23)", "What moved today?") instead of adding a word. The two
   native checkboxes stay native: the kit's Toggle would add ON and OFF.
 
 ### Not used, on purpose

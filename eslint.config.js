@@ -34,7 +34,7 @@ export default defineConfig([
   // those four prefixes are the only --tl- reads allowed. GravityField keeps its
   // grid tokens and is exempt from that last rule, because it is unused.
   {
-    files: ["src/components/**/*.{ts,tsx}", "src/views/**/*.{ts,tsx}"],
+    files: ["src/*.{ts,tsx}", "src/components/**/*.{ts,tsx}", "src/views/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-syntax": [
         "error",

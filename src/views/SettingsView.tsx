@@ -206,7 +206,7 @@ const LABEL_TEXT: React.CSSProperties = {
 
 function SectionTitle({ children }: { children: string }) {
   return (
-    <Heading level={3} style={{ fontSize: "var(--nil-type-scale-base)" }}>
+    <Heading level={2} style={{ fontSize: "var(--nil-type-scale-base)" }}>
       {children}
     </Heading>
   );
