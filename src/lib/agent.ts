@@ -1,5 +1,5 @@
 import type { Capture, ReviewBatch, TriageSuggestion } from "../types";
-import { reviewBatchSchema } from "../types";
+import { reviewBatchSchema, VOICE_TEXT_PLACEHOLDER } from "../types";
 
 /**
  * The one place the Gemini model is named. gemini-2.0-flash was shut down on
@@ -70,6 +70,9 @@ export function countRepeats(captures: Capture[]): Map<string, number> {
   const counts = new Map<string, number>();
 
   for (const capture of captures) {
+    // An untranscribed voice note is "[voice]" whatever was said. Five different
+    // thoughts would otherwise count as one thought parked five times (D-037).
+    if (capture.text === VOICE_TEXT_PLACEHOLDER) continue;
     const key = normalise(capture.text);
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
@@ -175,14 +178,18 @@ export function ruleBasedTriage(captures: Capture[]): ReviewBatch {
 
     if (capture.tag === "now") {
       bucket = "do";
-      reason = "You tagged this now, so a small action may help.";
+      reason = "You tagged this Today, so a small action may help.";
       suggestedAction = "15-minute block";
     } else if (capture.tag === "?") {
       bucket = "wonder";
-      reason = "A question, not a task. No action needed tonight.";
+      reason = "A question, not a task. No action needed.";
     } else if (capture.tag === "later") {
       bucket = "later";
       reason = "You tagged this later. Leave it until you have space.";
+    } else if (capture.text.trim().endsWith("?")) {
+      // An untagged question is a question, not a task (D-035).
+      bucket = "wonder";
+      reason = "A question, not a task. No action needed.";
     } else if (repeats >= 3) {
       bucket = "drop";
       reason = `You've parked this ${repeats} times, so maybe it isn't homework.`;
@@ -216,12 +223,20 @@ export function buildWeeklyStats(captures: Capture[]) {
 
   const busiestHour = heatmap.indexOf(Math.max(...heatmap));
 
+  // The list shows the words as they were first parked, not the lower-cased key
+  // the counting used (D-037).
+  const firstSeen = new Map<string, string>();
+  for (const capture of captures) {
+    const key = normalise(capture.text);
+    if (!firstSeen.has(key)) firstSeen.set(key, capture.text.trim());
+  }
+
   return {
     totalCaptures: captures.length,
     activeDays: perDay.size,
     busiestHour,
     stuckCount: stuck.length,
-    topRepeats: repeats.map(([text, count]) => ({ text, count })),
+    topRepeats: repeats.map(([key, count]) => ({ text: firstSeen.get(key) ?? key, count })),
     heatmap,
     perDay: [...perDay.entries()].sort(([a], [b]) => a.localeCompare(b)),
   };

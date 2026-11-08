@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavBar } from "./components/NavBar";
+import { SampleBanner, SampleProvider } from "./components/Sample";
 import type { Screen } from "./types";
 import { CaptureView } from "./views/CaptureView";
 import { PatternsView } from "./views/PatternsView";
@@ -10,16 +11,22 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>("capture");
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <main className="mx-auto w-full max-w-lg flex-1">
-        {screen === "capture" && (
-          <CaptureView onParked={() => undefined} />
-        )}
-        {screen === "review" && <ReviewView />}
-        {screen === "patterns" && <PatternsView />}
-        {screen === "settings" && <SettingsView />}
-      </main>
-      <NavBar screen={screen} onNavigate={setScreen} />
-    </div>
+    <SampleProvider>
+      <div className="flex min-h-dvh flex-col">
+        <SampleBanner />
+        <main className="mx-auto w-full max-w-lg flex-1">
+          {screen === "capture" && (
+            <CaptureView
+              onParked={() => undefined}
+              onOpenReview={() => setScreen("review")}
+            />
+          )}
+          {screen === "review" && <ReviewView />}
+          {screen === "patterns" && <PatternsView />}
+          {screen === "settings" && <SettingsView />}
+        </main>
+        <NavBar screen={screen} onNavigate={setScreen} />
+      </div>
+    </SampleProvider>
   );
 }

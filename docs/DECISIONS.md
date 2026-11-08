@@ -41,6 +41,7 @@ D-025 and D-026. |
 | Review and colour | **Built 2026-10-02, looked at on a phone.** Review is a compact card on a visible deck; there is no secondary colour anywhere. See D-028. |
 | Capture on nil-ds | **Built 2026-11-03, awaiting a look on a phone.** Capture is the kit's Composer in the kit's dark theme, on a pinned dependency. The grid is off Capture. See D-030. |
 | Review, Patterns, Settings and the nav on nil-ds | **Built 2026-11-04, awaiting a look on a phone.** The whole app is on the kit and Geist is gone. See D-031. |
+| Polish, slice 1 | **Built 2026-11-08, awaiting a look.** Light theme, a sample week, one Today tag, a Review that explains itself. See D-034 to D-037. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -1859,3 +1860,97 @@ looked like nothing happened.
 
 The bracket labels, icons, the status line's own style and its spacing belong to nil-ds and arrive
 when the kit has them.
+
+## D-034: The app is light, and blue marks what matters
+
+**Date:** 2026-11-08. **Supersedes D-011** (the dark ground). D-011 chose dark for three reasons: the
+reference it was derived from, a warm white being ruled out, and the starfield, which reads best against
+space. The starfield went in D-027, the whole app now reads the kit (D-031), and the kit's default theme
+is a warm off-white with ink text.
+
+### What changed
+
+- `data-theme="dark"` is gone from `index.html` and `color-scheme` is `light`. The kit's default theme
+  applies, with no override and no colour written in this repo's CSS.
+- The browser bar colour, the PWA manifest's `theme_color` and `background_color`, and the favicon
+  ground are the kit's background, `#f3f2ee`. The manifest's old value, `#08090c`, had been a leftover.
+  The favicon's two accent marks are still the old violet.
+- Blue is the kit's accent text colour, and it is used where something is current or needs a look: the
+  selected nav tab, the selected Today chip, "N parked today", the "N of M" count in Review, the
+  Today badge, the repeat counts in Patterns and the sample banner label. Wins use the kit's success
+  green. The hour chart is unchanged: chart colour tokens are being added to the kit separately.
+- Selected controls keep the kit's secondary button and change only the text colour, so Park stays
+  the one filled blue on Capture.
+
+### Measured, light theme
+
+Text: ink on ground 17.67:1, muted on ground 7.91:1, accent text 5.02:1 on ground and 4.63:1 on the
+surface, success green 5.01:1 and 4.62:1, Park's white on accent 4.61:1. Non-text: accent against the
+ground 4.11:1, against the surface 3.79:1. Every text pair is above 4.5 and every non-text pair above 3.
+
+## D-035: One tag, and a Review that explains itself
+
+**Date:** 2026-11-08.
+
+- **Capture offers one optional tag, Today.** It is stored as the existing `now` tag, so older data
+  works unchanged. Under it, one line says what it is for: "Optional. Makes it stand out when you
+  review." The chip and the line appear only once there is text, as before, and the reserved block is
+  4rem tall at all times so nothing moves. Measured at 390 and 1280: the headline and the field sit at
+  the same pixel at rest, with one line, with three lines and after a park.
+- **Later and ? are off the screen, not out of the data.** `later` and `?` stay in the data model and in
+  triage, so a capture tagged before this sorts as it did.
+- **An untagged capture ending in a question mark goes to Wonder.** Everything else untagged keeps the
+  old rules. A question tag still wins over a repeat count.
+- **Today items come first in Review** and carry a small Today badge. The first Today item is also the
+  first `do`, so the one carry-forward goes to it.
+- **The bucket label is a suggestion**: "Suggested: Wonder". The AI button is "Sort with AI". Without a
+  key it is hidden and the status line says "Sorted by rules. Add a Gemini key in Settings for AI."
+  An empty queue says "Nothing to sort." Copy does not set the person's schedule, so "tonight" is also
+  out of the rule-triage reasons, and the reason for a Today item reads "You tagged this Today".
+- **"N waiting to sort"** is a quiet link under Capture's stack that opens Review. It is muted, never
+  blue, hidden at zero, and holds its own fixed line, so it cannot read as something overdue and
+  cannot move anything. It counts untriaged captures only.
+
+## D-036: A sample week, and why it never mixes with real data
+
+**Date:** 2026-11-08.
+
+A stranger who opens the app sees an empty screen, and the patterns, the triage and the digest are
+invisible. "See a sample week" appears on each empty state (Capture's empty stack, Review, Patterns)
+and loads 42 invented captures over the past seven days plus five wins. Nothing in it is a real
+person's.
+
+- **Every sample row carries `sample: true`.** An optional field on a capture or a win: no new index,
+  no schema version, and stored data from before this is untouched.
+- **Export skips sample rows** (`exportAllData`). A backup never holds them.
+- **Clear sample removes exactly those rows.** Anything parked while the sample was loaded is a real
+  capture and survives. Checked: parked one capture with the sample loaded, cleared, and one capture
+  remained.
+- **A slim banner on every screen** says "Sample week" with the Clear sample action, and says what
+  just happened ("Sample week loaded.", "Sample cleared.") for four seconds. Screens that fill the
+  viewport subtract the banner's height, so it never causes a scroll.
+- **Today's rows are stamped minutes before the moment of loading**, untriaged, so Review has a queue
+  at any time of day. The three repeats sit in that set on purpose: rule triage only counts repeats
+  inside the queue it is given, so spread across days the "drop" suggestion would never show. The six
+  earlier days are at fixed clock times and already sorted, which keeps the hour chart's shape: a
+  morning peak and an evening one.
+- **Loading twice does nothing**; a second load while one is loaded is ignored.
+
+## D-037: Patterns, the digest, a credit, and words as they are heard
+
+**Date:** 2026-11-08.
+
+- **Untranscribed voice notes are not repeats.** A note saved without a transcript is the text
+  `[voice]` whatever was said, so five different notes counted as one thought parked five times and
+  could be offered as "drop" or listed as stuck. They are skipped when counting repeats. They still
+  count as captures.
+- **The repeats list shows the words as first parked**, not the lower-case key used for counting.
+- **The digest export reads well without a key**: "This week: 42 captures across 7 days. Busiest
+  hour: 09:00. 3 items keep coming back. An AI digest is optional: add a Gemini key in Settings." It
+  uses only the numbers Patterns already shows and compares nothing with any other day.
+- **Settings credits the kit**: "Built on nil-ds", linking to https://nil-ds.vercel.app in a new tab.
+- **Words appear as they are heard while recording**, muted, in the reserved line under the field,
+  replaced by the saved text at the park. No recorded decision forbids it. The change to
+  `src/lib/voice.ts` is one optional callback; what gets saved is decided where it was before. The
+  words are not in a live region, because they change many times a second. Only checked with a
+  simulated recogniser here, not a real microphone.

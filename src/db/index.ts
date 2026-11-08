@@ -151,9 +151,10 @@ export async function saveSettings(
 }
 
 export async function exportAllData() {
+  // Sample rows (D-036) are never part of a backup: they are not the owner's.
   const [captures, wins, settings] = await Promise.all([
-    db.captures.toArray(),
-    db.wins.toArray(),
+    db.captures.filter((c) => c.sample !== true).toArray(),
+    db.wins.filter((w) => w.sample !== true).toArray(),
     db.settings.toArray(),
   ]);
 

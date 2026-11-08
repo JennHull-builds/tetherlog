@@ -14,7 +14,8 @@ interface NavBarProps {
 }
 
 /** Four kit Buttons: the current screen is the secondary variant and carries
- *  aria-current, the others are ghost. D-031. */
+ *  aria-current, the others are ghost, and the current one reads in the kit's accent text
+ *  colour (D-034). D-031. */
 export function NavBar({ screen, onNavigate }: NavBarProps) {
   return (
     <nav
@@ -32,6 +33,9 @@ export function NavBar({ screen, onNavigate }: NavBarProps) {
             size="sm"
             variant={screen === item.id ? "secondary" : "ghost"}
             aria-current={screen === item.id ? "page" : undefined}
+            // Blue marks where you are (D-034). Accent text on the kit's own
+            // secondary frame, so Park stays the only filled blue.
+            style={screen === item.id ? { color: "var(--nil-color-text-accent)" } : undefined}
             onClick={() => onNavigate(item.id)}
           >
             {item.label}

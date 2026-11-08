@@ -54,6 +54,12 @@ export interface Capture {
   audioMimeType?: string;
   durationMs?: number;
   transcriptStatus?: TranscriptStatus;
+  /**
+   * Set only on rows loaded by "See a sample week" (D-036). A sample row is
+   * never exported and Clear sample removes exactly these. Real captures never
+   * carry it, so old stored data needs no migration.
+   */
+  sample?: boolean;
 }
 
 export interface Win {
@@ -61,6 +67,8 @@ export interface Win {
   text: string;
   createdAt: number;
   reviewDate: string;
+  /** See Capture.sample. */
+  sample?: boolean;
 }
 
 export interface AppSettings {
