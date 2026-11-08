@@ -10,7 +10,7 @@ import {
   getUntriagedCaptures,
   getWinsForDay,
 } from "../db";
-import { aiTriageWithGemini, ruleBasedTriage } from "../lib/agent";
+import { aiTriageWithGemini, GEMINI_TIMEOUT_MS, ruleBasedTriage } from "../lib/agent";
 import {
   copyText,
   downloadFile,
@@ -266,7 +266,9 @@ export function ReviewView() {
     if (queue.length === 0 || !settings?.geminiApiKey) return;
 
     setLoading(true);
-    setStatus(null);
+    // Say how long up front: without it, a wait of more than a few seconds
+    // reads as broken (Jen, 2026-11-08). Product rule 1.
+    setStatus(`Gemini is sorting. This can take up to ${GEMINI_TIMEOUT_MS / 1000} seconds.`);
 
     try {
       const batch = await aiTriageWithGemini(settings.geminiApiKey, queue);

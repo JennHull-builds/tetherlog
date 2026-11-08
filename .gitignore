@@ -9,3 +9,6 @@ dist
 docs/references/*
 !docs/references/README.md
 !docs/references/NOTES.md
+
+# Exported backups hold every capture. Never commit one.
+tetherlog-backup-*.json

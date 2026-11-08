@@ -1,6 +1,67 @@
 import type { Capture, ReviewBatch, TriageSuggestion } from "../types";
 import { reviewBatchSchema } from "../types";
 
+/**
+ * The one place the Gemini model is named. gemini-2.0-flash was shut down on
+ * 1 June 2026 and every AI call 404'd silently into rule triage. Check
+ * https://ai.google.dev/gemini-api/docs/deprecations before changing this.
+ * Checked 2026-11-08: gemini-3.6-flash is Google's named replacement, stable,
+ * no shutdown date announced. gemini-3.8-flash was tried first and answered
+ * "high demand" (503) and then took over 45 seconds, the same evening.
+ */
+const GEMINI_MODEL = "gemini-3.6-flash";
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+/**
+ * Gemini 3 models think before they answer, at "medium" by default, and the
+ * first test on 2026-11-08 sat on "Reviewing" with no end. Sorting a handful
+ * of one-line thoughts does not need deep thought, so it runs at "minimal",
+ * the lowest level Google lists for gemini-3.6-flash.
+ */
+const GEMINI_THINKING = { thinkingLevel: "minimal" } as const;
+
+/**
+ * No call may hang forever: past this, the person is told and rules take over.
+ * Review tells them the wait up front, from this same number.
+ */
+export const GEMINI_TIMEOUT_MS = 20_000;
+
+async function postGemini(apiKey: string, body: unknown): Promise<Response> {
+  try {
+    return await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "TimeoutError") {
+      throw new Error(`Gemini took longer than ${GEMINI_TIMEOUT_MS / 1000} seconds.`, {
+        cause: error,
+      });
+    }
+    throw new Error("Could not reach Gemini. Check your connection.", { cause: error });
+  }
+}
+
+/**
+ * Google's own reason, in words, so a person can act on it: "API key not
+ * valid" reads very differently from a bare 400. The key is never part of
+ * the message, because Google does not echo it back.
+ */
+async function geminiError(response: Response): Promise<string> {
+  let reason = "";
+  try {
+    const body = (await response.json()) as { error?: { message?: string } };
+    reason = body.error?.message?.trim() ?? "";
+  } catch {
+    // Not JSON: keep the status code alone.
+  }
+  return reason
+    ? `Gemini said: ${reason} (${response.status}).`
+    : `Gemini request failed (${response.status}).`;
+}
+
 function normalise(text: string): string {
   return text.trim().toLowerCase().replace(/\s+/g, " ");
 }
@@ -177,36 +238,30 @@ export async function aiTriageWithGemini(
     )
     .join("\n");
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
+  const response = await postGemini(apiKey, {
+    contents: [
+      {
+        parts: [
           {
-            parts: [
-              {
-                text: `You triage TetherLog captures for a neurodivergent user.
+            text: `You triage TetherLog captures for a neurodivergent user.
 Return ONLY valid JSON matching this shape:
 {"items":[{"captureId":"...","bucket":"do|later|drop|wonder","reason":"one warm line","carryForward":false,"suggestedAction":"optional"}],"summary":{"do":0,"later":0,"drop":0,"wonder":0}}
 Rules: max one carryForward true across all items. Warm, literal, no guilt. No streak talk.
 
 Captures:
 ${prompt}`,
-              },
-            ],
           },
         ],
-        generationConfig: {
-          responseMimeType: "application/json",
-        },
-      }),
+      },
+    ],
+    generationConfig: {
+      responseMimeType: "application/json",
+      thinkingConfig: GEMINI_THINKING,
     },
-  );
+  });
 
   if (!response.ok) {
-    throw new Error(`Gemini request failed (${response.status})`);
+    throw new Error(await geminiError(response));
   }
 
   const data = (await response.json()) as {
@@ -224,30 +279,24 @@ export async function aiWeeklyDigest(
   apiKey: string,
   stats: ReturnType<typeof buildWeeklyStats>,
 ): Promise<string> {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
+  const response = await postGemini(apiKey, {
+    contents: [
+      {
+        parts: [
           {
-            parts: [
-              {
-                text: `Write a warm, literal, spare weekly digest paragraph (3-5 sentences) for a neurodivergent user's TetherLog stats. No guilt. No streaks. Observations only if data supports it.
+            text: `Write a warm, literal, spare weekly digest paragraph (3-5 sentences) for a neurodivergent user's TetherLog stats. No guilt. No streaks. Observations only if data supports it.
 
 Stats JSON:
 ${JSON.stringify(stats)}`,
-              },
-            ],
           },
         ],
-      }),
-    },
-  );
+      },
+    ],
+    generationConfig: { thinkingConfig: GEMINI_THINKING },
+  });
 
   if (!response.ok) {
-    throw new Error(`Gemini request failed (${response.status})`);
+    throw new Error(await geminiError(response));
   }
 
   const data = (await response.json()) as {
