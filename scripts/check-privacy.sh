@@ -36,6 +36,20 @@ if [ -n "$media" ]; then
   fail=1
 fi
 
+# Keys and backups. A Google API key starts with "AIza"; a backup is the
+# file Settings exports, and it holds every capture. Neither may ever be
+# tracked. GitHub push protection is on for this repo too (2026-11-08),
+# but this fails before the commit, not at the push.
+keys=$(git ls-files -z 2>/dev/null \
+  | xargs -0 grep -nEIo 'AIza[0-9A-Za-z_-]{30,}' 2>/dev/null \
+  | sed -E 's/(AIza[0-9A-Za-z_-]{4})[0-9A-Za-z_-]+/\1(redacted)/' || true)
+backups=$(git ls-files | grep -E '(^|/)tetherlog-backup-.*\.json$' || true)
+if [ -n "$keys$backups" ]; then
+  echo "✗ An API key or an exported backup is tracked. This repo is public." >&2
+  [ -n "$keys" ] && echo "$keys" | sed 's/^/    /' >&2
+  [ -n "$backups" ] && echo "$backups" | sed 's/^/    /' >&2
+  fail=1
+fi
 # ── 3. Commit identity ─────────────────────────────────────────────────
 # This repo is public, so it commits under a GitHub noreply address rather
 # than a personal one. Warn, never fail: CI has no git identity configured,

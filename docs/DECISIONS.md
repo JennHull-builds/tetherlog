@@ -1825,3 +1825,37 @@ Import keeps the key already on the device when the backup has none, because `bu
 otherwise replace the settings row and delete it. A backup made before this fix that does hold a key
 still restores it, overwriting the key on the device. Sharing an old backup shares its key, so a
 backup made before this fix should be deleted or regenerated.
+
+## D-033: Gemini works again, and says what it is doing
+
+**Date:** 2026-11-08
+
+### What was wrong
+
+`src/lib/agent.ts` called `gemini-2.0-flash`, which Google shut down on 1 June 2026. Every AI triage
+and digest request failed with a 404 and fell back to rules, and the screen only said "Gemini request
+failed (404)". Settings confirmed a save with a muted word that vanished after 600ms, so a saved key
+looked like nothing happened.
+
+### What changed
+
+- **One constant names the model:** `gemini-3.6-flash`, the replacement Google names on its
+  deprecations page (checked 2026-11-08, no shutdown date announced). `gemini-3.8-flash` was tried
+  first and answered 503 "high demand", then took over 45 seconds.
+- **Thinking runs at `minimal`.** Gemini 3 models think at `medium` by default. Sorting a few one-line
+  thoughts does not need it, and the default left Review on "Reviewing" with no end.
+- **No call waits forever.** Requests stop after 20 seconds (`GEMINI_TIMEOUT_MS`), say so, and fall
+  back to rules. Review says how long the wait can be the moment it starts.
+- **Errors say why.** The app shows Google's own reason ("API key not valid", "high demand") instead of
+  a bare status code. Google never echoes the key, so the message cannot leak it.
+- **Save says it saved.** The button reads "Saved" until something changes, and a line under the key
+  field always says whether a key is stored. A show/hide control lets a pasted key be checked by eye
+  (text for now, an icon once nil-ds has icons).
+- **Keys and backups cannot be committed.** `scripts/check-privacy.sh` fails on anything shaped like a
+  Google API key or an exported backup file, and `.gitignore` ignores backup files. GitHub push
+  protection is on for the repository as a second lock.
+
+### Not done here
+
+The bracket labels, icons, the status line's own style and its spacing belong to nil-ds and arrive
+when the kit has them.

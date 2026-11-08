@@ -3,7 +3,6 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { Button, Heading, Input, Text } from "nil-ds";
 import { exportAllData, getSettings, importAllData, saveSettings } from "../db";
 import { downloadFile } from "../lib/hands";
-import { readDurationMs } from "../lib/motion";
 
 /**
  * Settings. The quietest screen: nothing here needs character, it needs to be
@@ -44,6 +43,7 @@ export function SettingsView() {
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [showKey, setShowKey] = useState(false);
   const importRef = useRef<HTMLInputElement | null>(null);
 
   // Settings arrive from Dexie asynchronously and re-emit after every save.
@@ -66,10 +66,10 @@ export function SettingsView() {
       reviewReminderEnabled: reminderEnabled,
       soundEnabled,
     });
+    // Saved stays shown until something changes. It used to vanish after
+    // 600ms in muted text, and on 2026-11-08 Jen saved a key and saw nothing
+    // at all. Product rule 1: always show that the system has done the thing.
     setSaved(true);
-    // The same token "Parked." uses, so the two confirmations agree, including
-    // the longer hold under reduced motion.
-    window.setTimeout(() => setSaved(false), readDurationMs("--tl-duration-confirm", 600));
 
     if (reminderEnabled && "Notification" in window) {
       const permission = await Notification.requestPermission();
@@ -115,11 +115,35 @@ export function SettingsView() {
         </Text>
         <Input
           label="Gemini API key (BYOK)"
-          type="password"
+          type={showKey ? "text" : "password"}
+          autoComplete="off"
+          spellCheck={false}
           value={apiKey}
-          onChange={(event) => setApiKey(event.target.value)}
+          onChange={(event) => {
+            setApiKey(event.target.value);
+            setSaved(false);
+          }}
           placeholder="Paste key from Google AI Studio"
         />
+        {/* So a pasted key can be checked by eye. Words, not an eye icon,
+            until nil-ds has icons; aria-pressed carries the state. */}
+        <div>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-pressed={showKey}
+            onClick={() => setShowKey((v) => !v)}
+          >
+            {showKey ? "Hide key" : "Show key"}
+          </Button>
+        </div>
+        {/* Read from what is stored, not from the field, so it only says
+            "saved" once the key really is. */}
+        <Text size="sm" muted aria-live="polite">
+          {settings?.geminiApiKey
+            ? "Key saved on this device. AI sorting is on."
+            : "No key saved. Sorting uses simple rules."}
+        </Text>
       </Section>
 
       <Section>
@@ -128,7 +152,10 @@ export function SettingsView() {
           <input
             type="checkbox"
             checked={reminderEnabled}
-            onChange={(event) => setReminderEnabled(event.target.checked)}
+            onChange={(event) => {
+              setReminderEnabled(event.target.checked);
+              setSaved(false);
+            }}
             style={CHECKBOX}
           />
           Remind me to review
@@ -140,7 +167,10 @@ export function SettingsView() {
             min={0}
             max={23}
             value={String(reminderHour)}
-            onChange={(event) => setReminderHour(Number(event.target.value))}
+            onChange={(event) => {
+              setReminderHour(Number(event.target.value));
+              setSaved(false);
+            }}
           />
         </div>
       </Section>
@@ -151,7 +181,10 @@ export function SettingsView() {
           <input
             type="checkbox"
             checked={soundEnabled}
-            onChange={(event) => setSoundEnabled(event.target.checked)}
+            onChange={(event) => {
+              setSoundEnabled(event.target.checked);
+              setSaved(false);
+            }}
             style={CHECKBOX}
           />
           Play a sound when you park
@@ -185,12 +218,12 @@ export function SettingsView() {
 
       <div className="mt-10 flex flex-col items-start gap-3">
         <Button variant="primary" onClick={() => void handleSave()}>
-          Save settings
+          {saved ? "Saved" : "Save settings"}
         </Button>
         {/* A reserved line, so confirming never moves the button above it. */}
         <div className="flex h-6 items-center">
           <Text muted aria-live="polite" aria-atomic="true">
-            {saved ? "Saved." : ""}
+            {saved ? "Saved on this device." : ""}
           </Text>
         </div>
       </div>
