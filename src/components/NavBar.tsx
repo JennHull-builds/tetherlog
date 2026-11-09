@@ -1,11 +1,12 @@
 import { Button } from "nil-ds";
+import type { IconName } from "nil-ds";
 import type { Screen } from "../types";
 
-const NAV: { id: Screen; label: string }[] = [
-  { id: "capture", label: "Capture" },
-  { id: "review", label: "Review" },
-  { id: "patterns", label: "Patterns" },
-  { id: "settings", label: "Settings" },
+const NAV: { id: Screen; label: string; icon: IconName }[] = [
+  { id: "capture", label: "Capture", icon: "capture" },
+  { id: "review", label: "Review", icon: "review" },
+  { id: "patterns", label: "Patterns", icon: "patterns" },
+  { id: "settings", label: "Settings", icon: "settings" },
 ];
 
 interface NavBarProps {
@@ -13,7 +14,7 @@ interface NavBarProps {
   onNavigate: (screen: Screen) => void;
 }
 
-/** Four kit Buttons: the current screen is the secondary variant and carries
+/** Four kit Buttons, each an icon beside its word: the current screen is the secondary variant and carries
  *  aria-current, the others are ghost, and the current one reads in the kit's accent text
  *  colour (D-034). D-031. */
 export function NavBar({ screen, onNavigate }: NavBarProps) {
@@ -31,6 +32,7 @@ export function NavBar({ screen, onNavigate }: NavBarProps) {
           <Button
             key={item.id}
             size="sm"
+            icon={item.icon}
             variant={screen === item.id ? "secondary" : "ghost"}
             aria-current={screen === item.id ? "page" : undefined}
             // Blue marks where you are (D-034). Accent text on the kit's own

@@ -241,7 +241,7 @@
  * kit's own focus ring, and a target tall enough to press (D-035).
  */
 .tl-quiet-link {
-  min-height: 2rem;
+  min-height: var(--nil-size-tap);
   padding-inline: var(--nil-spacing-sm);
   font-family: var(--nil-font-body);
   font-size: var(--nil-type-scale-sm);

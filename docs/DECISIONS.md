@@ -42,6 +42,7 @@ D-025 and D-026. |
 | Capture on nil-ds | **Built 2026-11-03, awaiting a look on a phone.** Capture is the kit's Composer in the kit's dark theme, on a pinned dependency. The grid is off Capture. See D-030. |
 | Review, Patterns, Settings and the nav on nil-ds | **Built 2026-11-04, awaiting a look on a phone.** The whole app is on the kit and Geist is gone. See D-031. |
 | Polish, slice 1 | **Built 2026-11-08, awaiting a look.** Light theme, a sample week, one Today tag, a Review that explains itself. See D-034 to D-037. |
+| nil-ds 0.3.0 | **Built 2026-11-09, awaiting a look.** Icons on controls, Offset buttons, the hour chart on the kit's ramp. See D-038. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -1954,3 +1955,26 @@ person's.
   `src/lib/voice.ts` is one optional callback; what gets saved is decided where it was before. The
   words are not in a live region, because they change many times a second. Only checked with a
   simulated recogniser here, not a real microphone.
+
+## D-038: nil-ds 0.3.0, icons on controls, and the hour chart on the kit's ramp
+
+**Date:** 2026-11-09.
+
+- **TetherLog is pinned to nil-ds 0.3.0**, still by one full commit hash over https (D-030). The kit's
+  buttons are now the Offset style: a thick frame and a hard shadow in the border colour, with no
+  bracket labels. This repo never wrote brackets of its own, so nothing was removed here.
+- **Controls use the kit's icons, and every icon-only control keeps an accessible name.** Show key and
+  Hide key is now an eye and an eye-off button (`aria-label` follows the state, `aria-pressed` carries
+  it). Voice capture is a mic button named "Record a voice note", and Stop and park shows the stop
+  icon beside its words. Park keeps its word beside the kit's arrow, which Composer draws.
+  The nav, the copy, download, share, print and email actions, Export and Import, Add and Clear
+  sample show an icon beside their word. Only icons the kit exports are used, and none is drawn here.
+- **The hour chart reads the kit's chart ramp.** Each hour is one of the five blue steps by its share
+  of the busiest hour, outlined in the border colour as the kit asks of every chart mark. An empty hour
+  is still a muted line with no outline. No colour value is written in this repo (`npm run
+  tokens:check`). The chart carries no wins, so there was nothing to colour green; wins keep the
+  success green on Review.
+- **Every tappable control is at least 44 by 44 px.** The kit's `md` button is 44 tall, and its `sm`
+  button is 36 tall with a 44 px tap area. The quiet "waiting to sort" link on Capture was 32 tall and
+  is now 44.
+- Behaviour, copy and the product rules are unchanged. Not looked at on a phone yet.

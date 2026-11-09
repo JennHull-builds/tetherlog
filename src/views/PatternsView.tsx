@@ -132,19 +132,19 @@ export function PatternsView() {
         )}
         {digest && <Text>{digest}</Text>}
         <div className="flex flex-wrap gap-2">
-          <Button variant="ghost" onClick={() => void copyText(digestMarkdown)}>
+          <Button variant="ghost" icon="copy" onClick={() => void copyText(digestMarkdown)}>
             Copy digest
           </Button>
           <Button
             variant="ghost"
-           
+            icon="download"
             onClick={() => downloadFile("weekly-digest.md", digestMarkdown, "text/markdown")}
           >
             Download markdown
           </Button>
           <Button
             variant="ghost"
-           
+            icon="share"
             onClick={() => void shareText("Weekly digest", digest ?? digestMarkdown)}
           >
             Share
@@ -177,6 +177,12 @@ function describeStats(
     stuck,
     "An AI digest is optional: add a Gemini key in Settings.",
   ].join(" ");
+}
+
+/** The kit's five-step chart ramp, pale to full. A count lands on the step its share of the busiest hour reaches. */
+function rampColour(count: number, max: number): string {
+  const step = Math.min(5, Math.max(1, Math.ceil((count / max) * 5)));
+  return `var(--nil-color-chart-ramp-${step})`;
 }
 
 function SectionTitle({ children }: { children: string }) {
@@ -215,8 +221,14 @@ function HourDistribution({ heatmap, max }: HourDistributionProps) {
             className="tl-bar-grow"
             title={`${hour}:00, ${count === 1 ? "1 capture" : `${count} captures`}`}
             style={{
-              height: count ? `max(2px, ${(count / max) * 100}%)` : "2px",
-              background: count ? "var(--nil-color-text)" : "var(--nil-color-text-muted)",
+              height: count ? `max(4px, ${(count / max) * 100}%)` : "2px",
+              // A count is a step on the kit's five-step blue ramp, outlined in
+              // the border colour like every chart mark. An empty hour stays a
+              // plain muted line: nothing was drawn there, so it has no outline.
+              background: count ? rampColour(count, max) : "var(--nil-color-text-muted)",
+              border: count
+                ? "var(--nil-border-width) solid var(--nil-color-border)"
+                : undefined,
               borderRadius: "var(--nil-radius-sm)",
               // Staggered by 8ms, so the row reads left to right once and then
               // is still. The only decorative motion in the app, and it is

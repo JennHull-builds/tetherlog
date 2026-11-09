@@ -673,7 +673,7 @@ function WrapUp({
               }}
             />
           </div>
-          <Button variant="ghost" onClick={() => void handleAddWin()}>
+          <Button variant="ghost" icon="plus" onClick={() => void handleAddWin()}>
             Add
           </Button>
         </div>
@@ -693,12 +693,12 @@ function WrapUp({
             Export your do items. No paid integrations.
           </Text>
           <div className="flex flex-wrap gap-2">
-            <Button variant="ghost" onClick={() => void copyText(formatDoList(triagedToday))}>
+            <Button variant="ghost" icon="copy" onClick={() => void copyText(formatDoList(triagedToday))}>
               Copy do list
             </Button>
             <Button
               variant="ghost"
-             
+              icon="copy"
               onClick={() =>
                 void copyText(formatReviewMarkdown(dayKey, triagedToday, winTexts))
               }
@@ -707,7 +707,7 @@ function WrapUp({
             </Button>
             <Button
               variant="ghost"
-             
+              icon="download"
               onClick={() =>
                 downloadFile(
                   `tetherlog-${dayKey}.ics`,
@@ -718,19 +718,19 @@ function WrapUp({
             >
               Download .ics
             </Button>
-            <Button variant="ghost" onClick={() => mailtoDoList(triagedToday)}>
+            <Button variant="ghost" icon="mail" onClick={() => mailtoDoList(triagedToday)}>
               Email do list
             </Button>
             <Button
               variant="ghost"
-             
+              icon="share"
               onClick={() =>
                 void shareText("TetherLog review", formatDoList(triagedToday))
               }
             >
               Share
             </Button>
-            <Button variant="ghost" onClick={() => window.print()}>
+            <Button variant="ghost" icon="printer" onClick={() => window.print()}>
               Print
             </Button>
           </div>

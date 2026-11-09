@@ -152,6 +152,7 @@ export function SampleBanner() {
             <Button
               variant="ghost"
               size="sm"
+              icon="close"
               disabled={busy}
               onClick={() => void clear()}
             >
