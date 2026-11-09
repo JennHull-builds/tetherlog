@@ -58,6 +58,22 @@ interface Sink {
   height: number;
 }
 
+/**
+ * The example thoughts the empty box offers (D-040): the standing line first,
+ * then a plain task, one that is clearly for today, and a question. Questions
+ * ending in a question mark sort to Wonder. Each fits on one line down to 320px wide, because a placeholder that wraps would make the box taller.
+ */
+const PLACEHOLDER_STILL = "One line is enough";
+const PLACEHOLDER_EXAMPLES = [
+  PLACEHOLDER_STILL,
+  "Order printer ink",
+  "Send the invoice today",
+  "Why is dusk so pink?",
+];
+
+/** How long each example rests before the next one fades in. */
+const PLACEHOLDER_REST_MS = 5000;
+
 /** Each character starts a little after the one before it, up to a cap. */
 const SINK_STAGGER_MS = 8;
 const SINK_STAGGER_CAP_MS = 180;
@@ -122,6 +138,12 @@ export function CaptureView({ onParked, onOpenReview }: CaptureViewProps) {
   const [elapsedMs, setElapsedMs] = useState(0);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [sinking, setSinking] = useState<Sink[]>([]);
+  /** Which example thought the empty box is showing, and whether it is mid-fade. */
+  const [exampleAt, setExampleAt] = useState(0);
+  const [exampleFading, setExampleFading] = useState(false);
+  const [focused, setFocused] = useState(false);
+  /** When this screen opened: a capture made after it is one that has just landed. */
+  const [openedAt] = useState(() => Date.now());
   /** Words the browser has heard so far while recording, shown muted. */
   const [heard, setHeard] = useState("");
 
@@ -180,6 +202,57 @@ export function CaptureView({ onParked, onOpenReview }: CaptureViewProps) {
     window.addEventListener("keydown", onSlash);
     return () => window.removeEventListener("keydown", onSlash);
   }, []);
+
+  // Any printable key starts typing (D-040): when nothing has focus, the box
+  // takes the key and the character lands in it. A key pressed on a button, a
+  // link or another field is never taken, and neither is a shortcut (Cmd,
+  // Ctrl or Alt held), a dead key, a composing key, or a space.
+  useEffect(() => {
+    function onAnyKey(event: KeyboardEvent) {
+      if (event.defaultPrevented || event.isComposing) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key.length !== 1 || event.key.trim() === "" || event.key === "/") return;
+      const active = document.activeElement;
+      if (active && active !== document.body && active !== document.documentElement) return;
+      const input = inputRef.current;
+      if (!input || input.disabled) return;
+      event.preventDefault();
+      const next = `${input.value}${event.key}`;
+      caretRef.current = next.length;
+      setText(next);
+      input.focus();
+    }
+
+    window.addEventListener("keydown", onAnyKey);
+    return () => window.removeEventListener("keydown", onAnyKey);
+  }, []);
+
+  // The empty box cycles through example thoughts, slowly, and only at rest:
+  // empty, not focused, not recording, nothing sinking, tab visible, motion
+  // allowed. The moment any of that stops being true the loop is torn down,
+  // and the box goes back to its standing line. Rule 1: no ambient loop while
+  // the field is focused.
+  const resting =
+    text === "" && !focused && !recording && sinking.length === 0 && !prefersReducedMotion();
+  useEffect(() => {
+    if (!resting) return;
+    const fade = readDurationMs("--nil-motion-duration-base", 200);
+    let swap = 0;
+    const loop = window.setInterval(() => {
+      if (document.hidden) return;
+      setExampleFading(true);
+      swap = window.setTimeout(() => {
+        setExampleAt((at) => (at + 1) % PLACEHOLDER_EXAMPLES.length);
+        setExampleFading(false);
+      }, fade);
+    }, PLACEHOLDER_REST_MS);
+    return () => {
+      window.clearInterval(loop);
+      window.clearTimeout(swap);
+      setExampleFading(false);
+      setExampleAt(0);
+    };
+  }, [resting]);
 
   useEffect(() => {
     return () => {
@@ -532,16 +605,24 @@ export function CaptureView({ onParked, onOpenReview }: CaptureViewProps) {
             maxRows={3}
             prefix=">"
             placeholder={
-              recording ? "Recording… stop when done" : "One line is enough"
+              recording
+                ? "Recording… stop when done"
+                : resting
+                  ? PLACEHOLDER_EXAMPLES[exampleAt]
+                  : PLACEHOLDER_STILL
             }
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
             autoComplete="off"
             enterKeyHint="done"
             disabled={recording}
-            className={
-              sinking.length > 0
-                ? "tl-capture-input tl-placeholder-hold"
-                : "tl-capture-input"
-            }
+            className={[
+              "tl-capture-input",
+              sinking.length > 0 ? "tl-placeholder-hold" : "",
+              exampleFading ? "tl-placeholder-swap" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
             style={{
               // Hold the height the box had until the words have sunk, then
               // relax on the settle spring. Collapse it at the park instead and
@@ -640,7 +721,7 @@ export function CaptureView({ onParked, onOpenReview }: CaptureViewProps) {
         */}
         <div className="relative h-32 overflow-hidden lg:overflow-visible">
           {captures.length > 0 ? (
-            <PeekStack captures={captures} countRef={countRef} />
+            <PeekStack captures={captures} countRef={countRef} since={openedAt} />
           ) : (
             <SampleOffer />
           )}

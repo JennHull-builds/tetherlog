@@ -36,7 +36,14 @@ export function NavBar({ screen, onNavigate }: NavBarProps) {
         aria-current={screen === item.id ? "page" : undefined}
         // Blue marks where you are (D-034). Accent text on the kit's own
         // secondary frame, so Park stays the only filled blue.
-        style={screen === item.id ? { color: "var(--nil-color-text-accent)" } : undefined}
+        // The selected button carries the view-transition name, so when the
+        // screen changes the browser glides it from the old tab to the new one
+        // (D-040). Only one nav is displayed at a time, so the name is unique.
+        style={
+          screen === item.id
+            ? { color: "var(--nil-color-text-accent)", viewTransitionName: "nav-current" }
+            : undefined
+        }
         className={size === "md" ? "w-full justify-start" : undefined}
         onClick={() => onNavigate(item.id)}
       >

@@ -44,6 +44,7 @@ D-025 and D-026. |
 | Polish, slice 1 | **Built 2026-11-08, awaiting a look.** Light theme, a sample week, one Today tag, a Review that explains itself. See D-034 to D-037. |
 | nil-ds 0.3.0 | **Built 2026-11-09, awaiting a look.** Icons on controls, Offset buttons, the hour chart on the kit's ramp. See D-038. |
 | Polish, slice 2 | **Built 2026-11-09, awaiting a look.** A desktop layout above 1024px: a side rail, Capture's stack beside the box, two columns on Review and Patterns. See D-039. |
+| Polish, slice 3 | **Built 2026-11-09, awaiting a look.** Motion at the moments that matter, example thoughts in the empty box, any key starts typing, and the kit's chart colours on the four groups. See D-040 and D-041. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -2013,3 +2014,68 @@ Below 1024px nothing changes: the bottom bar and the single column stay exactly 
   in the window.
 - **Running text stops at about 70 characters** (`70ch`) on the screens that carry paragraphs.
 - **Behaviour and copy are unchanged**, apart from the heading "To sort" over Review's new list.
+
+## D-040: Motion at the moments that matter, example thoughts, and any key starts typing
+
+**Date:** 2026-11-09.
+
+Every animation here reads the kit's motion tokens: the durations 120 ms (`--nil-motion-duration-fast`),
+200 ms (`base`), 360 ms (`slow`) and 650 ms (`enter`, not used), and its ease-out curve
+(`--nil-motion-easing-out-expo`). No bounce, no overshoot, no glow. Nothing here moves Capture's headline
+or box: both were measured at the same pixel before and after a park, at 390 and 1280, in both motion modes.
+The product rule that nothing animates in response to typing is unchanged, and so is the rule that
+nothing loops while the box is focused.
+
+Each one has a designed still version under `prefers-reduced-motion: reduce`: the end state appears at
+once, not a shortened animation.
+
+| Moment | What moves | Reduced motion |
+|---|---|---|
+| **A park lands** | The letters sink as before. The stack trails the park by the base duration, so the new row arrives as the last letters finish: it drops in from just above on a phone (the stack is under the box) and slides in from the box's side on desktop (the stack is beside it). The older row glides down to make room, the "N parked today" numeral rolls up (old one lifts out, new one rises in), all at that one moment. | No sink, no travel. The row is there, the numeral is the new number. |
+| **Changing screen** | `document.startViewTransition` cross-fades the old screen into the new one (base duration), and the selected nav button, which carries `view-transition-name: nav-current`, glides from the old tab to the new one (slow duration), in the bottom bar and in the rail. | The screen changes at once. The transition is not even started. |
+| **Triage is thinking** | The kit's blinking cursor sits beside the status line "Gemini is sorting. This can take up to 20 seconds." while the request is out. | The kit holds the cursor solid. |
+| **The to-sort list** (desktop) | When a card is confirmed, the rows still waiting glide up one place. | They are simply in their new places. |
+| **Example thoughts** | The empty box cycles through four lines, slowly: "One line is enough", then "Order printer ink" (a task), "Send the invoice today" (clearly for Today) and "Why is dusk so pink?" (a question, which sorts to Wonder). Each rests five seconds, fades out and the next fades in (base duration). | One still line, "One line is enough". |
+
+- **The examples only play at rest**: the box is empty, not focused, not recording, nothing is sinking, the
+  tab is visible. The moment the box takes focus or text, the loop is torn down and the line goes back to
+  "One line is enough". On a desktop with a mouse the box is focused as the screen opens, so the examples
+  show there when focus is somewhere else; on a phone, where nothing is focused until a tap, they show at
+  once. Each example fits on one line down to 320px wide, because a placeholder that wraps would grow the
+  box (checked at 320 and 390).
+- **Gliding is the technique called FLIP** (`src/lib/flip.ts`): measure where an item was, let the layout
+  change, measure where it is now, animate the difference. It animates the individual `translate` property
+  and `width`, which also keeps the word that would trip the CSS leak guard out of the source.
+- **"Items glide into their groups" was not built as written.** The wrap-up shows a count per group and an
+  undifferentiated list of do items, so no item moves into a group on screen. The to-sort list is the one
+  place items change place, so the glide is there.
+- **On desktop, any key starts typing.** When nothing has focus, a printable key focuses the box and the
+  character lands in it. Cmd, Ctrl and Alt combinations, space, dead and composing keys are ignored, and a key
+  pressed on a button, a link or another field is never taken. The "/" shortcut is as before: it focuses the
+  box and types nothing. It is harmless at every width, and it only ever acts when nothing has focus.
+
+## D-041: The four groups wear the kit's chart colours
+
+**Date:** 2026-11-09.
+
+The kit's 0.3.0 categorical palette has two colours, each in a full and a pale form. The mapping the kit
+suggested is now applied:
+
+| Group | Fill | Text on it |
+|---|---|---|
+| Do | `--nil-color-chart-blue` | `--nil-color-chart-blue-text` (white, 4.61:1) |
+| Wonder | `--nil-color-chart-blue-pale` | `--nil-color-chart-blue-pale-text` (ink, 12.89:1) |
+| Drop | `--nil-color-chart-orange` | `--nil-color-chart-orange-text` (ink, 7.57:1) |
+| Later | `--nil-color-chart-orange-pale` | `--nil-color-chart-orange-pale-text` (ink, 14.05:1) |
+
+- **Wins stay `--nil-color-success`.** The hour chart stays on the blue ramp (D-038).
+- **A group colour is always a fill with its `-text` token on top**, never a text colour on the page: orange
+  text on the light ground fails contrast. Every mark is outlined in the border colour, which is the kit's rule
+  for chart marks and what keeps the pale fills above 3:1 against the page.
+- **Colour is never the only carrier.** The group's name is on every mark. Do and Wonder are two blues and
+  Drop and Later are two oranges, so the word is what tells a pair apart.
+- **Where it shows:** the "Suggested: Do" label on a Review card (and the card as it leaves), and the label
+  over each count in the wrap-up. Patterns shows no groups, so it is unchanged. The buttons that confirm or
+  override a group are the kit's buttons and are not recoloured: Confirm stays the one filled blue.
+- The mark is `src/components/ui/BucketMark.tsx`. Contrast was computed from the kit's token values.
+

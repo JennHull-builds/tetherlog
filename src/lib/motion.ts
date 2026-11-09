@@ -51,6 +51,11 @@ export function readDurationMs(name: string, fallback: number): number {
   return raw.endsWith("ms") ? value : value * 1000;
 }
 
+/** An easing token as a CSS timing function, with a fallback if the token is missing. */
+export function readEasing(name: string, fallback: string): string {
+  return readToken(name) || fallback;
+}
+
 export function readNumber(name: string, fallback: number): number {
   const value = Number.parseFloat(readToken(name));
   return Number.isNaN(value) ? fallback : value;
