@@ -330,6 +330,7 @@ export function ReviewView() {
         <TriageState
           capture={current}
           suggestion={suggestionFor(current)}
+          queue={queue}
           position={done + 1}
           total={done + queue.length}
           status={status}
@@ -360,6 +361,8 @@ export function ReviewView() {
 
 interface TriageStateProps {
   capture: Capture;
+  /** Everything still to sort, the current one first. Shown as a list from 1024px. */
+  queue: Capture[];
   suggestion: TriageSuggestion;
   position: number;
   total: number;
@@ -389,6 +392,7 @@ interface TriageStateProps {
  */
 function TriageState({
   capture,
+  queue,
   suggestion,
   position,
   total,
@@ -461,13 +465,16 @@ function TriageState({
 
   return (
     <section
-      className="flex flex-col justify-center"
+      className="tl-gutter tl-triage-screen flex flex-col justify-center"
       style={{
-        paddingInline: "var(--nil-spacing-md)",
         paddingBlock: "var(--nil-spacing-md)",
-        height: "calc(100dvh - 5.5rem - var(--sample-banner-h, 0px))",
+        height: "calc(100dvh - var(--nav-h) - var(--sample-banner-h, 0px))",
       }}
     >
+      {/* From 1024px the screen is two columns (D-039): the list of what is
+          left to sort, then the one card. Below that the list is not drawn. */}
+      <QueueList queue={queue} />
+      <div className="tl-triage-detail flex min-w-0 flex-col justify-center">
       {/*
         ONE GROUP, CENTRED: the count, the status line and the deck. Every part
         of it is a fixed height, so centring it never moves Confirm between
@@ -554,7 +561,62 @@ function TriageState({
           </div>
         </div>
       </div>
+      </div>
     </section>
+  );
+}
+
+// ── the list beside the card ────────────────────────────────────────────────
+
+/** Rows shown before "and N more", so the list ends near where the card does. */
+const QUEUE_ROWS = 8;
+
+/**
+ * What is left to sort, drawn only from 1024px (D-039). It is a read-only
+ * list, not a picker: the ritual is ordered on purpose (the carry-forward goes
+ * to the first do, and a card is confirmed, never browsed), so a row cannot be
+ * pressed to jump the queue. The card in the next column is always the first
+ * row, which is why that row is marked.
+ */
+function QueueList({ queue }: { queue: Capture[] }) {
+  const shown = queue.slice(0, QUEUE_ROWS);
+  const more = queue.length - shown.length;
+  return (
+    <div className="tl-triage-list hidden min-w-0 flex-col gap-2">
+      {/* The same height as the card column's count line, so the two start together. */}
+      <div className="flex h-9 items-center">
+        <Heading level={2} style={{ fontSize: "var(--nil-type-scale-base)" }}>
+          To sort
+        </Heading>
+      </div>
+      <ol aria-label="To sort" className="flex flex-col">
+        {shown.map((item, index) => (
+          <li
+            key={item.id}
+            aria-current={index === 0 ? "true" : undefined}
+            className="flex items-center"
+            style={{
+              minHeight: "var(--nil-size-tap)",
+              padding: "var(--nil-spacing-sm) var(--nil-spacing-md)",
+              borderLeft: `var(--nil-border-width-thick) solid ${
+                index === 0 ? "var(--nil-color-accent)" : "transparent"
+              }`,
+              fontSize: "var(--nil-type-scale-sm)",
+              lineHeight: 1.45,
+              color: index === 0 ? "var(--nil-color-text)" : "var(--nil-color-text-muted)",
+              background: index === 0 ? "var(--nil-color-surface)" : undefined,
+            }}
+          >
+            <span className="truncate">{item.text}</span>
+          </li>
+        ))}
+      </ol>
+      {more > 0 && (
+        <Text size="sm" muted>
+          and {more} more
+        </Text>
+      )}
+    </div>
   );
 }
 
@@ -613,16 +675,21 @@ function WrapUp({
 
   return (
     <section
-      className="tl-triage-rising flex flex-col gap-10 print:block"
-      style={{
-        paddingInline: "var(--nil-spacing-md)",
-        paddingBlock: "var(--nil-spacing-lg)",
-      }}
+      className="tl-gutter tl-triage-rising flex flex-col gap-10 print:block lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-16"
+      style={{ paddingBlock: "var(--nil-spacing-lg)" }}
     >
-      <Heading level={1} style={{ fontSize: "var(--nil-type-scale-xl)" }}>
+      <Heading
+        level={1}
+        className="lg:col-span-2"
+        style={{ fontSize: "var(--nil-type-scale-xl)" }}
+      >
         Evening review
       </Heading>
 
+      {/* Two columns from 1024px (D-039): what the ritual produced and the
+          wins on the left, the ways out on the right. Below that this is one
+          column in the same order, with the same gaps. */}
+      <div className="flex min-w-0 flex-col gap-10">
       {triagedToday.length > 0 ? (
         <section className="flex flex-col gap-4">
           <SectionTitle>Review summary</SectionTitle>
@@ -686,6 +753,9 @@ function WrapUp({
         )}
       </section>
 
+      </div>
+
+      <div className="flex min-w-0 flex-col gap-10">
       {triagedToday.length > 0 && (
         <section className="no-print flex flex-col gap-3">
           <SectionTitle>Hands</SectionTitle>
@@ -761,6 +831,7 @@ function WrapUp({
           for AI. Capture and review still work without it.
         </Text>
       )}
+      </div>
     </section>
   );
 }
