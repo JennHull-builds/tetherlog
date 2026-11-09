@@ -470,7 +470,7 @@ function TriageState({
       className="tl-gutter tl-triage-screen flex flex-col justify-center"
       style={{
         paddingBlock: "var(--nil-spacing-md)",
-        height: "calc(100dvh - var(--nav-h) - var(--sample-banner-h, 0px))",
+        height: "calc(100dvh - var(--nav-h) - var(--topbar-h) - var(--sample-banner-h, 0px) - var(--footer-h, 0px))",
       }}
     >
       {/* From 1024px the screen is two columns (D-039): the list of what is

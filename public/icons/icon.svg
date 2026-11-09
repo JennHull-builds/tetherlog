@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Square version of the favicon for the app icons. Same T, same grid. -->
+  <rect width="32" height="32" fill="#f3f2ee"/>
+  <rect x="4" y="4" width="24" height="8" fill="#396bf2"/>
+  <rect x="12" y="12" width="8" height="16" fill="#396bf2"/>
+</svg>

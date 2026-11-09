@@ -79,6 +79,19 @@
 }
 
 /*
+ * Doto, the dotted display face of the wordmark (D-042). One weight (900), one
+ * subset (latin), about 4 KB. Self-hosted for the same reason as Plex: no request
+ * to a font host, so the page never tells anyone a visitor opened it.
+ */
+@font-face {
+  font-family: "Doto";
+  src: url("@fontsource/doto/files/doto-latin-900-normal.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
  * ── @theme ────────────────────────────────────────────────────────────────
  * The one sanctioned place a --tl-ref-* name appears outside the generated
  * file: Tailwind's --font-*, --text-* and --spacing namespaces need a value
@@ -313,11 +326,14 @@
  */
 :root {
   --nav-h: 5.5rem;
+  /* The phone's top bar (D-042). At lg the name moves into the rail, so it is 0. */
+  --topbar-h: 3rem;
 }
 
 @media (min-width: 64rem) {
   :root {
     --nav-h: 0px;
+    --topbar-h: 0px;
   }
 }
 
@@ -582,5 +598,141 @@ input[type="checkbox"]:focus-visible {
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none;
+  }
+}
+
+/*
+ * IDENTITY (D-042): the wordmark, the phone top bar, the demo banner, the footer.
+ * Every colour is a kit token.
+ */
+.tl-wordmark {
+  font-family: "Doto", var(--nil-font-mono);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: var(--nil-color-text);
+}
+
+.tl-wordmark--bar {
+  font-size: 1.5rem;
+}
+
+.tl-wordmark--rail {
+  font-size: 1.75rem;
+}
+
+.tl-wordmark__log {
+  color: var(--nil-color-text-accent);
+}
+
+.tl-rail-mark {
+  padding-inline: var(--nil-spacing-sm);
+}
+
+.tl-topbar {
+  height: var(--topbar-h);
+  background: var(--nil-color-bg);
+  border-bottom: var(--nil-border-width) solid var(--nil-color-border);
+}
+
+/*
+ * The demo band. Pale blue fill with the kit's matching ink on it, a white-on-blue
+ * label, and a wrapping row: the label and the line stay together and the button
+ * drops under them when the width runs out.
+ */
+.tl-demo-banner {
+  background: var(--nil-color-chart-blue-pale);
+  color: var(--nil-color-chart-blue-pale-text);
+  border-bottom: var(--nil-border-width) solid var(--nil-color-border);
+}
+
+.tl-demo-banner__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nil-spacing-sm) var(--nil-spacing-md);
+  padding-block: var(--nil-spacing-sm);
+}
+
+.tl-demo-banner__label {
+  flex: none;
+  padding: 2px var(--nil-spacing-sm);
+  font-family: var(--nil-font-mono);
+  font-size: var(--nil-type-scale-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--nil-color-chart-blue);
+  color: var(--nil-color-chart-blue-text);
+}
+
+.tl-demo-banner__text {
+  flex: 1 1 14rem;
+  min-width: 0;
+  font-size: var(--nil-type-scale-sm);
+  line-height: 1.4;
+}
+
+/*
+ * The footer. Two groups that never split, so a wrapped line never starts or
+ * ends with a dot. Stacked on a narrow phone, one line from 40rem.
+ */
+.tl-footer {
+  padding-block: var(--nil-spacing-xs);
+}
+
+.tl-footer-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-family: var(--nil-font-mono);
+  font-size: var(--nil-type-scale-xs);
+  color: var(--nil-color-text-muted);
+}
+
+.tl-footer-group {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.tl-footer-between {
+  display: none;
+}
+
+.tl-footer-dot {
+  padding-inline: var(--nil-spacing-sm);
+}
+
+.tl-footer-item {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--nil-size-tap);
+}
+
+.tl-footer-link {
+  color: var(--nil-color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tl-footer-link:hover {
+  color: var(--nil-color-text);
+}
+
+.tl-footer-link:focus-visible {
+  outline: var(--nil-border-width-thick) solid var(--nil-color-accent);
+  outline-offset: 2px;
+}
+
+@media (min-width: 40rem) {
+  .tl-footer-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .tl-footer-between {
+    display: inline;
   }
 }

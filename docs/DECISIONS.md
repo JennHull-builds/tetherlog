@@ -45,6 +45,7 @@ D-025 and D-026. |
 | nil-ds 0.3.0 | **Built 2026-11-09, awaiting a look.** Icons on controls, Offset buttons, the hour chart on the kit's ramp. See D-038. |
 | Polish, slice 2 | **Built 2026-11-09, awaiting a look.** A desktop layout above 1024px: a side rail, Capture's stack beside the box, two columns on Review and Patterns. See D-039. |
 | Polish, slice 3 | **Built 2026-11-09, awaiting a look.** Motion at the moments that matter, example thoughts in the empty box, any key starts typing, and the kit's chart colours on the four groups. See D-040 and D-041. |
+| Identity | **Built 2026-11-09, awaiting a look.** The wordmark, the pixel T favicon and app icons, the share preview, the footer and a louder demo banner. See D-042. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -2079,3 +2080,44 @@ suggested is now applied:
   override a group are the kit's buttons and are not recoloured: Confirm stays the one filled blue.
 - The mark is `src/components/ui/BucketMark.tsx`. Contrast was computed from the kit's token values.
 
+## D-042: A name, an icon and a footer
+
+**Date:** 2026-11-09.
+
+The app had no face of its own: a text-less favicon from the old look, a slim strip nobody noticed when the
+sample was loaded, and the credit for the design kit tucked into Settings. This gives it an identity.
+
+- **The wordmark** is the text TETHERLOG in Doto at weight 900, TETHER in the text colour and LOG in the kit's
+  accent text colour. It is text, not an image, so it stays sharp at any zoom. The visible letters are hidden
+  from screen readers and one plain "TetherLog" is read instead, so the name is announced once and as a word.
+  From 1024px it sits at the top of the side rail; below that it is a slim top bar on every screen, above the
+  banner. The bar is a fixed height, and Capture subtracts it, so the headline and the box sit at the same pixel
+  at rest, while typing and after a park (measured at 320, 390, 1024 and 1280, with and without the sample).
+- **The font is self-hosted** with `@fontsource/doto`, weight 900 and the latin subset only (one 4 KB file). A
+  font host would be sent the visitor's address on every load, which contradicts the promise that nothing
+  leaves the device, the same reason Plex is self-hosted. It loads with `font-display: swap`, and the fallback is
+  the kit's mono face. Vite would have inlined a file that small into the stylesheet as base64, so
+  `assetsInlineLimit` keeps `.woff2` files separate and the stylesheet stays under its budget.
+- **The favicon** is a pixel letter T in the accent blue on the kit's light ground, drawn as rectangles on an
+  8 by 8 grid (each cell 4 units), so it lands on whole pixels at 16 and 32. No font inside the SVG. The home
+  screen icons carry the same mark: PNGs at 192 and 512, a maskable 512 and an Apple touch icon at 180, rendered
+  from the SVGs in `public/icons/`. The maskable one draws the T smaller, so every corner stays inside the centre
+  80% whatever shape a phone cuts, and it was checked cropped to a circle. The manifest names the app
+  "TetherLog" and uses the light ground for both colours.
+- **The share preview** is a 1200 by 630 image (`public/og.png`): the wordmark on the light ground and one line,
+  "Park a thought. Sort it later." The page has a description and Open Graph and Twitter card tags.
+  **There is no `og:url` and no canonical link**, because the address is not settled. The image path is
+  relative for the same reason: some link previews need an absolute address, so it must be made absolute once the
+  address is fixed.
+- **The footer** is on every screen: the year and the author's name (linked to her site), the licence (linked to
+  the LICENSE file), the source and the design kit. Small, muted, mono, separated by a middle dot, opening in a
+  new tab. It sits at the bottom of the content column on desktop and at the end of the scrolling content, above
+  the bottom bar, on a phone. Every link is 44px tall. The kit credit left Settings, so it is said once.
+- **The demo banner is loud.** While the sample is loaded, a full-width band in the kit's pale blue carries a
+  "DEMO" label, the line "This is filled with a sample week so you can see how it works. Clear it to start your
+  own." and the Clear sample button. Its text is the kit's ink on that blue, 12.89:1; the label is white on the
+  accent blue, 4.61:1. It wraps at 320px, and screens that fill the viewport subtract its real height, which the
+  banner now measures instead of assuming. After clearing, the band stays for a few seconds with only the status
+  line. The "See a sample week" buttons on empty screens are unchanged.
+- The PNGs and the share image are made from the SVGs and the font with a headless browser; there is no build
+  step for them, so a change to the mark means re-rendering the files in `public/`.

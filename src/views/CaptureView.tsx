@@ -527,8 +527,8 @@ export function CaptureView({ onParked, onOpenReview }: CaptureViewProps) {
       ref={sectionRef}
       className="tl-gutter tl-capture-screen relative flex flex-col pt-16 pb-6"
       style={{
-        // Fills the viewport above the nav, and above the sample banner while it shows.
-        minHeight: "calc(100dvh - var(--nav-h) - var(--sample-banner-h, 0px))",
+        // Fills the viewport between the top bar, banner and footer above and the nav below.
+        minHeight: "calc(100dvh - var(--nav-h) - var(--topbar-h) - var(--sample-banner-h, 0px) - var(--footer-h, 0px))",
       }}
       // Click anywhere on the screen to start typing, on a pointer device only.
       // On touch this made every stray tap open the keyboard.
