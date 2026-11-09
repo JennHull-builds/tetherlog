@@ -500,23 +500,30 @@ export function CaptureView({ onParked, onOpenReview }: CaptureViewProps) {
                 <Button
                   size="sm"
                   variant="primary"
+                  icon="stop"
                   onClick={() => void stopAndParkVoice()}
                 >
                   Stop and park
                 </Button>
               ) : voiceOk ? (
-                <Button size="sm" onClick={() => void startRecording()}>
-                  Mic
-                </Button>
+                <Button
+                  size="sm"
+                  icon="mic"
+                  aria-label="Record a voice note"
+                  onClick={() => void startRecording()}
+                />
               ) : (
                 // Voice is unavailable: nothing is disclosed (D-029), but the
                 // slot keeps the height of a button, or the box would get taller by
                 // the footer's button the moment the first character swaps
                 // Park in.
                 <span style={{ visibility: "hidden" }} aria-hidden>
-                  <Button size="sm" tabIndex={-1}>
-                    Mic
-                  </Button>
+                  <Button
+                    size="sm"
+                    icon="mic"
+                    aria-label="Record a voice note"
+                    tabIndex={-1}
+                  />
                 </span>
               )
             }

@@ -137,17 +137,17 @@ export function SettingsView() {
           }}
           placeholder="Paste key from Google AI Studio"
         />
-        {/* So a pasted key can be checked by eye. Words, not an eye icon,
-            until nil-ds has icons; aria-pressed carries the state. */}
+        {/* So a pasted key can be checked by eye. An eye icon, named for
+            screen readers; aria-pressed carries the state. */}
         <div>
           <Button
             size="sm"
             variant="ghost"
+            icon={showKey ? "eye-off" : "eye"}
+            aria-label={showKey ? "Hide key" : "Show key"}
             aria-pressed={showKey}
             onClick={() => setShowKey((v) => !v)}
-          >
-            {showKey ? "Hide key" : "Show key"}
-          </Button>
+          />
         </div>
         {/* Read from what is stored, not from the field, so it only says
             "saved" once the key really is. */}
@@ -209,11 +209,11 @@ export function SettingsView() {
       <Section>
         <SectionTitle>Backup</SectionTitle>
         <div className="flex flex-wrap gap-2">
-          <Button variant="ghost" onClick={() => void handleExport()}>
+          <Button variant="ghost" icon="download" onClick={() => void handleExport()}>
             Export JSON
           </Button>
           {/* A real button that opens the picker, not a label painted to look like one. */}
-          <Button variant="ghost" onClick={() => importRef.current?.click()}>
+          <Button variant="ghost" icon="upload" onClick={() => importRef.current?.click()}>
             Import JSON
           </Button>
           <input
