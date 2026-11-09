@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Button, Heading, Input, Readout, Text } from "nil-ds";
 import { SampleOffer } from "../components/Sample";
-import { TriageCard, TriageDeck } from "../components/ui";
+import { BucketMark, TriageCard, TriageDeck } from "../components/ui";
 import {
   addWin,
   applyTriage,
@@ -21,6 +21,7 @@ import {
   mailtoDoList,
   shareText,
 } from "../lib/hands";
+import { useFlip } from "../lib/flip";
 import { readDurationMs } from "../lib/motion";
 import { formatDuration } from "../lib/voice";
 import type { Capture, TriageBucket, TriageSuggestion, Win } from "../types";
@@ -455,6 +456,7 @@ function TriageState({
   const ghostNode = (
     <TriageCard
       label={`Suggested: ${BUCKET_LABELS[bucket]}`}
+      bucket={bucket}
       today={capture.tag === "now"}
       time={timeLabel(capture.createdAt)}
       domId={`ghost-${capture.id}`}
@@ -503,6 +505,18 @@ function TriageState({
           <Text size="sm" muted role="status">
             {status ??
               (hasKey ? "" : "Sorted by rules. Add a Gemini key in Settings for AI.")}
+            {loading && (
+              // The kit's blinking cursor while Gemini works (D-040). Decorative:
+              // the words beside it already say what is happening. The kit
+              // holds it solid under reduced motion.
+              <span
+                className="nil-cursor-blink"
+                aria-hidden
+                style={{ color: "var(--nil-color-text-accent)", marginLeft: "var(--nil-spacing-xs)" }}
+              >
+                ▌
+              </span>
+            )}
           </Text>
         </div>
       </header>
@@ -529,6 +543,7 @@ function TriageState({
             <TriageCard
               cardRef={cardRef}
               label={`Suggested: ${BUCKET_LABELS[bucket]}`}
+              bucket={bucket}
               today={capture.tag === "now"}
               time={timeLabel(capture.createdAt)}
               domId={`triage-${capture.id}`}
@@ -581,6 +596,9 @@ const QUEUE_ROWS = 8;
 function QueueList({ queue }: { queue: Capture[] }) {
   const shown = queue.slice(0, QUEUE_ROWS);
   const more = queue.length - shown.length;
+  // When the first row is confirmed the rest glide up one place (D-040).
+  const listRef = useRef<HTMLOListElement | null>(null);
+  useFlip(listRef, shown.map((item) => item.id).join());
   return (
     <div className="tl-triage-list hidden min-w-0 flex-col gap-2">
       {/* The same height as the card column's count line, so the two start together. */}
@@ -589,10 +607,11 @@ function QueueList({ queue }: { queue: Capture[] }) {
           To sort
         </Heading>
       </div>
-      <ol aria-label="To sort" className="flex flex-col">
+      <ol ref={listRef} aria-label="To sort" className="flex flex-col">
         {shown.map((item, index) => (
           <li
             key={item.id}
+            data-flip-key={item.id}
             aria-current={index === 0 ? "true" : undefined}
             className="flex items-center"
             style={{
@@ -700,13 +719,16 @@ function WrapUp({
             many" should answer it the same way, and before this one used 15px
             body text while the other used 34px display.
 
-            The label is the word alone. It carried a bucket-hued dot until
-            D-028: there is no secondary palette.
+            The label is the word alone, on the group's fill from the kit's chart
+            palette (D-041). It carried a bucket-hued dot until D-028, when there
+            was no secondary palette; the kit's chart colours are the first one.
           */}
           <ul className="grid grid-cols-2 gap-x-6 gap-y-8">
             {BUCKETS.map((bucket) => (
-              <li key={bucket}>
-                <Readout size="md" label={BUCKET_LABELS[bucket]} value={String(counts[bucket])} />
+              <li key={bucket} className="flex flex-col items-start gap-1">
+                {/* The group's fill is its mark (D-041). The word is on it. */}
+                <BucketMark bucket={bucket}>{BUCKET_LABELS[bucket]}</BucketMark>
+                <Readout size="md" value={String(counts[bucket])} />
               </li>
             ))}
           </ul>

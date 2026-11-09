@@ -120,42 +120,119 @@
  */
 
 /*
- * A parked thought arriving in the stack under the field. This is the tail of
- * the commit arc: the well collapses, and a moment later the log below is one
- * row longer.
+ * A parked thought landing in today's stack (D-040). The stack trails the park
+ * by the kit's base duration, so the row arrives as the last letters finish
+ * sinking. It drops in from just above on a phone, where the stack sits under
+ * the box, and slides in from the box's side on desktop, where the stack sits
+ * beside it. Calm: the kit's slow duration and its ease-out curve, no bounce.
  *
  * It runs on a NEW element every time, because PeekStack keys its rows by
  * capture id. Two parks in quick succession animate two different elements, so
  * the second can never wait for the first. Motion must never queue.
  *
- * The travel is small on purpose. Nothing here rewards returning; the reward
- * is that the thought is gone.
+ * The older row's move down is not here: it is the glide in lib/flip.ts.
  */
 @keyframes tl-park-land {
   from {
-    transform: translateY(10px);
+    translate: 0 calc(var(--nil-spacing-sm) * -1.25);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+@keyframes tl-park-land-side {
+  from {
+    translate: calc(var(--nil-spacing-md) * -1) 0;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
     opacity: 1;
   }
 }
 
 .tl-parked-row {
-  animation: tl-park-land var(--tl-spring-settle-duration)
-    var(--tl-spring-settle-ease) both;
+  animation: tl-park-land var(--nil-motion-duration-slow)
+    var(--nil-motion-easing-out-expo) both;
+}
+
+/* A beat after the older row starts to make room, so the two never overlap. */
+.tl-parked-row-landing {
+  animation-delay: var(--nil-motion-duration-fast);
+}
+
+@media (min-width: 64rem) {
+  .tl-parked-row {
+    animation-name: tl-park-land-side;
+  }
+}
+
+/* The count ticking up: the old numeral lifts out and fades, the new one rises
+   in from below, inside a clip one line tall. Both share one cell, so the
+   count never changes width mid-roll beyond the wider numeral. */
+.tl-tick {
+  display: inline-grid;
+  overflow: hidden;
+  vertical-align: bottom;
+  font-variant-numeric: tabular-nums;
+}
+
+.tl-tick > span {
+  grid-area: 1 / 1;
+}
+
+@keyframes tl-tick-out {
+  to {
+    translate: 0 -100%;
+    opacity: 0;
+  }
+}
+
+@keyframes tl-tick-in {
+  from {
+    translate: 0 100%;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+.tl-tick-out {
+  animation: tl-tick-out var(--nil-motion-duration-base)
+    var(--nil-motion-easing-out-expo) both;
+}
+
+.tl-tick-in {
+  animation: tl-tick-in var(--nil-motion-duration-base)
+    var(--nil-motion-easing-out-expo) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   /*
-   * The row appears WITHOUT travelling. Not `animation: none`: that would
-   * leave `both` fill applied from a 0-opacity start in some engines. The row
-   * must simply be there.
+   * The designed still version: the row is simply there, the numeral is the
+   * new number, nothing travels. Not `animation: none` alone: the fill mode
+   * can otherwise hold a 0-opacity start in some engines, so the end state
+   * is stated.
    */
-  .tl-parked-row {
+  .tl-parked-row,
+  .tl-parked-row-landing {
     animation: none;
-    transform: none;
+    translate: none;
+    opacity: 1;
+  }
+
+  .tl-tick-out {
+    display: none;
+  }
+
+  .tl-tick-in {
+    animation: none;
+    translate: none;
     opacity: 1;
   }
 }
@@ -211,12 +288,18 @@
 }
 
 .tl-capture-input .nil-composer__input::placeholder {
-  transition: opacity var(--tl-spring-settle-duration) var(--tl-ease-standard);
+  transition: opacity var(--nil-motion-duration-base) var(--nil-motion-easing-out-expo);
 }
 
 .tl-capture-input.tl-placeholder-hold .nil-composer__input::placeholder {
   opacity: 0;
   transition: none;
+}
+
+/* The example thoughts (D-040): the line fades out, the words change, the line
+   fades back in. It only ever happens at rest with the box empty and unfocused. */
+.tl-capture-input.tl-placeholder-swap .nil-composer__input::placeholder {
+  opacity: 0;
 }
 
 /*
@@ -468,4 +551,36 @@ html {
 input[type="checkbox"]:focus-visible {
   outline: var(--nil-border-width-thick) solid var(--nil-color-accent);
   outline-offset: 2px;
+}
+
+/*
+ * SCREEN CHANGES (D-040). document.startViewTransition cross-fades the old
+ * screen into the new one, and the selected nav button, which carries the name
+ * nav-current, glides from the old tab to the new one. The kit's base duration
+ * for the fade, its slow duration for the glide, its ease-out curve for both.
+ * Browsers without the API change screen as they always did (App.tsx).
+ *
+ * The root's default animation is replaced rather than tuned, and the
+ * pseudo-elements read the tokens from the page root, so a token change moves
+ * them too.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--nil-motion-duration-base);
+  animation-timing-function: var(--nil-motion-easing-out-expo);
+}
+
+::view-transition-group(nav-current) {
+  animation-duration: var(--nil-motion-duration-slow);
+  animation-timing-function: var(--nil-motion-easing-out-expo);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The still version: the new screen is there at once. App.tsx does not even
+     start a transition under reduced motion; this is the belt to that brace. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
 }

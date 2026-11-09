@@ -1,14 +1,44 @@
 import { useState } from "react";
+import { flushSync } from "react-dom";
 import { NavBar } from "./components/NavBar";
 import { SampleBanner, SampleProvider } from "./components/Sample";
+import { prefersReducedMotion } from "./lib/motion";
 import type { Screen } from "./types";
 import { CaptureView } from "./views/CaptureView";
 import { PatternsView } from "./views/PatternsView";
 import { ReviewView } from "./views/ReviewView";
 import { SettingsView } from "./views/SettingsView";
 
+/**
+ * Change screen. Where the browser has the View Transitions API the old screen
+ * cross-fades into the new one and the selected nav button glides to its new
+ * place (D-040, the rules are in index.css). Everywhere else, and under
+ * reduced motion, the screen just changes. flushSync makes React commit the
+ * new screen inside the transition's callback, which is when the browser takes
+ * its "after" picture.
+ */
+type ViewTransitionDocument = Document & {
+  startViewTransition?: (update: () => void) => unknown;
+};
+
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("capture");
+  const [screen, setScreenNow] = useState<Screen>("capture");
+
+  function setScreen(next: Screen) {
+    if (next === screen) return;
+    const doc = document as ViewTransitionDocument;
+    if (!doc.startViewTransition || prefersReducedMotion()) {
+      setScreenNow(next);
+      return;
+    }
+    try {
+      doc.startViewTransition(() => {
+        flushSync(() => setScreenNow(next));
+      });
+    } catch {
+      setScreenNow(next);
+    }
+  }
 
   return (
     <SampleProvider>

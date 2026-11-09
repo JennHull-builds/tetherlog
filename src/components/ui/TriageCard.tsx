@@ -1,9 +1,13 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Badge, Card } from "nil-ds";
+import type { TriageBucket } from "../../types";
+import { BucketMark } from "./BucketMark";
 
 export interface TriageCardProps {
   /** The suggested bucket, in words. Words are the only carrier. */
   label: string;
+  /** The suggested group, which sets the mark's fill (D-041). The words in `label` still name it. */
+  bucket?: TriageBucket;
   /** The capture was tagged Today: a small badge says so (D-035). */
   today?: boolean;
   /** When the thought was parked. Mono, because it is machine output. */
@@ -34,6 +38,7 @@ export interface TriageCardProps {
  */
 export function TriageCard({
   label,
+  bucket,
   today = false,
   time,
   domId,
@@ -62,9 +67,15 @@ export function TriageCard({
       >
         <header className="flex items-baseline justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-            <p id={`${domId}-label`} className="nil-label" style={{ color: "var(--nil-color-text)" }}>
-              {label}
-            </p>
+            {bucket ? (
+              <BucketMark bucket={bucket} id={`${domId}-label`}>
+                {label}
+              </BucketMark>
+            ) : (
+              <p id={`${domId}-label`} className="nil-label" style={{ color: "var(--nil-color-text)" }}>
+                {label}
+              </p>
+            )}
             {today && <Badge tone="accent">Today</Badge>}
           </div>
           <p className="nil-label">{time}</p>
