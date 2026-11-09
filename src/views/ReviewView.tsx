@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Button, Heading, Input, Readout, Text } from "nil-ds";
+import { SampleOffer } from "../components/Sample";
 import { TriageCard, TriageDeck } from "../components/ui";
 import {
   addWin,
@@ -136,10 +137,15 @@ export function ReviewView() {
     return backlog.filter((c) => !todayIds.has(c.id));
   }, [backlog, untriagedToday]);
 
-  const untriaged = useMemo(
-    () => (includeBacklog ? [...untriagedToday, ...olderBacklog] : untriagedToday),
-    [includeBacklog, untriagedToday, olderBacklog],
-  );
+  // Today-tagged captures come first (D-035). Array.sort is stable, so every
+  // other capture keeps the order it had. The carry-forward goes to the first
+  // `do`, which is now the first Today item.
+  const untriaged = useMemo(() => {
+    const all = includeBacklog ? [...untriagedToday, ...olderBacklog] : untriagedToday;
+    return [...all].sort(
+      (a, b) => Number(b.tag === "now") - Number(a.tag === "now"),
+    );
+  }, [includeBacklog, untriagedToday, olderBacklog]);
 
   /**
    * THE RITUAL SET, APPEND-ONLY. Suggestions are derived from this rather than
@@ -444,7 +450,8 @@ function TriageState({
    */
   const ghostNode = (
     <TriageCard
-      label={BUCKET_LABELS[bucket]}
+      label={`Suggested: ${BUCKET_LABELS[bucket]}`}
+      today={capture.tag === "now"}
       time={timeLabel(capture.createdAt)}
       domId={`ghost-${capture.id}`}
     >
@@ -458,7 +465,7 @@ function TriageState({
       style={{
         paddingInline: "var(--nil-spacing-md)",
         paddingBlock: "var(--nil-spacing-md)",
-        height: "calc(100dvh - 5.5rem)",
+        height: "calc(100dvh - 5.5rem - var(--sample-banner-h, 0px))",
       }}
     >
       {/*
@@ -469,7 +476,7 @@ function TriageState({
       */}
       <header className="shrink-0">
         <div className="flex h-9 items-center justify-between gap-3">
-          <p className="nil-label" role="status">
+          <p className="nil-label nil-label--accent" role="status">
             {position} of {total}
           </p>
           {hasKey && (
@@ -479,7 +486,7 @@ function TriageState({
               disabled={loading}
               onClick={onAskAgent}
             >
-              {loading ? "Reviewing…" : "AI triage"}
+              {loading ? "Sorting…" : "Sort with AI"}
             </Button>
           )}
         </div>
@@ -487,7 +494,8 @@ function TriageState({
             failure. Always this tall, so the card below it cannot move. */}
         <div className="flex h-8 items-center">
           <Text size="sm" muted role="status">
-            {status ?? ""}
+            {status ??
+              (hasKey ? "" : "Sorted by rules. Add a Gemini key in Settings for AI.")}
           </Text>
         </div>
       </header>
@@ -513,7 +521,8 @@ function TriageState({
           <div key={capture.id} className="tl-triage-rising h-full">
             <TriageCard
               cardRef={cardRef}
-              label={BUCKET_LABELS[bucket]}
+              label={`Suggested: ${BUCKET_LABELS[bucket]}`}
+              today={capture.tag === "now"}
               time={timeLabel(capture.createdAt)}
               domId={`triage-${capture.id}`}
               footer={
@@ -641,7 +650,10 @@ function WrapUp({
           )}
         </section>
       ) : (
-        <Text muted>Nothing to sort tonight.</Text>
+        <>
+          <Text muted>Nothing to sort.</Text>
+          <SampleOffer />
+        </>
       )}
 
       <section className="flex flex-col gap-3">
@@ -666,7 +678,7 @@ function WrapUp({
           </Button>
         </div>
         {wins.length > 0 && (
-          <ul className="space-y-1" style={{ color: "var(--nil-color-text)" }}>
+          <ul className="space-y-1" style={{ color: "var(--nil-color-success)" }}>
             {wins.map((win) => (
               <li key={win.id}>• {win.text}</li>
             ))}

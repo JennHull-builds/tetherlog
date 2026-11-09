@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Button, Composer, Heading, Text } from "nil-ds";
+import { SampleOffer } from "../components/Sample";
 import { PeekStack } from "../components/ui";
-import { getCapturesForDay, getSettings, parkCapture, type ParkCaptureOptions } from "../db";
+import {
+  getCapturesForDay,
+  getSettings,
+  getUntriagedCaptures,
+  parkCapture,
+  type ParkCaptureOptions,
+} from "../db";
 import { prefersReducedMotion, readDurationMs } from "../lib/motion";
 import { playParkSound } from "../lib/sound";
 import {
@@ -15,13 +22,20 @@ import { todayKey } from "../types";
 
 interface CaptureViewProps {
   onParked: () => void;
+  /** The quiet "N waiting to sort" link goes here. */
+  onOpenReview: () => void;
 }
 
-const TAGS: { value: CaptureTag; label: string }[] = [
-  { value: "now", label: "Now" },
-  { value: "later", label: "Later" },
-  { value: "?", label: "?" },
-];
+/**
+ * ONE tag is offered (D-035): Today, stored as the existing "now" tag so every
+ * older capture keeps working. "later" and "?" stay in the data model and in
+ * triage, so anything tagged before this still sorts as it did; they are just
+ * no longer on the screen.
+ */
+const TODAY_TAG: CaptureTag = "now";
+
+/** How much of what the browser has heard so far is shown while recording. */
+const HEARD_MAX_CHARS = 140;
 
 /** Stable empty default: useLiveQuery returns its third argument while loading. */
 const NO_CAPTURES: Capture[] = [];
@@ -99,7 +113,7 @@ function hapticPark(): void {
  * Read docs/DECISIONS.md D-004 before changing a line of handlePark, including
  * its symptom-to-cause table, which is written for 4am.
  */
-export function CaptureView({ onParked }: CaptureViewProps) {
+export function CaptureView({ onParked, onOpenReview }: CaptureViewProps) {
   const [text, setText] = useState("");
   const [tag, setTag] = useState<CaptureTag | undefined>();
   const [status, setStatus] = useState<"idle" | "parked">("idle");
@@ -108,6 +122,8 @@ export function CaptureView({ onParked }: CaptureViewProps) {
   const [elapsedMs, setElapsedMs] = useState(0);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [sinking, setSinking] = useState<Sink[]>([]);
+  /** Words the browser has heard so far while recording, shown muted. */
+  const [heard, setHeard] = useState("");
 
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -134,6 +150,11 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     NO_CAPTURES,
   );
   const settings = useLiveQuery(getSettings, [], null);
+  const waiting = useLiveQuery(
+    async () => (await getUntriagedCaptures()).length,
+    [],
+    0,
+  );
 
   useEffect(() => {
     // NOT on touch. See hasFinePointer: this line used to open the phone
@@ -358,11 +379,13 @@ export function CaptureView({ onParked }: CaptureViewProps) {
     if (recording) return;
     setVoiceError(null);
 
-    const session = new VoiceSession();
+    setHeard("");
+    const session = new VoiceSession(setHeard);
     try {
       await session.start();
     } catch (err) {
       session.dispose();
+      setHeard("");
       setVoiceError(
         err instanceof Error ? err.message : "Could not start the microphone.",
       );
@@ -387,6 +410,8 @@ export function CaptureView({ onParked }: CaptureViewProps) {
 
     setRecording(false);
     setVoiceError(null);
+    // The final text replaces what was shown while speaking.
+    setHeard("");
     const parkedTag = tag;
 
     let result: Awaited<ReturnType<VoiceSession["stop"]>>;
@@ -427,8 +452,12 @@ export function CaptureView({ onParked }: CaptureViewProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative flex min-h-[calc(100dvh-5.5rem)] flex-col pt-16 pb-6"
-      style={{ paddingInline: "var(--nil-spacing-md)" }}
+      className="relative flex flex-col pt-16 pb-6"
+      style={{
+        paddingInline: "var(--nil-spacing-md)",
+        // Fills the viewport above the nav, and above the sample banner while it shows.
+        minHeight: "calc(100dvh - 5.5rem - var(--sample-banner-h, 0px))",
+      }}
       // Click anywhere on the screen to start typing, on a pointer device only.
       // On touch this made every stray tap open the keyboard.
       onClick={() => {
@@ -519,41 +548,57 @@ export function CaptureView({ onParked }: CaptureViewProps) {
           </p>
 
           {/*
-            ONE reserved line, three jobs: empty at rest, the tag chips once
-            there is something to tag, the confirm word after a park. It is
-            always this tall, so nothing on the screen ever moves, and the two
-            can never collide because a park empties the box.
+            ONE reserved block, four jobs: empty at rest, the Today chip with
+            its one line once there is something to tag, the words heard so far
+            while recording, and the confirm word after a park. It is always
+            this tall (D-035), so nothing on the screen ever moves, and the
+            jobs can never collide: a park empties the box, and recording hides
+            the chip.
 
-            No transition on the chips. Nothing animates in response to typing.
+            No transition on the chip. Nothing animates in response to typing.
           */}
-          <div className="relative flex h-11 items-center">
+          <div className="relative h-16">
             <Text
               size="sm"
               muted
-              className="absolute"
+              className="absolute top-0 flex h-8 items-center"
               aria-live="polite"
               aria-atomic="true"
             >
               {status === "parked" ? "Parked." : ""}
             </Text>
+            {recording && heard && (
+              // Not a live region: interim words change many times a second and
+              // a screen reader should not read each one.
+              <Text size="sm" muted className="line-clamp-2" aria-hidden>
+                {heard.length > HEARD_MAX_CHARS
+                  ? `…${heard.slice(-HEARD_MAX_CHARS)}`
+                  : heard}
+              </Text>
+            )}
             <div
-              className="flex flex-wrap gap-2"
+              className="flex flex-col items-start gap-1"
               style={{ visibility: showChips ? "visible" : "hidden" }}
             >
-              {TAGS.map((option) => (
+              <div className="flex h-8 items-center">
                 <Button
-                  key={option.value}
                   size="sm"
-                  variant={tag === option.value ? "secondary" : "ghost"}
-                  aria-pressed={tag === option.value}
+                  variant={tag === TODAY_TAG ? "secondary" : "ghost"}
+                  aria-pressed={tag === TODAY_TAG}
                   tabIndex={showChips ? undefined : -1}
-                  onClick={() =>
-                    setTag(tag === option.value ? undefined : option.value)
+                  style={
+                    tag === TODAY_TAG
+                      ? { color: "var(--nil-color-text-accent)" }
+                      : undefined
                   }
+                  onClick={() => setTag(tag === TODAY_TAG ? undefined : TODAY_TAG)}
                 >
-                  {option.label}
+                  Today
                 </Button>
-              ))}
+              </div>
+              <Text size="sm" muted>
+                Optional. Makes it stand out when you review.
+              </Text>
             </div>
           </div>
 
@@ -578,8 +623,21 @@ export function CaptureView({ onParked }: CaptureViewProps) {
         an empty screen and it cannot shift.
       */}
       <div className="relative h-32 overflow-hidden">
-        {captures.length > 0 && (
+        {captures.length > 0 ? (
           <PeekStack captures={captures} countRef={countRef} />
+        ) : (
+          <SampleOffer />
+        )}
+      </div>
+
+      {/* A FIXED line, always here: the way to Review, never a badge. Muted, never
+          blue, and absent at zero, so it cannot read as something overdue. It
+          reserves its height either way, so it cannot move anything. */}
+      <div className="flex h-8 items-center justify-center">
+        {waiting > 0 && (
+          <button type="button" className="tl-quiet-link" onClick={onOpenReview}>
+            {waiting} waiting to sort
+          </button>
         )}
       </div>
 

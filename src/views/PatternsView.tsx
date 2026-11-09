@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Button, Heading, Readout, Text } from "nil-ds";
+import { SampleOffer } from "../components/Sample";
 import { db, getSettings } from "../db";
 import { aiWeeklyDigest, buildWeeklyStats } from "../lib/agent";
 import { copyText, downloadFile, shareText } from "../lib/hands";
@@ -46,7 +47,11 @@ export function PatternsView() {
     }
   }
 
-  const digestMarkdown = `# Weekly digest\n\n${digest ?? "Run digest with your Gemini key in Settings."}\n\n## Stats\n- Total captures: ${stats.totalCaptures}\n- Active days: ${stats.activeDays}\n- Busiest hour: ${busiestHour}\n- Stuck items: ${stats.stuckCount}`;
+  // Without a key the export still reads well: the same four numbers as
+  // sentences, with the AI digest named as optional (D-037). Only readouts this
+  // screen already shows, and no comparison with any other day.
+  const plainDigest = describeStats(stats, busiestHour);
+  const digestMarkdown = `# Weekly digest\n\n${digest ?? plainDigest}\n\n## Stats\n- Total captures: ${stats.totalCaptures}\n- Active days: ${stats.activeDays}\n- Busiest hour: ${busiestHour}\n- Stuck items: ${stats.stuckCount}`;
 
   return (
     <section
@@ -61,7 +66,10 @@ export function PatternsView() {
       </Heading>
 
       {stats.totalCaptures === 0 ? (
-        <Text muted>Nothing to see yet.</Text>
+        <>
+          <Text muted>Nothing to see yet.</Text>
+          <SampleOffer />
+        </>
       ) : (
         <>
           {/*
@@ -95,7 +103,7 @@ export function PatternsView() {
                     className="flex items-baseline justify-between gap-4"
                   >
                     <Text className="min-w-0 truncate">{item.text}</Text>
-                    <span className="nil-label shrink-0">
+                    <span className="nil-label nil-label--accent shrink-0">
                       &times;{item.count}
                     </span>
                   </li>
@@ -145,6 +153,30 @@ export function PatternsView() {
       </section>
     </section>
   );
+}
+
+function plural(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
+/** The stats as short sentences, for the export when there is no AI digest. */
+function describeStats(
+  stats: ReturnType<typeof buildWeeklyStats>,
+  busiestHour: string,
+): string {
+  if (stats.totalCaptures === 0) {
+    return "No captures yet. An AI digest is optional: add a Gemini key in Settings.";
+  }
+  const stuck =
+    stats.stuckCount === 0
+      ? "Nothing keeps coming back."
+      : `${plural(stats.stuckCount, "item keeps", "items keep")} coming back.`;
+  return [
+    `This week: ${plural(stats.totalCaptures, "capture", "captures")} across ${plural(stats.activeDays, "day", "days")}.`,
+    `Busiest hour: ${busiestHour}.`,
+    stuck,
+    "An AI digest is optional: add a Gemini key in Settings.",
+  ].join(" ");
 }
 
 function SectionTitle({ children }: { children: string }) {

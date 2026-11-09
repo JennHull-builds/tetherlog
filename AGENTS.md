@@ -57,8 +57,8 @@ historical phase prompts reference it; it was never committed. This file is the 
 The `@source not "../.cursorrules"` line in `src/index.css` is kept deliberately, so the guard is
 already in place if one is ever added.
 
-**The whole app is on nil-ds (D-030 for Capture, D-031 for the rest, 2026-11-04).** Every screen and
-the nav use the kit's components and `var(--nil-*)` in the kit's dark theme, consumed as a dependency
+**The whole app is on nil-ds (D-030 for Capture, D-031 for the rest, 2026-11-04) and in the kit's light
+theme since D-034 (2026-11-08).** Every screen and the nav use the kit's components and `var(--nil-*)`, consumed as a dependency
 pinned to one full commit hash over https. That reverses D-001's "NIL DS is out" and keeps its
 lesson: never a copy, never a branch name, never a path outside this repo. The grid is off the app
 (`src/components/GravityField.tsx` and its grid tokens stay, unused) and the design before the move

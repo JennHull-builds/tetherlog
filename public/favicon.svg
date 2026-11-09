@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="TetherLog">
   <!-- Ground, kept in step with the app and the manifest theme_color. -->
-  <rect width="32" height="32" rx="9" fill="#08090c"/>
+  <rect width="32" height="32" rx="9" fill="#f3f2ee"/>
   <!-- Space bending around the mass: two rules that bow toward the centre
        rather than running straight past it. Depth is what an object does to
        its surroundings. See docs/LOOK.md. -->

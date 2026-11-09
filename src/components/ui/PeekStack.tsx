@@ -39,7 +39,7 @@ export function PeekStack({ captures, countRef }: PeekStackProps) {
     <div className="flex flex-col items-center gap-3">
       <p
         ref={countRef}
-        className="nil-label"
+        className="nil-label nil-label--accent"
         aria-live="off"
       >
         {count === 1 ? "1 parked today" : `${count} parked today`}

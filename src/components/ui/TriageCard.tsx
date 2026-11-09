@@ -1,9 +1,11 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Card } from "nil-ds";
+import { Badge, Card } from "nil-ds";
 
 export interface TriageCardProps {
   /** The suggested bucket, in words. Words are the only carrier. */
   label: string;
+  /** The capture was tagged Today: a small badge says so (D-035). */
+  today?: boolean;
   /** When the thought was parked. Mono, because it is machine output. */
   time: string;
   /** Stable id prefix, so the thought can name the card for a screen reader. */
@@ -32,6 +34,7 @@ export interface TriageCardProps {
  */
 export function TriageCard({
   label,
+  today = false,
   time,
   domId,
   children,
@@ -58,9 +61,12 @@ export function TriageCard({
         }}
       >
         <header className="flex items-baseline justify-between gap-3">
-          <p id={`${domId}-label`} className="nil-label" style={{ color: "var(--nil-color-text)" }}>
-            {label}
-          </p>
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
+            <p id={`${domId}-label`} className="nil-label" style={{ color: "var(--nil-color-text)" }}>
+              {label}
+            </p>
+            {today && <Badge tone="accent">Today</Badge>}
+          </div>
           <p className="nil-label">{time}</p>
         </header>
 

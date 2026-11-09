@@ -80,6 +80,13 @@ export class VoiceSession {
   private startedAt = 0;
   private mimeType = "";
 
+  /**
+   * Optional: told every time the browser hears more, with everything heard so
+   * far. Display only. What gets saved is still decided in `stop()` and this
+   * does not touch it.
+   */
+  constructor(private readonly onHeard?: (soFar: string) => void) {}
+
   async start(): Promise<void> {
     if (!isVoiceSupported()) {
       throw new Error("Microphone needs HTTPS (or localhost).");
@@ -132,6 +139,9 @@ export class VoiceSession {
           }
         }
         if (interim) this.interimTranscript = interim;
+        this.onHeard?.(
+          [...this.transcriptParts, this.interimTranscript].filter(Boolean).join(" "),
+        );
       };
 
       recognition.onerror = null;
