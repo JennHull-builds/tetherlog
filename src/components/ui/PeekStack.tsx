@@ -36,7 +36,7 @@ export function PeekStack({ captures, countRef }: PeekStackProps) {
   const rows = captures.slice(0, 2);
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-3 lg:items-start">
       <p
         ref={countRef}
         className="nil-label nil-label--accent"

@@ -133,8 +133,7 @@ export function SampleBanner() {
     >
       {visible && (
         <div
-          className="mx-auto flex h-full max-w-lg items-center justify-between gap-3"
-          style={{ paddingInline: "var(--nil-spacing-md)" }}
+          className="tl-gutter mx-auto flex h-full max-w-lg items-center justify-between gap-3 lg:mx-0 lg:max-w-6xl"
         >
           {/* The label doubles as the message: for a few seconds it says what
               just happened ("Sample week loaded."), then goes back to naming

@@ -98,18 +98,16 @@ export function SettingsView() {
   }
 
   return (
-    <section
-      style={{
-        paddingInline: "var(--nil-spacing-md)",
-        paddingBlock: "var(--nil-spacing-lg)",
-      }}
-    >
+    <section className="tl-gutter" style={{ paddingBlock: "var(--nil-spacing-lg)" }}>
+      {/* One readable column, about 640px, at the left of the
+          content area rather than centred in the window (D-039). */}
+      <div className="lg:max-w-[40rem]">
       <Heading level={1} style={{ fontSize: "var(--nil-type-scale-xl)" }}>
         Your device only
       </Heading>
 
       <Section first>
-        <Text>
+        <Text className="max-w-[70ch]">
           Your key stays on this device. We never see it. Without a key, capture,
           patterns, and rule-based review still work. AI sorting and digest stay off.
         </Text>
@@ -238,6 +236,7 @@ export function SettingsView() {
             {saved ? "Saved on this device." : ""}
           </Text>
         </div>
+      </div>
       </div>
     </section>
   );

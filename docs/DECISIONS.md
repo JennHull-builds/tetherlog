@@ -43,6 +43,7 @@ D-025 and D-026. |
 | Review, Patterns, Settings and the nav on nil-ds | **Built 2026-11-04, awaiting a look on a phone.** The whole app is on the kit and Geist is gone. See D-031. |
 | Polish, slice 1 | **Built 2026-11-08, awaiting a look.** Light theme, a sample week, one Today tag, a Review that explains itself. See D-034 to D-037. |
 | nil-ds 0.3.0 | **Built 2026-11-09, awaiting a look.** Icons on controls, Offset buttons, the hour chart on the kit's ramp. See D-038. |
+| Polish, slice 2 | **Built 2026-11-09, awaiting a look.** A desktop layout above 1024px: a side rail, Capture's stack beside the box, two columns on Review and Patterns. See D-039. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -1978,3 +1979,37 @@ person's.
   button is 36 tall with a 44 px tap area. The quiet "waiting to sort" link on Capture was 32 tall and
   is now 44.
 - Behaviour, copy and the product rules are unchanged. Not looked at on a phone yet.
+
+## D-039: A side rail and two columns above 1024px
+
+**Date:** 2026-11-09.
+
+On a laptop every screen was a 32rem phone column in the middle of a wide window, with the nav on a bar
+along the bottom edge. It read as an app made for a phone. From 1024px up, the layout now uses the width.
+Below 1024px nothing changes: the bottom bar and the single column stay exactly as they were.
+
+- **One breakpoint, 1024px.** It is the kit's `lg` step (`--nil-breakpoint-lg`) and Tailwind's `lg`. A
+  media query cannot read a custom property, so the number is written out, and the two agree.
+- **The nav is a side rail.** The same four destinations with the same icons and words, stacked on the
+  left, full height, with the current one in the accent blue as before. The kit's Sidebar was read and not
+  used: it draws anchors with an address and a word each, under a section heading and a collapse toggle,
+  with no icon, while this nav switches a screen in state. One of the two navs is displayed at a time, so
+  there is only ever one navigation landmark.
+- **Capture stays one box, on purpose.** One box is the right shape for parking a thought, so it does
+  not grow wider or gain anything. What changes is where today's stack goes: beside the box, to its
+  right, with the "N parked today" count and the "N waiting to sort" link. A parked thought arrives in
+  view, next to where it was typed, instead of below the fold. The stack hangs from the top of the box
+  and takes no height of its own, so the headline and the box sit at the same pixel at rest, while typing
+  (one line and three) and after a park. Measured at 1024, 1280 and 390.
+- **Review spreads into two columns.** The triage state has a natural split: a read-only list of what is
+  left to sort on the left, and the one card with its suggestion and actions on the right. The list is
+  not a picker. The ritual is ordered on purpose (the carry-forward goes to the first do, and a card is
+  confirmed, never browsed), so no row can jump the queue. It shows eight rows and "and N more". The
+  wrap-up is also two columns: what the ritual produced and the wins, then the ways out.
+- **Patterns puts the four numbers in one row** across the top. Below them, the hour chart and the
+  repeats are on the left and the weekly digest is on the right. Under 1024px the numbers stay two by two,
+  as D-021 decided, because that width gave each one too little room.
+- **Settings is one readable column**, about 640px, at the left of the content area rather than centred
+  in the window.
+- **Running text stops at about 70 characters** (`70ch`) on the screens that carry paragraphs.
+- **Behaviour and copy are unchanged**, apart from the heading "To sort" over Review's new list.

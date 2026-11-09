@@ -220,6 +220,66 @@
 }
 
 /*
+ * DESKTOP LAYOUT (D-039). One breakpoint, 1024px, the kit's lg step
+ * (--nil-breakpoint-lg) and Tailwind's lg. A media query cannot read a custom
+ * property, so the number is written out here and in the lg: utilities; they
+ * agree, and the Playwright pass in D-039 checked 1023 against 1024.
+ *
+ * --nav-h is the height the bottom bar takes from the viewport. At lg the
+ * nav is a side rail, so screens that fill the viewport subtract nothing.
+ */
+:root {
+  --nav-h: 5.5rem;
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --nav-h: 0px;
+  }
+}
+
+/* Capture from 1024px: the field on the left, today's stack on the right, both
+   hanging from the same row so the thought lands where it can be seen (D-039). */
+@media (min-width: 64rem) {
+  .tl-capture-screen {
+    display: grid;
+    grid-template-columns: minmax(0, 36rem) minmax(0, 20rem);
+    grid-template-rows: auto auto;
+    column-gap: var(--nil-spacing-2xl);
+    row-gap: var(--nil-spacing-xl);
+    justify-content: start;
+    align-content: center;
+  }
+}
+
+/* Review's triage from 1024px: what is left to sort, then the one card. */
+@media (min-width: 64rem) {
+  .tl-triage-screen {
+    display: grid;
+    grid-template-columns: minmax(0, 18rem) minmax(0, 34rem);
+    column-gap: var(--nil-spacing-2xl);
+    justify-content: start;
+    align-content: center;
+    align-items: start;
+  }
+
+  .tl-triage-list {
+    display: flex;
+  }
+}
+
+/* The page's side padding: the kit's md step on a phone, xl beside the rail. */
+.tl-gutter {
+  padding-inline: var(--nil-spacing-md);
+}
+
+@media (min-width: 64rem) {
+  .tl-gutter {
+    padding-inline: var(--nil-spacing-xl);
+  }
+}
+
+/*
  * Capture's fixed-height block: the Composer at rest, the gap, and the reserved
  * block (4rem: the Today chip and the one line under it, D-035). Composer at one line is two borders, the row (padding and one 1.5
  * leading line of base type) and the footer (border, padding and a small

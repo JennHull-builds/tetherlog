@@ -55,41 +55,48 @@ export function PatternsView() {
 
   return (
     <section
-      className="flex flex-col gap-12"
-      style={{
-        paddingInline: "var(--nil-spacing-md)",
-        paddingBlock: "var(--nil-spacing-lg)",
-      }}
+      className="tl-gutter flex flex-col gap-12 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-16"
+      style={{ paddingBlock: "var(--nil-spacing-lg)" }}
     >
-      <Heading level={1} style={{ fontSize: "var(--nil-type-scale-xl)" }}>
+      <Heading
+        level={1}
+        className="lg:col-span-2"
+        style={{ fontSize: "var(--nil-type-scale-xl)" }}
+      >
         What keeps showing up
       </Heading>
 
       {stats.totalCaptures === 0 ? (
-        <>
+        <div className="flex flex-col items-start gap-12 lg:col-span-2">
           <Text muted>Nothing to see yet.</Text>
           <SampleOffer />
-        </>
+        </div>
       ) : (
         <>
           {/*
-            TWO BY TWO AT EVERY WIDTH. The build spec asked for a row of
-            four at 1280 and that blueprint assumed a full-width page. Every
-            screen here is a 32rem column, so a row of four gives each readout
-            about 104px, which wraps "TOTAL CAPTURES" onto a second line while
-            its neighbours stay on one and leaves the row ragged. Review's
-            summary uses the same grid, because the two screens now answer
-            "how many" in the same voice. See docs/DECISIONS.md D-021.
+            TWO BY TWO ON A PHONE, FOUR ACROSS FROM 1024PX. The build spec asked
+            for a row of four at 1280 and that blueprint assumed a full-width
+            page. The screen was a 32rem column then, so a row of four gave each
+            readout about 104px, which wrapped "TOTAL CAPTURES" onto a second
+            line while its neighbours stayed on one. Below 1024px that is still
+            true and it stays two by two (D-021). Beside the side rail the
+            content area is about 1000px, so a row of four has room (D-039).
+            Review's summary keeps the two by two: it sits in a half-width
+            column.
           */}
-          <section className="grid grid-cols-2 gap-x-6 gap-y-9">
+          <section className="grid grid-cols-2 gap-x-6 gap-y-9 lg:col-span-2 lg:grid-cols-4">
             <Readout size="md" label="Total captures" value={String(stats.totalCaptures)} />
             <Readout size="md" label="Active days" value={String(stats.activeDays)} />
             <Readout size="md" label="Busiest hour" value={busiestHour} />
             <Readout size="md" label="Stuck items" value={String(stats.stuckCount)} />
           </section>
 
+          <div className="flex min-w-0 flex-col gap-12">
           <section className="flex flex-col gap-4">
-            <SectionTitle>Time of day</SectionTitle>
+            {/* Tall as the digest's title row, which holds a 44px button, so the two titles line up. */}
+            <div className="flex items-center lg:min-h-11">
+              <SectionTitle>Time of day</SectionTitle>
+            </div>
             <HourDistribution heatmap={stats.heatmap} max={maxHeat} />
           </section>
 
@@ -111,6 +118,7 @@ export function PatternsView() {
               </ul>
             </section>
           )}
+          </div>
         </>
       )}
 
@@ -126,11 +134,11 @@ export function PatternsView() {
           </Button>
         </div>
         {!hasKey && (
-          <Text size="sm" muted>
+          <Text size="sm" muted className="max-w-[70ch]">
             Add Gemini key in Settings for narrative digest. Stats above always work.
           </Text>
         )}
-        {digest && <Text>{digest}</Text>}
+        {digest && <Text className="max-w-[70ch]">{digest}</Text>}
         <div className="flex flex-wrap gap-2">
           <Button variant="ghost" icon="copy" onClick={() => void copyText(digestMarkdown)}>
             Copy digest

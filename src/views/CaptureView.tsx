@@ -452,11 +452,10 @@ export function CaptureView({ onParked, onOpenReview }: CaptureViewProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative flex flex-col pt-16 pb-6"
+      className="tl-gutter tl-capture-screen relative flex flex-col pt-16 pb-6"
       style={{
-        paddingInline: "var(--nil-spacing-md)",
         // Fills the viewport above the nav, and above the sample banner while it shows.
-        minHeight: "calc(100dvh - 5.5rem - var(--sample-banner-h, 0px))",
+        minHeight: "calc(100dvh - var(--nav-h) - var(--sample-banner-h, 0px))",
       }}
       // Click anywhere on the screen to start typing, on a pointer device only.
       // On touch this made every stray tap open the keyboard.
@@ -464,14 +463,16 @@ export function CaptureView({ onParked, onOpenReview }: CaptureViewProps) {
         if (!recording && hasFinePointer()) inputRef.current?.focus();
       }}
     >
-      <div className="flex flex-1 flex-col justify-center gap-8">
+      {/* From 1024px this wrapper stops being a box (lg:contents), so the
+          headline and the field become cells of the section's grid (D-039). */}
+      <div className="flex flex-1 flex-col justify-center gap-8 lg:contents">
         {/*
           TWO ELEMENTS AT REST: the headline and the box. One control inside
           the box (D-029): the Mic on an empty box, Park from the first
           character, Stop and park while recording. D-030 moved this screen
           onto nil-ds, so the look is the kit's, unmodified.
         */}
-        <header>
+        <header className="lg:col-start-1 lg:row-start-1">
           <Heading level={1} style={{ fontSize: "var(--nil-type-scale-xl)" }}>
             What's pulling you?
           </Heading>
@@ -485,7 +486,7 @@ export function CaptureView({ onParked, onOpenReview }: CaptureViewProps) {
           downward into the empty space below and nothing above it moves.
         */}
         <div
-          className="tl-capture-form space-y-3"
+          className="tl-capture-form space-y-3 lg:col-start-1 lg:row-start-2"
           onClick={(event) => event.stopPropagation()}
         >
           <Composer
@@ -622,30 +623,39 @@ export function CaptureView({ onParked, onOpenReview }: CaptureViewProps) {
       </div>
 
       {/*
-        A FIXED slot, always here, whether or not anything is in it. Rendering
-        the stack conditionally shrank the flex-1 block above it, so the box
-        rose by about 66px the first time anything was parked: the one screen
-        that must never move, moving, at the exact moment a person is watching
-        it to see whether their thought landed. Reserved space costs nothing on
-        an empty screen and it cannot shift.
+        BESIDE THE FIELD from 1024px (D-039): this wrapper sits in the second
+        column of the field's row and is zero tall, so what it holds hangs from
+        the top of the field and can never change the height the headline and
+        the field are centred on. Below 1024px it is an ordinary block and the
+        stack and the link sit under the field, as before.
       */}
-      <div className="relative h-32 overflow-hidden">
-        {captures.length > 0 ? (
-          <PeekStack captures={captures} countRef={countRef} />
-        ) : (
-          <SampleOffer />
-        )}
-      </div>
+      <div className="lg:col-start-2 lg:row-start-2 lg:h-0">
+        {/*
+          A FIXED slot, always here, whether or not anything is in it. Rendering
+          the stack conditionally shrank the flex-1 block above it, so the box
+          rose by about 66px the first time anything was parked: the one screen
+          that must never move, moving, at the exact moment a person is watching
+          it to see whether their thought landed. Reserved space costs nothing on
+          an empty screen and it cannot shift.
+        */}
+        <div className="relative h-32 overflow-hidden lg:overflow-visible">
+          {captures.length > 0 ? (
+            <PeekStack captures={captures} countRef={countRef} />
+          ) : (
+            <SampleOffer />
+          )}
+        </div>
 
-      {/* A FIXED line, always here: the way to Review, never a badge. Muted, never
-          blue, and absent at zero, so it cannot read as something overdue. It
-          reserves its height either way, so it cannot move anything. */}
-      <div className="flex h-8 items-center justify-center">
-        {waiting > 0 && (
-          <button type="button" className="tl-quiet-link" onClick={onOpenReview}>
-            {waiting} waiting to sort
-          </button>
-        )}
+        {/* A FIXED line, always here: the way to Review, never a badge. Muted, never
+            blue, and absent at zero, so it cannot read as something overdue. It
+            reserves its height either way, so it cannot move anything. */}
+        <div className="flex h-8 items-center justify-center lg:justify-start">
+          {waiting > 0 && (
+            <button type="button" className="tl-quiet-link" onClick={onOpenReview}>
+              {waiting} waiting to sort
+            </button>
+          )}
+        </div>
       </div>
 
       {sinking.map((s) => (
