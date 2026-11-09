@@ -1,39 +1,68 @@
-import { useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Button, Heading, Readout, Text } from "nil-ds";
+import { Button, Card, Heading, Text } from "nil-ds";
+import {
+  DayStrip,
+  GroupLegend,
+  HeatmapChart,
+  MixChart,
+} from "../components/PatternCharts";
 import { SampleOffer } from "../components/Sample";
 import { db, getSettings } from "../db";
 import { aiWeeklyDigest, buildWeeklyStats } from "../lib/agent";
 import { copyText, downloadFile, shareText } from "../lib/hands";
-import type { Capture } from "../types";
+import {
+  WEEKDAY_NAMES,
+  WINDOW_DAYS,
+  analysePatterns,
+  dayLabel,
+  hasAnything,
+  slotWords,
+} from "../lib/patterns";
+import type { Capture, TriageBucket, Win } from "../types";
 
 /**
- * Patterns, on nil-ds (D-031): the kit's Readout for each number, Heading and
- * Text for the words, Button for the controls, all in the kit's dark theme.
+ * Patterns, findings first (D-043). Up to four plain sentences, each with the
+ * small picture that proves it, then the loops and the questions parked on the
+ * wonder shelf, then the optional digest. Every sentence and number is counted
+ * from stored captures and wins in lib/patterns.ts; nothing here is written by
+ * an AI and nothing is shown unless the data behind it is meaningful.
  *
- * WHAT MAY BE SHOWN is fixed by AGENTS.md product rule 2 and it is a product
- * rule rather than a layout one. No dial, no gauge, no target, no change arrow,
- * no day-over-day comparison, and `perDay` is never drawn as a sequence. A row
- * of daily bars with gaps in it is a streak display whatever the heading says.
- * The kit has Dial and Ring; neither belongs here.
+ * THE TONE IS THE RULE. A loop is "still", never "failed". Letting go is a
+ * result. No target, no score, no streak, no day-by-day sequence and no
+ * comparison of one stretch with another (AGENTS.md product rule 2, D-043).
  */
 
 const NO_CAPTURES: Capture[] = [];
+const NO_WINS: Win[] = [];
 
-/** Every hour exists whether or not anything landed in it. */
-const HOUR_LABELS = [0, 6, 12, 18];
+function plural(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
+function shorten(text: string, max = 60): string {
+  return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
+}
+
+function slotWord(hour: number): string {
+  if (hour < 5 || hour >= 21) return "nights";
+  if (hour < 12) return "mornings";
+  if (hour < 17) return "afternoons";
+  return "evenings";
+}
 
 export function PatternsView() {
   const captures = useLiveQuery(() => db.captures.toArray(), [], NO_CAPTURES);
+  const wins = useLiveQuery(() => db.wins.toArray(), [], NO_WINS);
   const settings = useLiveQuery(getSettings, [], null);
   const [digest, setDigest] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const report = useMemo(() => analysePatterns(captures, wins), [captures, wins]);
   const stats = buildWeeklyStats(captures);
-  const maxHeat = Math.max(...stats.heatmap, 1);
   const hasKey = Boolean(settings?.geminiApiKey);
-  // Zero-padded, so it agrees with the hour labels under the distribution and
-  // so midnight reads as a time rather than as an unfilled placeholder.
+  // Zero-padded, so it agrees with the hour labels and so midnight reads as a
+  // time rather than as an unfilled placeholder.
   const busiestHour = `${String(stats.busiestHour).padStart(2, "0")}:00`;
 
   async function runDigest() {
@@ -47,78 +76,205 @@ export function PatternsView() {
     }
   }
 
-  // Without a key the export still reads well: the same four numbers as
-  // sentences, with the AI digest named as optional (D-037). Only readouts this
-  // screen already shows, and no comparison with any other day.
+  // Without a key the export still reads well: the same numbers as sentences,
+  // with the AI digest named as optional (D-037). No comparison with any other day.
   const plainDigest = describeStats(stats, busiestHour);
   const digestMarkdown = `# Weekly digest\n\n${digest ?? plainDigest}\n\n## Stats\n- Total captures: ${stats.totalCaptures}\n- Active days: ${stats.activeDays}\n- Busiest hour: ${busiestHour}\n- Stuck items: ${stats.stuckCount}`;
 
+  const length = report.days.length;
+  const span =
+    length >= WINDOW_DAYS
+      ? "Your last four weeks"
+      : length === 1
+        ? "Today"
+        : `Your last ${length} days`;
+  const range =
+    length === 1
+      ? dayLabel(report.days[0])
+      : `${dayLabel(report.days[0])} to ${dayLabel(report.days[length - 1])}`;
+  const anything = hasAnything(report);
+  const { when, pulling, mix, winsFinding } = report;
+  const anyFinding = Boolean(when || pulling || mix || winsFinding);
+
   return (
     <section
-      className="tl-gutter flex flex-col gap-12 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-16"
+      className="tl-gutter flex flex-col gap-8"
       style={{ paddingBlock: "var(--nil-spacing-lg)" }}
     >
-      <Heading
-        level={1}
-        className="lg:col-span-2"
-        style={{ fontSize: "var(--nil-type-scale-xl)" }}
-      >
-        What keeps showing up
-      </Heading>
+      <div className="flex flex-col gap-2">
+        <Heading level={1} style={{ fontSize: "var(--nil-type-scale-xl)" }}>
+          What keeps showing up
+        </Heading>
+        {report.total > 0 && (
+          <Text size="sm" muted>
+            {`${span}, ${range}. ${plural(report.total, "thought", "thoughts")} parked, ${plural(report.winsTotal, "win", "wins")}.`}
+          </Text>
+        )}
+      </div>
 
-      {stats.totalCaptures === 0 ? (
-        <div className="flex flex-col items-start gap-12 lg:col-span-2">
-          <Text muted>Nothing to see yet.</Text>
+      {!anything ? (
+        <div className="flex flex-col items-start gap-4">
+          <Text className="max-w-[60ch]">
+            Patterns appear after a week or so of parking thoughts. Try the sample month to see
+            what this looks like.
+          </Text>
           <SampleOffer />
         </div>
       ) : (
         <>
-          {/*
-            TWO BY TWO ON A PHONE, FOUR ACROSS FROM 1024PX. The build spec asked
-            for a row of four at 1280 and that blueprint assumed a full-width
-            page. The screen was a 32rem column then, so a row of four gave each
-            readout about 104px, which wrapped "TOTAL CAPTURES" onto a second
-            line while its neighbours stayed on one. Below 1024px that is still
-            true and it stays two by two (D-021). Beside the side rail the
-            content area is about 1000px, so a row of four has room (D-039).
-            Review's summary keeps the two by two: it sits in a half-width
-            column.
-          */}
-          <section className="grid grid-cols-2 gap-x-6 gap-y-9 lg:col-span-2 lg:grid-cols-4">
-            <Readout size="md" label="Total captures" value={String(stats.totalCaptures)} />
-            <Readout size="md" label="Active days" value={String(stats.activeDays)} />
-            <Readout size="md" label="Busiest hour" value={busiestHour} />
-            <Readout size="md" label="Stuck items" value={String(stats.stuckCount)} />
-          </section>
+          {anyFinding && (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {when && (
+                <Finding label="When">
+                  <p className="m-0">
+                    <strong>
+                      {`${WEEKDAY_NAMES[when.weekday]} ${slotWord(when.hour)} pull hardest.`}
+                    </strong>{" "}
+                    {`${plural(when.count, "thought", "thoughts")} landed between ${slotWords(when.hour)} on ${WEEKDAY_NAMES[when.weekday]}s, ${when.tied ? "at least as many as" : "more than"} any other two hours of the week.`}
+                  </p>
+                  <HeatmapChart when={when} />
+                </Finding>
+              )}
 
-          <div className="flex min-w-0 flex-col gap-12">
-          <section className="flex flex-col gap-4">
-            {/* Tall as the digest's title row, which holds a 44px button, so the two titles line up. */}
-            <div className="flex items-center lg:min-h-11">
-              <SectionTitle>Time of day</SectionTitle>
+              {pulling && (
+                <Finding label="Still pulling">
+                  <p className="m-0">
+                    <strong>{`“${shorten(pulling.text)}” came back ${pulling.count} times.`}</strong>{" "}
+                    It might want a slot of its own, or permission to go.
+                  </p>
+                  <DayStrip
+                    length={length}
+                    dayIndexes={pulling.dayIndexes}
+                    days={report.days}
+                    label={`The days it came back: ${pulling.dayIndexes.map((i) => dayLabel(report.days[i])).join(", ")}.`}
+                  />
+                  <Text size="sm" muted className="m-0">
+                    Each block is a day it came back.
+                  </Text>
+                </Finding>
+              )}
+
+              {mix && (
+                <Finding label="Where they went">
+                  <p className="m-0">
+                    <strong>{`${mix.most ? "Most thoughts were" : "The biggest group was"} ${GROUP_PHRASE[mix.top]}:`}</strong>{" "}
+                    {`${mix.counts[mix.top]} of ${mix.total}.`}
+                  </p>
+                  <MixChart finding={mix} />
+                  <GroupLegend counts={mix.counts} />
+                </Finding>
+              )}
+
+              {winsFinding && (
+                <Finding label="Wins">
+                  <p className="m-0">
+                    <strong>{`${plural(winsFinding.wins, "win", "wins")} ${length >= WINDOW_DAYS ? "this month" : "so far"}.`}</strong>
+                    {winsFinding.letGo > 0 &&
+                      ` You let go of ${plural(winsFinding.letGo, "thing", "things")} on purpose. That counts too.`}
+                  </p>
+                  <ul className="m-0 flex list-none flex-wrap gap-2 p-0" aria-label="Recent wins">
+                    {winsFinding.recent.map((text, i) => (
+                      <li
+                        key={`${i}-${text}`}
+                        className="min-w-0 break-words"
+                        style={{
+                          background: "var(--nil-color-surface)",
+                          color: "var(--nil-color-text)",
+                          border: "var(--nil-border-width) solid var(--nil-color-success)",
+                          borderLeftWidth: "var(--nil-spacing-xs)",
+                          borderRadius: "var(--nil-radius-default)",
+                          padding: "var(--nil-spacing-xs) var(--nil-spacing-sm)",
+                          fontSize: "var(--nil-type-scale-sm)",
+                        }}
+                      >
+                        {text}
+                      </li>
+                    ))}
+                  </ul>
+                  {winsFinding.more > 0 && (
+                    <Text size="sm" muted className="m-0">
+                      {`and ${winsFinding.more} more`}
+                    </Text>
+                  )}
+                </Finding>
+              )}
             </div>
-            <HourDistribution heatmap={stats.heatmap} max={maxHeat} />
-          </section>
-
-          {stats.topRepeats.length > 0 && (
-            <section className="flex flex-col gap-4">
-              <SectionTitle>Repeats</SectionTitle>
-              <ul className="space-y-2">
-                {stats.topRepeats.map((item) => (
-                  <li
-                    key={item.text}
-                    className="flex items-baseline justify-between gap-4"
-                  >
-                    <Text className="min-w-0 truncate">{item.text}</Text>
-                    <span className="nil-label nil-label--accent shrink-0">
-                      &times;{item.count}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
           )}
-          </div>
+
+          {(report.loops.length > 0 || report.wonders.length > 0) && (
+            <div className="grid grid-cols-1 items-start gap-8 pt-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-x-12">
+              {report.loops.length > 0 && (
+                <section className="flex min-w-0 flex-col gap-3">
+                  <SectionTitle>Loops</SectionTitle>
+                  <ul className="m-0 flex list-none flex-col p-0">
+                    {report.loops.map((loop) => (
+                      <li
+                        key={loop.text}
+                        className="grid items-center gap-x-3 py-2 grid-cols-[minmax(0,1fr)_4.5rem_4.5rem] lg:grid-cols-[minmax(0,1fr)_9.5rem_5rem]"
+                        style={{ borderBottom: "1px solid var(--nil-color-grid-line)" }}
+                      >
+                        <Text size="sm" className="m-0 min-w-0 break-words">
+                          {loop.text}
+                        </Text>
+                        <DayStrip
+                          length={length}
+                          dayIndexes={loop.dayIndexes}
+                          status={loop.status}
+                          endIndex={loop.endIndex}
+                          label={`The days it came back: ${loop.dayIndexes.map((i) => dayLabel(report.days[i])).join(", ")}.`}
+                        />
+                        <span
+                          className={`nil-label text-right ${loop.status === "done" ? "nil-label--accent" : ""}`}
+                        >
+                          {loop.status === "done"
+                            ? "Done"
+                            : loop.status === "letgo"
+                              ? "Let go"
+                              : `${loop.count}× still`}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Text size="sm" muted className="m-0">
+                    Each block is a day it came back. Blue is the day it got done, orange the day
+                    you let it go.
+                  </Text>
+                </section>
+              )}
+
+              {report.wonders.length > 0 && (
+                <section className="flex min-w-0 flex-col gap-3">
+                  <SectionTitle>Wonder shelf</SectionTitle>
+                  <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+                    {report.wonders.slice(0, MAX_WONDERS).map((text) => (
+                      <li
+                        key={text}
+                        className="min-w-0 break-words"
+                        style={{
+                          background: "var(--nil-color-chart-blue-pale)",
+                          color: "var(--nil-color-chart-blue-pale-text)",
+                          border: "var(--nil-border-width) solid var(--nil-color-border)",
+                          borderRadius: "var(--nil-radius-default)",
+                          padding: "var(--nil-spacing-xs) var(--nil-spacing-sm)",
+                          fontSize: "var(--nil-type-scale-sm)",
+                        }}
+                      >
+                        {text}
+                      </li>
+                    ))}
+                  </ul>
+                  {report.wonders.length > MAX_WONDERS && (
+                    <Text size="sm" muted className="m-0">
+                      {`and ${report.wonders.length - MAX_WONDERS} more`}
+                    </Text>
+                  )}
+                  <Text size="sm" muted className="m-0">
+                    Questions you parked. Nothing to do, just yours.
+                  </Text>
+                </section>
+              )}
+            </div>
+          )}
         </>
       )}
 
@@ -135,7 +291,7 @@ export function PatternsView() {
         </div>
         {!hasKey && (
           <Text size="sm" muted className="max-w-[70ch]">
-            Add Gemini key in Settings for narrative digest. Stats above always work.
+            Add Gemini key in Settings for narrative digest. The findings above always work.
           </Text>
         )}
         {digest && <Text className="max-w-[70ch]">{digest}</Text>}
@@ -163,8 +319,29 @@ export function PatternsView() {
   );
 }
 
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
+/** More than this and the shelf says how many more, so it never grows without end. */
+const MAX_WONDERS = 8;
+
+/** How each group reads in a sentence. */
+const GROUP_PHRASE: Record<TriageBucket, string> = {
+  do: "things to do",
+  later: "for later",
+  drop: "let go",
+  wonder: "questions",
+};
+
+/** One finding: a small label, the sentence, and the picture that proves it. */
+function Finding({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <Card
+      padding="var(--nil-spacing-md)"
+      className="flex min-w-0 flex-col content-start gap-3"
+      style={{ backgroundColor: "var(--nil-color-bg)" }}
+    >
+      <span className="nil-label nil-label--accent">{label}</span>
+      {children}
+    </Card>
+  );
 }
 
 /** The stats as short sentences, for the export when there is no AI digest. */
@@ -187,75 +364,10 @@ function describeStats(
   ].join(" ");
 }
 
-/** The kit's five-step chart ramp, pale to full. A count lands on the step its share of the busiest hour reaches. */
-function rampColour(count: number, max: number): string {
-  const step = Math.min(5, Math.max(1, Math.ceil((count / max) * 5)));
-  return `var(--nil-color-chart-ramp-${step})`;
-}
-
 function SectionTitle({ children }: { children: string }) {
   return (
     <Heading level={2} style={{ fontSize: "var(--nil-type-scale-base)" }}>
       {children}
     </Heading>
-  );
-}
-
-interface HourDistributionProps {
-  heatmap: number[];
-  max: number;
-}
-
-/**
- * Twenty-four slots, and an empty one is VISIBLE as empty rather than absent.
- *
- * An empty hour used to be a zero-height bar at 0.15 opacity, which is nothing
- * at all: the day appeared to have fewer hours in it than it has. Every hour
- * now draws at least a 2px mark on the baseline, in the kit's muted text
- * colour, so "nothing happened here" is something you can actually see.
- * Rendering something nobody can see is worse than rendering nothing, because
- * it reads as done. See docs/DECISIONS.md D-014.
- */
-function HourDistribution({ heatmap, max }: HourDistributionProps) {
-  return (
-    <div className="space-y-2">
-      <div
-        className="grid h-24 items-end gap-px"
-        style={{ gridTemplateColumns: "repeat(24, minmax(0, 1fr))" }}
-      >
-        {heatmap.map((count, hour) => (
-          <div
-            key={hour}
-            className="tl-bar-grow"
-            title={`${hour}:00, ${count === 1 ? "1 capture" : `${count} captures`}`}
-            style={{
-              height: count ? `max(4px, ${(count / max) * 100}%)` : "2px",
-              // A count is a step on the kit's five-step blue ramp, outlined in
-              // the border colour like every chart mark. An empty hour stays a
-              // plain muted line: nothing was drawn there, so it has no outline.
-              background: count ? rampColour(count, max) : "var(--nil-color-text-muted)",
-              border: count
-                ? "var(--nil-border-width) solid var(--nil-color-border)"
-                : undefined,
-              borderRadius: "var(--nil-radius-sm)",
-              // Staggered by 8ms, so the row reads left to right once and then
-              // is still. The only decorative motion in the app, and it is
-              // defensible because this is a screen you arrive at to read.
-              animationDelay: `${hour * 8}ms`,
-            }}
-          />
-        ))}
-      </div>
-      <div
-        className="nil-label grid gap-px"
-        style={{ gridTemplateColumns: "repeat(24, minmax(0, 1fr))" }}
-      >
-        {Array.from({ length: 24 }, (_, hour) => (
-          <span key={hour} style={{ gridColumn: hour + 1 }}>
-            {HOUR_LABELS.includes(hour) ? String(hour).padStart(2, "0") : ""}
-          </span>
-        ))}
-      </div>
-    </div>
   );
 }

@@ -46,6 +46,7 @@ D-025 and D-026. |
 | Polish, slice 2 | **Built 2026-11-09, awaiting a look.** A desktop layout above 1024px: a side rail, Capture's stack beside the box, two columns on Review and Patterns. See D-039. |
 | Polish, slice 3 | **Built 2026-11-09, awaiting a look.** Motion at the moments that matter, example thoughts in the empty box, any key starts typing, and the kit's chart colours on the four groups. See D-040 and D-041. |
 | Identity | **Built 2026-11-09, awaiting a look.** The wordmark, the pixel T favicon and app icons, the share preview, the footer and a louder demo banner. See D-042. |
+| Patterns, findings first | **Built 2026-11-09, awaiting a look.** Four counted sentences with the picture that proves each (when, still pulling, where they went, wins), loops, the wonder shelf, and a sample month. Stays inside product rule 2. See D-043 to D-045. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -2121,3 +2122,86 @@ sample was loaded, and the credit for the design kit tucked into Settings. This 
   line. The "See a sample week" buttons on empty screens are unchanged.
 - The PNGs and the share image are made from the SVGs and the font with a headless browser; there is no build
   step for them, so a change to the mark means re-rendering the files in `public/`.
+
+## D-043: Patterns leads with findings, and stays inside rule 2
+
+**Date:** 2026-11-09.
+
+Patterns was four numbers and one chart. It now opens with up to four plain sentences, each with the small
+picture that proves it, then Loops and the Wonder shelf, then the optional digest. The reasoning: a number
+tells you something happened, a sentence says what it means, and a person reading their own thinking from
+above wants the second. Three directions were drawn from one sample month and this one was chosen.
+
+**Product rule 2 is unchanged.** Patterns shows no streak, no target, no dial, no change arrow, no
+day-over-day comparison, and no daily sequence. A per-day chart and a week-against-week comparison were in the
+first design and were considered and left out for exactly that reason: a row of daily bars with gaps in it is a
+streak display whatever the heading says, and a "calmer than last week" sentence is a comparison. What is shown:
+
+- **When.** The busiest two hours of the week, with an hour by weekday heatmap on the kit's blue ramp. A
+  heatmap is a distribution, not a sequence.
+- **Still pulling.** The most repeated capture that is still open, how many times, and the days it came back.
+  The repeat detection is the one the app already had (`countRepeats`), asked rather than copied.
+- **Where they went.** One sentence and one stacked bar for the whole window: how many thoughts were things to
+  do, for later, let go, questions, and not sorted yet. "Most thoughts were things to do: 61 of 164." when one
+  group is more than half, otherwise "The biggest group was ...".
+- **Wins.** How many, how many things were let go on purpose (captures sorted to Drop), and up to six recent
+  wins as chips. No dates, no sequence.
+- **Loops** are captures parked more than once, up to five. The status is read from the latest time it was
+  parked: sorted to Do is "Done", sorted to Drop is "Let go", anything else is "N times still". "Still", never
+  "failed". **Wonder shelf** is each wonder question once, newest first, eight then "and N more".
+- **Every sentence is counted from stored captures and wins.** No AI, no network. The digest stays optional
+  and keeps using the existing stats.
+- **Every chart is role="img" with a label that says what it shows**, and the sentence beside it carries the
+  meaning. Charts are SVG on a viewBox, so they scale and nothing scrolls sideways at 320px. Colours are kit
+  tokens only; marks are outlined in the border colour; an empty cell is unfilled with a hairline.
+
+**Open for the owner:** Still pulling ends "It might want a slot of its own, or permission to go." That is a
+suggestion that can be declined, and whether Patterns may suggest at all is not decided. It stays as drawn until
+it is.
+
+## D-044: Patterns shows nothing it cannot support
+
+**Date:** 2026-11-09.
+
+Real people may have three captures. Each finding appears only when its data is meaningful, and when none
+does the screen says one calm line and offers the sample.
+
+| Finding | Needs |
+|---|---|
+| When | At least 10 captures in the window, and a busiest two-hour slot of at least 3. A tie is said as "at least as many as any other two hours". |
+| Still pulling | One capture parked at least twice and not yet done or let go. |
+| Where they went | At least 5 sorted captures in the window. |
+| Wins | At least one win in the window. |
+| Loops, Wonder shelf | At least one of each. |
+
+- **The window** is the 28 local days ending today, opening on the first day that has a capture. The subtitle
+  says the real range ("Your last 9 days, 1 Nov to 9 Nov") and only says "four weeks" when it is 28 days. The
+  Wins sentence says "this month" at 28 days and "so far" before that.
+- **Days are local days**, not the UTC date used elsewhere in the app, so a thought parked at 01:00 belongs to
+  the day it felt like. A win is placed in the window by the day Review saved it, which Review takes from the
+  UTC date, so between midnight and 02:00 in a UTC+2 place a win can land on the previous day.
+- **The empty line** is "Patterns appear after a week or so of parking thoughts. Try the sample month to see
+  what this looks like.", with the sample button. A finding is never invented to fill the space.
+- **The heatmap starts at 06 unless something was parked earlier**, so a night-time capture is never hidden.
+
+## D-045: The sample grows from a week to a month
+
+**Date:** 2026-11-09.
+
+Patterns needs weeks to say anything, so the sample is now 28 days ending yesterday, about 175 captures and
+about 20 wins, and "See a sample week" became "See a sample month". Every rule from D-036 holds: rows carry
+`sample: true`, export skips them, Clear sample removes exactly them, and real captures survive.
+
+- **Deterministic.** A seeded generator, so one day always loads the same month and screenshots are stable.
+  Dates are relative to the day it is loaded.
+- **A believable rhythm.** Heavier on weekday mornings, an evening bump, quieter weekends, a little quieter each
+  week, and Mondays start with a rush before ten.
+- **Five loops:** "Reorganise the spice rack" 7 times and "Sort out the photos on my phone" 5 times (still
+  pulling), "Call the dentist about Friday" 4 and "Reply to Sam's long message" 3 (done), "Start running
+  again" 3 (let go). Earlier times are sorted to Later, the last to its result. Every other capture is
+  distinct, so nothing else looks like a loop.
+- **Review still has work.** Three captures from yesterday evening and six from today are left unsorted.
+  Today's are stamped minutes before loading and never cross midnight, so Capture's Today stack is populated
+  at any hour. The old note about three repeats in the queue no longer applies: loops are spread over days.
+- **The banner** now reads "This is filled with a sample month so you can see how it works. Clear it to start
+  your own."

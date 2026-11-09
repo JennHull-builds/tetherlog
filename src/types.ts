@@ -55,7 +55,7 @@ export interface Capture {
   durationMs?: number;
   transcriptStatus?: TranscriptStatus;
   /**
-   * Set only on rows loaded by "See a sample week" (D-036). A sample row is
+   * Set only on rows loaded by "See a sample month" (D-036, D-043). A sample row is
    * never exported and Clear sample removes exactly these. Real captures never
    * carry it, so old stored data needs no migration.
    */

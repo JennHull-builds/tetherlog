@@ -11,15 +11,15 @@ import {
 import { useLiveQuery } from "dexie-react-hooks";
 import { Button, Text } from "nil-ds";
 import { usePublishHeight } from "../lib/usePublishHeight";
-import { clearSampleWeek, hasSampleData, loadSampleWeek } from "../lib/sample";
+import { clearSampleMonth, hasSampleData, loadSampleMonth } from "../lib/sample";
 
 /**
- * The sample week's one shared state (D-036): is it loaded, is something
+ * The sample month's one shared state (D-036): is it loaded, is something
  * happening, and what to say about it. A context, so the banner and the three
  * empty-state buttons never disagree.
  *
  * FEEDBACK IS PART OF THE FEATURE. Loading and clearing both say what they did
- * ("Sample week loaded.", "Sample cleared."), for a few seconds, in a live
+ * ("Sample month loaded.", "Sample cleared."), for a few seconds, in a live
  * region. The words stay for a fixed time and nothing animates.
  */
 
@@ -56,13 +56,13 @@ export function SampleProvider({ children }: { children: ReactNode }) {
 
   const load = useCallback(async () => {
     setBusy(true);
-    setNotice("Loading the sample week…");
+    setNotice("Loading the sample month…");
     try {
-      await loadSampleWeek();
-      say("Sample week loaded.");
+      await loadSampleMonth();
+      say("Sample month loaded.");
     } catch (error) {
-      console.warn("[tetherlog] sample week failed to load", error);
-      say("The sample week did not load.");
+      console.warn("[tetherlog] sample month failed to load", error);
+      say("The sample month did not load.");
     } finally {
       setBusy(false);
     }
@@ -72,10 +72,10 @@ export function SampleProvider({ children }: { children: ReactNode }) {
     setBusy(true);
     setNotice("Clearing the sample…");
     try {
-      await clearSampleWeek();
+      await clearSampleMonth();
       say("Sample cleared.");
     } catch (error) {
-      console.warn("[tetherlog] sample week failed to clear", error);
+      console.warn("[tetherlog] sample month failed to clear", error);
       say("The sample did not clear.");
     } finally {
       setBusy(false);
@@ -98,7 +98,7 @@ function useSample(): SampleState {
 
 /**
  * The demo banner (D-042): a full-width band in the kit's pale blue, on every
- * screen while the sample week is loaded, so nobody mistakes the sample for
+ * screen while the sample month is loaded, so nobody mistakes the sample for
  * their own captures. A "DEMO" label, one plain line and the Clear sample button.
  * It wraps cleanly at 320px, and it is a block in the page, never over the
  * content or the nav.
@@ -126,7 +126,7 @@ export function SampleBanner() {
           <>
             <span className="tl-demo-banner__label">Demo</span>
             <p className="tl-demo-banner__text">
-              This is filled with a sample week so you can see how it works. Clear it to start
+              This is filled with a sample month so you can see how it works. Clear it to start
               your own.
             </p>
             <Button
@@ -160,7 +160,7 @@ export function SampleOffer() {
   return (
     <div className="flex flex-col items-start gap-2">
       <Button variant="secondary" disabled={busy} onClick={() => void load()}>
-        See a sample week
+        See a sample month
       </Button>
       <Text size="sm" muted>
         Adds example captures you can explore, then clear in one tap.
