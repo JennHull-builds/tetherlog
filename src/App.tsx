@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { flushSync } from "react-dom";
+import { Footer } from "./components/Footer";
 import { NavBar } from "./components/NavBar";
 import { SampleBanner, SampleProvider } from "./components/Sample";
+import { TopBar } from "./components/Wordmark";
 import { prefersReducedMotion } from "./lib/motion";
 import type { Screen } from "./types";
 import { CaptureView } from "./views/CaptureView";
@@ -42,11 +44,13 @@ export default function App() {
 
   return (
     <SampleProvider>
-      {/* Below 1024px: banner, screen, then the bottom bar. From 1024px up the
-          same nav is a rail on the left and the rest is one column beside it
-          (D-039). */}
+      {/* Below 1024px: the top bar with the name, the banner, the screen, the
+          footer, then the bottom bar. From 1024px up the same nav is a rail on
+          the left, carrying the name, and the rest is one column beside it
+          (D-039, D-042). */}
       <div className="flex min-h-dvh flex-col lg:flex-row">
         <div className="flex min-w-0 flex-1 flex-col">
+          <TopBar />
           <SampleBanner />
           <main className="mx-auto w-full max-w-lg flex-1 lg:mx-0 lg:max-w-6xl">
             {screen === "capture" && (
@@ -59,6 +63,7 @@ export default function App() {
             {screen === "patterns" && <PatternsView />}
             {screen === "settings" && <SettingsView />}
           </main>
+          <Footer />
         </div>
         <NavBar screen={screen} onNavigate={setScreen} />
       </div>

@@ -3,7 +3,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -11,6 +10,7 @@ import {
 } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Button, Text } from "nil-ds";
+import { usePublishHeight } from "../lib/usePublishHeight";
 import { clearSampleWeek, hasSampleData, loadSampleWeek } from "../lib/sample";
 
 /**
@@ -96,60 +96,41 @@ function useSample(): SampleState {
   return state;
 }
 
-/** Height of the banner strip. the banner publishes it as --sample-banner-h. */
-const SAMPLE_BANNER_HEIGHT = "2.25rem";
-
 /**
- * A slim strip on every screen while the sample is loaded, and for a few
- * seconds after it is cleared so "Sample cleared." has somewhere to be said.
- * Its height is always the same, so screens that fill the viewport subtract it
- * from the same variable.
+ * The demo banner (D-042): a full-width band in the kit's pale blue, on every
+ * screen while the sample week is loaded, so nobody mistakes the sample for
+ * their own captures. A "DEMO" label, one plain line and the Clear sample button.
+ * It wraps cleanly at 320px, and it is a block in the page, never over the
+ * content or the nav.
+ *
+ * Text is the kit's matching dark ink on that pale blue (12.89:1). The label is
+ * white on the kit's accent blue (4.61:1).
+ *
+ * For a few seconds after the sample is cleared (or while it loads) the band
+ * stays, carrying only the plain status line, so "Sample cleared." has somewhere
+ * to be said. Its height is published as --sample-banner-h and follows the wrap,
+ * so screens that fill the viewport subtract the real figure.
  */
 export function SampleBanner() {
   const { loaded, busy, notice, clear } = useSample();
   const visible = loaded || notice !== null;
+  const ref = useRef<HTMLDivElement>(null);
+  usePublishHeight(ref, "--sample-banner-h", visible);
 
-  // Screens that fill the viewport subtract this, so the banner never pushes
-  // them into a scroll. Set on the root so every screen reads the same value.
-  useLayoutEffect(() => {
-    const root = document.documentElement;
-    root.style.setProperty("--sample-banner-h", visible ? SAMPLE_BANNER_HEIGHT : "0px");
-    return () => {
-      root.style.removeProperty("--sample-banner-h");
-    };
-  }, [visible]);
+  if (!visible) return null;
 
   return (
-    <div
-      className="no-print"
-      style={{
-        height: visible ? SAMPLE_BANNER_HEIGHT : 0,
-        overflow: "hidden",
-        background: "var(--nil-color-surface)",
-        borderBottom: visible
-          ? "var(--nil-border-width) solid var(--nil-color-border)"
-          : "none",
-      }}
-    >
-      {visible && (
-        <div
-          className="tl-gutter mx-auto flex h-full max-w-lg items-center justify-between gap-3 lg:mx-0 lg:max-w-6xl"
-        >
-          {/* The label doubles as the message: for a few seconds it says what
-              just happened ("Sample week loaded."), then goes back to naming
-              the mode. One line at every width, so the strip never grows. */}
-          <p
-            className={`nil-label min-w-0 truncate${loaded ? " nil-label--accent" : ""}`}
-            aria-hidden
-          >
-            {notice ?? "Sample week"}
-          </p>
-          <p className="nil-sr-only" role="status" aria-live="polite">
-            {notice ?? ""}
-          </p>
-          {loaded && (
+    <div ref={ref} className="tl-demo-banner no-print">
+      <div className="tl-gutter tl-demo-banner__inner mx-auto max-w-lg lg:mx-0 lg:max-w-6xl">
+        {loaded ? (
+          <>
+            <span className="tl-demo-banner__label">Demo</span>
+            <p className="tl-demo-banner__text">
+              This is filled with a sample week so you can see how it works. Clear it to start
+              your own.
+            </p>
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
               icon="close"
               disabled={busy}
@@ -157,9 +138,16 @@ export function SampleBanner() {
             >
               Clear sample
             </Button>
-          )}
-        </div>
-      )}
+          </>
+        ) : (
+          <p className="tl-demo-banner__text" aria-hidden>
+            {notice}
+          </p>
+        )}
+        <p className="nil-sr-only" role="status" aria-live="polite">
+          {notice ?? ""}
+        </p>
+      </div>
     </div>
   );
 }

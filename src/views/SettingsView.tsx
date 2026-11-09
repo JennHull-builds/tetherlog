@@ -111,18 +111,6 @@ export function SettingsView() {
           Your key stays on this device. We never see it. Without a key, capture,
           patterns, and rule-based review still work. AI sorting and digest stay off.
         </Text>
-        <Text size="sm" muted>
-          Built on{" "}
-          <a
-            href="https://nil-ds.vercel.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="tl-quiet-link"
-            style={{ minHeight: 0, paddingInline: 0, color: "var(--nil-color-text-accent)" }}
-          >
-            nil-ds
-          </a>
-        </Text>
         <Input
           label="Gemini API key (BYOK)"
           type={showKey ? "text" : "password"}
