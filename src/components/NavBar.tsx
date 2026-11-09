@@ -22,7 +22,7 @@ interface NavBarProps {
  * Below 1024px it is the bottom bar. From 1024px up it is a side rail on the left (D-039): the same
  * buttons stacked, full height, stuck to the top of the viewport. The kit's Sidebar was read and not
  * used: it renders anchors with an href and a word each (no icon), under a section heading and a
- * collapse toggle, and this nav switches a screen in state rather than navigating. Two navs would be
+ * fold-away toggle, and this nav switches a screen in state rather than navigating. Two navs would be
  * two landmarks with one name, so exactly one is displayed at a time and the other leaves the page.
  */
 export function NavBar({ screen, onNavigate }: NavBarProps) {
