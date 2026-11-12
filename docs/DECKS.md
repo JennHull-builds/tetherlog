@@ -65,6 +65,9 @@ node scripts/park.mjs deck.json --base <address> [--open]
 - The deck is checked with the same code the app uses to read it, so a link made here is one the app accepts.
 - There is no default address. Pass `--base`, or set `TETHERLOG_BASE`. A link pointed at a build that cannot
   read decks opens Capture and says nothing, so the address has to be a deliberate choice.
+- `--out <folder>` also writes `<deck id>.html` in that folder: a page that forwards to the link at once, with a
+  plain "Open the deck" link in case forwarding is blocked. Use it so a long link never has to be pasted into a
+  note or a chat. Link a note to the small page instead.
 - `--open` opens the link in the default browser.
 
 ## What the person sees
@@ -79,7 +82,7 @@ same link again carries on where the person stopped.
 
 ## What comes back
 
-The person pastes the copied text to the agent. One line per card, then a count. The text for the example deck:
+The person pastes the copied text to the agent, which reads it with `scripts/answers.mjs` (below). One line per card, then a count. The text for the example deck:
 
 ```
 TetherLog answers
@@ -96,6 +99,32 @@ old-flag: left open
 
 The time is local, 24-hour. The second sentence of the last line appears only when a card was left open.
 A card left open is no decision, so an agent must never treat its pick as approved.
+
+## Reading the answers back
+
+```
+node scripts/answers.mjs deck.json answers.txt
+pbpaste | node scripts/answers.mjs deck.json
+```
+
+The script reads the pasted text against the deck it came from and prints JSON: for each card, its id,
+whether it was `answered` or `left open`, the key and label chosen, the agent's pick, and whether the choice
+differs from the pick. The JSON begins like this:
+
+```
+{ "deck": "example-deck", "answered": 2, "total": 3,
+  "answers": [ { "id": "rename-export", "status": "answered", "choice": "A", "label": "Keep the name",
+                 "pick": "A", "changedFromPick": false }, ... ] }
+```
+
+It is strict on purpose. A paste for another deck, a card the deck does not have, a key or label the card
+does not hold, a repeated card, a card missing, or a paste cut short is refused. The error names the line and
+the exit code is 1. `readDeckAnswers` in `src/lib/deck.ts` is the same check, and it is the reverse of
+`formatDeckAnswers`.
+
+**Left open means no decision.** A card that came back `left open` was not answered. The agent's pick on it is
+not approved, and silence is never a yes. Whoever reads the answers does nothing for that card and keeps it
+waiting.
 
 ## Untrusted input
 

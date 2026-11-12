@@ -258,3 +258,111 @@ export function formatDeckAnswers(stored: StoredDeck, at: number = Date.now()): 
       (open > 0 ? " Left open means no decision: the agent's pick is not approved." : ""),
   ].join("\n");
 }
+
+// ── reading answers back ────────────────────────────────────────────────────
+
+/** One card's answer, as read back from pasted text. */
+export interface ReadAnswer {
+  id: string;
+  /** `answered`, or `left open`, which is no decision. */
+  status: "answered" | "left open";
+  choice?: string;
+  label?: string;
+  pick: string;
+  /** True when the chosen key is not the agent's pick. Always false when left open. */
+  changedFromPick: boolean;
+}
+
+export interface ReadAnswers {
+  deck: string;
+  answered: number;
+  total: number;
+  answers: ReadAnswer[];
+}
+
+/**
+ * The reverse of formatDeckAnswers. Reads the text a person pasted back against
+ * the deck it came from. Strict on purpose: an agent acts on what this returns,
+ * so a paste that does not match the deck, or that was cut short, is refused
+ * with the line it could not match, never half read.
+ */
+export function readDeckAnswers(deck: Deck, pasted: string): ReadAnswers {
+  const lines = pasted
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((text, index) => ({ text: text.trim(), line: index + 1 }))
+    .filter((item) => item.text !== "");
+
+  const first = lines[0];
+  if (!first || first.text !== "TetherLog answers") {
+    throw new DeckError('Line 1 must be "TetherLog answers". This is not pasted answers.');
+  }
+
+  const byId = new Map(deck.cards.map((card) => [card.id, card]));
+  const found = new Map<string, ReadAnswer>();
+  let seenDeck = false;
+  let closing: { answered: number; total: number } | null = null;
+
+  for (const { text, line } of lines.slice(1)) {
+    if (closing) throw new DeckError(`Line ${line}: nothing may follow the closing count line.`);
+
+    const header = /^Deck: (\S+) \(.*\)$/.exec(text);
+    if (header) {
+      if (header[1] !== deck.id) {
+        throw new DeckError(`Line ${line}: these answers are for the deck "${header[1]}", not "${deck.id}".`);
+      }
+      seenDeck = true;
+      continue;
+    }
+    if (text.startsWith("From: ") || text.startsWith("Answered: ")) continue;
+
+    const count = /^(\d+) of (\d+) answered\./.exec(text);
+    if (count) {
+      closing = { answered: Number(count[1]), total: Number(count[2]) };
+      continue;
+    }
+
+    const card = /^([a-z0-9-]+): (.+)$/.exec(text);
+    if (!card) throw new DeckError(`Line ${line}: cannot read "${text.slice(0, 60)}".`);
+    const [, id, rest] = card;
+    const source = byId.get(id);
+    if (!source) throw new DeckError(`Line ${line}: the card "${id}" is not in the deck "${deck.id}".`);
+    if (found.has(id)) throw new DeckError(`Line ${line}: the card "${id}" appears twice.`);
+
+    if (rest === "left open") {
+      found.set(id, { id, status: "left open", pick: source.pick, changedFromPick: false });
+      continue;
+    }
+    const choice = source.choices.find((item) => rest.startsWith(`${item.key} = `));
+    if (!choice) throw new DeckError(`Line ${line}: no choice on the card "${id}" matches "${rest.slice(0, 60)}".`);
+    const note = choice.key === source.pick ? "the agent's pick" : `changed from ${source.pick}`;
+    const expected = `${choice.key} = ${choice.label} [${note}]`;
+    if (rest !== expected) {
+      throw new DeckError(`Line ${line}: expected "${expected}" for the card "${id}", found "${rest.slice(0, 80)}".`);
+    }
+    found.set(id, {
+      id,
+      status: "answered",
+      choice: choice.key,
+      label: choice.label,
+      pick: source.pick,
+      changedFromPick: choice.key !== source.pick,
+    });
+  }
+
+  if (!seenDeck) throw new DeckError("The paste has no Deck line, so it cannot be matched to a deck.");
+  if (!closing) throw new DeckError("The paste is cut off: the closing line that counts the answers is missing.");
+  const missing = deck.cards.filter((card) => !found.has(card.id)).map((card) => card.id);
+  if (missing.length > 0) {
+    throw new DeckError(`The paste is missing ${missing.length} card${missing.length === 1 ? "" : "s"}: ${missing.join(", ")}.`);
+  }
+
+  const answers = deck.cards.map((card) => found.get(card.id) as ReadAnswer);
+  const answered = answers.filter((item) => item.status === "answered").length;
+  if (closing.total !== deck.cards.length || closing.answered !== answered) {
+    throw new DeckError(
+      `The closing line says ${closing.answered} of ${closing.total}, but the cards say ${answered} of ${deck.cards.length}.`,
+    );
+  }
+  return { deck: deck.id, answered, total: deck.cards.length, answers };
+}

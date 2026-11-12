@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 // Make a TetherLog link from a deck file.
 //
-//   node scripts/park.mjs <deck.json> --base <address> [--open]
+//   node scripts/park.mjs <deck.json> --base <address> [--out <folder>] [--open]
+//
+// --out also writes <deck id>.html in that folder: a page that forwards to the
+// link at once, with a plain "Open the deck" link in case forwarding is blocked.
+// It exists so a long link never has to be pasted into a note or a chat.
 //
 // The link goes to stdout and nothing else does. Problems go to stderr, naming
 // the card and the field. The deck is checked with the same code the app uses to
@@ -10,17 +14,20 @@
 // There is no default address on purpose. A link pointed at a build that cannot
 // read decks opens Capture and says nothing, which is the worst kind of failure
 // here. Pass --base, or set TETHERLOG_BASE.
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { spawnSync } from "node:child_process";
-import { DeckError, makeDeckLink } from "../src/lib/deck.ts";
+import { DeckError, checkDeck, makeDeckLink } from "../src/lib/deck.ts";
 
 const args = process.argv.slice(2);
 let file;
 let base = process.env.TETHERLOG_BASE;
 let open = false;
+let out;
 for (let i = 0; i < args.length; i += 1) {
   if (args[i] === "--base") base = args[(i += 1)];
   else if (args[i] === "--open") open = true;
+  else if (args[i] === "--out") out = args[(i += 1)];
   else if (!file) file = args[i];
   else fail(`Unexpected argument: ${args[i]}`);
 }
@@ -30,7 +37,7 @@ function fail(message) {
   process.exit(1);
 }
 
-if (!file) fail("Usage: node scripts/park.mjs <deck.json> --base <address> [--open]");
+if (!file) fail("Usage: node scripts/park.mjs <deck.json> --base <address> [--out <folder>] [--open]");
 if (!base) {
   fail("No address. Pass --base <address> or set TETHERLOG_BASE, so the link opens a build that can read decks.");
 }
@@ -44,11 +51,29 @@ try {
 }
 
 let link;
+let deck;
 try {
-  link = makeDeckLink(raw, base);
+  deck = checkDeck(raw);
+  link = makeDeckLink(deck, base);
 } catch (error) {
   if (error instanceof DeckError) fail(error.message);
   throw error;
+}
+
+const escape = (value) =>
+  value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+if (out) {
+  mkdirSync(out, { recursive: true });
+  writeFileSync(
+    join(out, `${deck.id}.html`),
+    `<!doctype html>
+<meta charset="utf-8">
+<title>TetherLog: ${escape(deck.title)}</title>
+<meta http-equiv="refresh" content="0; url=${escape(link)}">
+<p><a href="${escape(link)}">Open the deck</a></p>
+`,
+  );
 }
 
 process.stdout.write(`${link}\n`);

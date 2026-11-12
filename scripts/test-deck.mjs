@@ -8,6 +8,7 @@ import {
   checkDeck,
   formatDeckAnswers,
   makeDeckLink,
+  readDeckAnswers,
   readDeckLink,
 } from "../src/lib/deck.ts";
 
@@ -174,3 +175,61 @@ test("formatDeckAnswers: nothing left open drops the second sentence", () => {
   const lines = formatDeckAnswers(stored, 0).split("\n");
   assert.equal(lines.at(-1), "3 of 3 answered.");
 });
+
+// ── reading answers back (slice 2) ──────────────────────────────────────────
+
+function storedWith(answers) {
+  const deck = checkDeck(example());
+  return { id: deck.id, deck, receivedAt: 1, answers };
+}
+const mixed = () =>
+  storedWith({
+    "rename-export": { choice: "A", at: 1 },
+    "empty-state": { choice: "B", at: 2 },
+    "old-flag": { skipped: true, at: 3 },
+  });
+
+test("answers survive format then read", () => {
+  const stored = mixed();
+  const read = readDeckAnswers(stored.deck, formatDeckAnswers(stored, 0));
+  assert.equal(read.deck, "example-deck");
+  assert.equal(read.answered, 2);
+  assert.equal(read.total, 3);
+  assert.deepEqual(read.answers, [
+    { id: "rename-export", status: "answered", choice: "A", label: "Keep the name", pick: "A", changedFromPick: false },
+    { id: "empty-state", status: "answered", choice: "B", label: "Show a sample", pick: "A", changedFromPick: true },
+    { id: "old-flag", status: "left open", pick: "Yes", changedFromPick: false },
+  ]);
+});
+
+test("a fully answered deck reads back too, and Windows line endings are fine", () => {
+  const stored = storedWith(Object.fromEntries(checkDeck(example()).cards.map((c) => [c.id, { choice: c.pick, at: 1 }])));
+  const text = formatDeckAnswers(stored, 0).replace(/\n/g, "\r\n");
+  assert.equal(readDeckAnswers(stored.deck, text).answered, 3);
+});
+
+function refusedAnswers(change, pattern, label) {
+  test(`refuses pasted answers: ${label}`, () => {
+    const stored = mixed();
+    const text = change(formatDeckAnswers(stored, 0));
+    assert.throws(() => readDeckAnswers(stored.deck, text), (error) => {
+      assert.ok(error instanceof DeckError);
+      assert.match(error.message, pattern);
+      return true;
+    });
+  });
+}
+
+refusedAnswers((t) => t.replace("TetherLog answers", "Something else"), /Line 1/, "text that does not start the right way");
+refusedAnswers((t) => t.replace("Deck: example-deck", "Deck: other-deck"), /other-deck.*example-deck/, "a wrong deck id");
+refusedAnswers((t) => t.replace("empty-state:", "invented-card:"), /"invented-card" is not in the deck/, "an unknown card id");
+refusedAnswers((t) => t.replace("B = Show a sample [changed from A]", "Z = Show a sample [changed from A]"), /no choice on the card "empty-state"/, "an unknown key");
+refusedAnswers((t) => t.replace("Keep the name", "Keep the old name"), /expected .*Keep the name/, "a label that is not the deck's");
+refusedAnswers((t) => t.replace("[the agent's pick]", "[changed from B]"), /expected/, "a note that does not match");
+refusedAnswers((t) => t.split("\n").slice(0, -1).join("\n"), /cut off/, "a truncated paste (the closing line is missing)");
+refusedAnswers((t) => t.replace("old-flag: left open\n", ""), /missing 1 card: old-flag/, "a card missing");
+refusedAnswers((t) => t.replace("old-flag: left open", "old-flag: left open\nold-flag: left open"), /appears twice/, "a card twice");
+refusedAnswers((t) => t.replace("2 of 3 answered", "3 of 3 answered"), /says 3 of 3, but the cards say 2 of 3/, "a closing count that disagrees");
+refusedAnswers((t) => t + "\nextra", /nothing may follow/, "text after the closing line");
+refusedAnswers((t) => t.replace("old-flag: left open", "old-flag maybe"), /cannot read/, "a line it cannot read");
+refusedAnswers((t) => t.replace(/Deck: .*\n/, ""), /no Deck line/, "no Deck line");
