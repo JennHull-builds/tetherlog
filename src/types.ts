@@ -119,6 +119,8 @@ export type Deck = z.infer<typeof deckSchema>;
 export interface DeckAnswer {
   choice?: string;
   skipped?: true;
+  /** A few words with the answer. One line, up to 200 characters. Text only. */
+  note?: string;
   at: number;
 }
 
@@ -132,6 +134,8 @@ export interface StoredDeck {
   answers: Record<string, DeckAnswer>;
   copiedAt?: number;
   closedAt?: number;
+  /** Set only on the deck loaded by "See a sample deck" (D-049). Never exported. */
+  sample?: boolean;
 }
 
 export type Screen = "capture" | "review" | "patterns" | "settings";

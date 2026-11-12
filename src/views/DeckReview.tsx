@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Button, Heading, Message, Text } from "nil-ds";
+import { Button, Heading, Input, Message, Text } from "nil-ds";
 import { CopyButton, TriageCard, TriageDeck } from "../components/ui";
 import { answerDeckCard, closeDeck, markDeckCopied, reopenDeckCards } from "../db";
-import { answeredCount, formatDeckAnswers, NOT_NOW } from "../lib/deck";
+import { answeredCount, formatDeckAnswers, MAX_NOTE, NOT_NOW } from "../lib/deck";
 import { readDurationMs } from "../lib/motion";
 import type { DeckAnswer, DeckCard, StoredDeck } from "../types";
 
@@ -61,6 +61,10 @@ export function DeckReview({ stored, notice }: DeckReviewProps) {
   const [pending, setPending] = useState<Record<string, DeckAnswer>>({});
   const [leaving, setLeaving] = useState<Leaving[]>([]);
   const [failed, setFailed] = useState(false);
+  // A card the person went back to from the wrap-up. Answering returns there.
+  const [editing, setEditing] = useState<string | null>(null);
+  // The note being typed, for one card. Another card starts from its own saved note.
+  const [draft, setDraft] = useState<{ id: string; open: boolean; text: string } | null>(null);
   const slotRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<HTMLElement | null>(null);
   const timersRef = useRef<number[]>([]);
@@ -75,7 +79,8 @@ export function DeckReview({ stored, notice }: DeckReviewProps) {
   }, []);
 
   const answers = useMemo(() => ({ ...stored.answers, ...pending }), [stored.answers, pending]);
-  const current = deck.cards.find((card) => answers[card.id] === undefined);
+  const editingCard = editing ? deck.cards.find((card) => card.id === editing) : undefined;
+  const current = editingCard ?? deck.cards.find((card) => answers[card.id] === undefined);
   const decided = deck.cards.filter((card) => answers[card.id] !== undefined).length;
   const rows = useMemo(() => ghostRows(deck.cards), [deck.cards]);
 
@@ -99,9 +104,15 @@ export function DeckReview({ stored, notice }: DeckReviewProps) {
     );
   }
 
-  function answer(card: DeckCard, choice: string | null, node: ReactNode) {
-    const given: DeckAnswer = choice === null ? { skipped: true, at: Date.now() } : { choice, at: Date.now() };
+  function answer(card: DeckCard, choice: string | null, node: ReactNode, note: string) {
+    const words = note.replace(/\s+/g, " ").trim();
+    const given: DeckAnswer =
+      choice === null
+        ? { skipped: true, at: Date.now() }
+        : { choice, at: Date.now(), ...(words ? { note: words } : {}) };
     startLeaving(card.id, node);
+    setEditing(null);
+    setDraft(null);
     setPending((prev) => ({ ...prev, [card.id]: given }));
     setFailed(false);
     tapsRef.current += 1;
@@ -141,6 +152,7 @@ export function DeckReview({ stored, notice }: DeckReviewProps) {
         <DeckWrapUp
           stored={{ ...stored, answers }}
           notice={notice}
+          onChange={setEditing}
           onReopen={() => {
             setPending({});
             void reopenDeckCards(stored.id);
@@ -151,8 +163,10 @@ export function DeckReview({ stored, notice }: DeckReviewProps) {
     );
   }
 
-  const position = decided + 1;
   const total = deck.cards.length;
+  const position = editingCard ? deck.cards.indexOf(editingCard) + 1 : decided + 1;
+  const saved = answers[current.id]?.note ?? "";
+  const note = draft && draft.id === current.id ? draft : { id: current.id, open: saved !== "", text: saved };
   const others = current.choices.filter((choice) => choice.key !== current.pick);
   const sharedHeader = (
     <header className="shrink-0">
@@ -170,7 +184,7 @@ export function DeckReview({ stored, notice }: DeckReviewProps) {
     </header>
   );
 
-  const renderBody = (prefix: string) => (
+  const renderBody = (prefix: string, live = false) => (
     <>
       <p
         id={`${prefix}-text`}
@@ -210,6 +224,32 @@ export function DeckReview({ stored, notice }: DeckReviewProps) {
           </li>
         ))}
       </ul>
+      {live &&
+        (note.open ? (
+          <div className="mt-3">
+            <Input
+              label="Note"
+              value={note.text}
+              maxLength={MAX_NOTE}
+              autoFocus={note.text === ""}
+              onChange={(event) => setDraft({ id: current.id, open: true, text: event.target.value })}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") event.preventDefault();
+              }}
+            />
+          </div>
+        ) : (
+          <div className="mt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              icon="plus"
+              onClick={() => setDraft({ id: current.id, open: true, text: "" })}
+            >
+              Add a note
+            </Button>
+          </div>
+        ))}
       <Text size="sm" muted className="mt-3" style={{ overflowWrap: "anywhere" }}>
         {current.reason}
       </Text>
@@ -240,20 +280,23 @@ export function DeckReview({ stored, notice }: DeckReviewProps) {
   return (
     <>
       <section
-        className="tl-gutter mx-auto flex w-full flex-col justify-center"
+        className="tl-gutter tl-triage-screen flex flex-col justify-center"
         style={{
-          maxWidth: "34rem",
           paddingBlock: "var(--nil-spacing-md)",
           minHeight:
             "calc(100dvh - var(--nav-h) - var(--topbar-h) - var(--sample-banner-h, 0px) - var(--footer-h, 0px))",
         }}
       >
+        {/* From 1024px the questions are listed beside the card, the way triage
+            lists what is left to sort. Below that the list is not drawn. */}
+        <DeckList cards={deck.cards} answers={answers} currentId={current.id} />
+        <div className="tl-triage-detail flex min-w-0 flex-col justify-center">
         {sharedHeader}
         <div
           className="relative shrink-0"
           style={{ height: CARD_HEIGHT, marginBottom: "calc(var(--nil-spacing-sm) * 2)" }}
         >
-          <TriageDeck under={total - position} />
+          <TriageDeck under={editingCard ? 0 : total - position} />
           <div ref={slotRef} className="relative z-10 h-full">
             <div key={current.id} className="tl-triage-rising h-full">
               <TriageCard
@@ -266,7 +309,7 @@ export function DeckReview({ stored, notice }: DeckReviewProps) {
                     <Button
                       variant="primary"
                       className="w-full"
-                      onClick={() => answer(current, current.pick, ghostNode)}
+                      onClick={() => answer(current, current.pick, ghostNode, note.text)}
                     >
                       Confirm {current.pick}
                     </Button>
@@ -279,26 +322,81 @@ export function DeckReview({ stored, notice }: DeckReviewProps) {
                           key={choice.key}
                           variant="ghost"
                           aria-label={`${choice.key}: ${choice.label}`}
-                          onClick={() => answer(current, choice.key, ghostNode)}
+                          onClick={() => answer(current, choice.key, ghostNode, note.text)}
                         >
                           {choice.key}
                         </Button>
                       ))}
-                      <Button variant="ghost" onClick={() => answer(current, null, ghostNode)}>
+                      <Button variant="ghost" onClick={() => answer(current, null, ghostNode, "")}>
                         {NOT_NOW}
                       </Button>
                     </div>
                   </div>
                 }
               >
-                {renderBody(`deck-${current.id}`)}
+                {renderBody(`deck-${current.id}`, true)}
               </TriageCard>
             </div>
           </div>
         </div>
+        </div>
       </section>
       {ghosts}
     </>
+  );
+}
+
+// ── the list beside the card ────────────────────────────────────────────────
+
+/**
+ * Every question in order, drawn only from 1024px, on triage's own classes. It
+ * is read-only: the current question is marked, an answered one shows its key,
+ * and one left open shows nothing, because open is not a failure. Nothing here
+ * counts up and nothing is marked late.
+ */
+function DeckList({
+  cards,
+  answers,
+  currentId,
+}: {
+  cards: DeckCard[];
+  answers: Record<string, DeckAnswer>;
+  currentId: string;
+}) {
+  return (
+    <div className="tl-triage-list hidden min-w-0 flex-col gap-2">
+      <div className="flex h-9 items-center">
+        <Heading level={2} style={{ fontSize: "var(--nil-type-scale-base)" }}>
+          Questions
+        </Heading>
+      </div>
+      <ol aria-label="Questions" className="flex flex-col">
+        {cards.map((card) => {
+          const here = card.id === currentId;
+          return (
+            <li
+              key={card.id}
+              aria-current={here ? "true" : undefined}
+              className="flex items-center gap-3"
+              style={{
+                minHeight: "var(--nil-size-tap)",
+                padding: "var(--nil-spacing-sm) var(--nil-spacing-md)",
+                borderLeft: `var(--nil-border-width-thick) solid ${here ? "var(--nil-color-accent)" : "transparent"}`,
+                fontSize: "var(--nil-type-scale-sm)",
+                lineHeight: 1.45,
+                color: here ? "var(--nil-color-text)" : "var(--nil-color-text-muted)",
+                background: here ? "var(--nil-color-surface)" : undefined,
+              }}
+            >
+              <span className="truncate">{card.question}</span>
+              {answers[card.id]?.choice !== undefined && (
+                <span className="nil-label ml-auto shrink-0">{answers[card.id]?.choice}</span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }
 
@@ -307,6 +405,8 @@ export function DeckReview({ stored, notice }: DeckReviewProps) {
 interface DeckWrapUpProps {
   stored: StoredDeck;
   notice?: string | null;
+  /** Go back to one card to change its answer. */
+  onChange: (cardId: string) => void;
   onReopen: () => void;
 }
 
@@ -314,7 +414,7 @@ interface DeckWrapUpProps {
  * What she chose, and the ways out. It rises on the same spring a card does and
  * celebrates nothing: finishing is not a moment (D-018).
  */
-function DeckWrapUp({ stored, notice, onReopen }: DeckWrapUpProps) {
+function DeckWrapUp({ stored, notice, onChange, onReopen }: DeckWrapUpProps) {
   const { deck, answers } = stored;
   const answered = answeredCount(stored);
   const open = deck.cards.length - answered;
@@ -329,20 +429,42 @@ function DeckWrapUp({ stored, notice, onReopen }: DeckWrapUpProps) {
       </Heading>
       {notice && <Message tone="danger">{notice}</Message>}
       <Text>{open === 0 ? `${answered} answered` : `${answered} answered, ${open} left open`}</Text>
-      <ul className="flex flex-col gap-4">
+      <ul className="flex flex-col gap-2">
         {deck.cards.map((card) => {
-          const choice = card.choices.find((item) => item.key === answers[card.id]?.choice);
+          const given = answers[card.id];
+          const choice = card.choices.find((item) => item.key === given?.choice);
           return (
-            <li key={card.id} style={{ overflowWrap: "anywhere" }}>
-              <Text>{card.question}</Text>
-              <Text size="sm" muted>
-                {choice ? `${choice.key}: ${choice.label}` : "Left open"}
-              </Text>
-              {choice && choice.key !== card.pick && (
-                <Text size="sm" muted>
-                  Changed from {card.pick}
-                </Text>
-              )}
+            <li key={card.id}>
+              {/* The row is the button: tapping it goes back to that one card. */}
+              <button
+                type="button"
+                className="tl-quiet-link flex w-full items-center justify-between gap-3 text-left"
+                style={{ textDecoration: "none", color: "var(--nil-color-text)", paddingBlock: "var(--nil-spacing-sm)", overflowWrap: "anywhere" }}
+                aria-label={`Change the answer to: ${card.question}`}
+                onClick={() => onChange(card.id)}
+              >
+                <span className="min-w-0">
+                  <span className="block" style={{ fontSize: "var(--nil-type-scale-base)" }}>
+                    {card.question}
+                  </span>
+                  <span className="block" style={{ color: "var(--nil-color-text-muted)" }}>
+                    {choice ? `${choice.key}: ${choice.label}` : "Left open"}
+                  </span>
+                  {choice && choice.key !== card.pick && (
+                    <span className="block" style={{ color: "var(--nil-color-text-muted)" }}>
+                      Changed from {card.pick}
+                    </span>
+                  )}
+                  {given?.note && (
+                    <span className="block" style={{ color: "var(--nil-color-text-muted)" }}>
+                      Note: {given.note}
+                    </span>
+                  )}
+                </span>
+                <span className="nil-label shrink-0" style={{ color: "var(--nil-color-text-muted)" }} aria-hidden>
+                  Change
+                </span>
+              </button>
             </li>
           );
         })}

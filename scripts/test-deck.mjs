@@ -233,3 +233,51 @@ refusedAnswers((t) => t.replace("2 of 3 answered", "3 of 3 answered"), /says 3 o
 refusedAnswers((t) => t + "\nextra", /nothing may follow/, "text after the closing line");
 refusedAnswers((t) => t.replace("old-flag: left open", "old-flag maybe"), /cannot read/, "a line it cannot read");
 refusedAnswers((t) => t.replace(/Deck: .*\n/, ""), /no Deck line/, "no Deck line");
+
+// ── notes (slice 3) ─────────────────────────────────────────────────────────
+
+test("a note follows the answer on the same line and comes back", () => {
+  const stored = storedWith({
+    "rename-export": { choice: "A", at: 1 },
+    "empty-state": { choice: "B", note: "but shorter", at: 2 },
+    "old-flag": { skipped: true, at: 3 },
+  });
+  const text = formatDeckAnswers(stored, 0);
+  assert.ok(text.includes("empty-state: B = Show a sample [changed from A] | note: but shorter\n"));
+  const read = readDeckAnswers(stored.deck, text);
+  assert.equal(read.answers[1].note, "but shorter");
+  assert.equal(read.answers[0].note, undefined);
+});
+
+test("a note with brackets, pipes and a second note mark is kept whole", () => {
+  const note = "keep [both] | and | note: this";
+  const stored = storedWith({ "rename-export": { choice: "A", note, at: 1 } });
+  assert.equal(readDeckAnswers(stored.deck, formatDeckAnswers(stored, 0)).answers[0].note, note);
+});
+
+test("line breaks in a note become spaces, so the answer stays on one line", () => {
+  const stored = storedWith({ "rename-export": { choice: "A", note: "one\ntwo", at: 1 } });
+  assert.ok(formatDeckAnswers(stored, 0).includes("| note: one two\n"));
+});
+
+test("an empty or blank note adds nothing", () => {
+  const stored = storedWith({ "rename-export": { choice: "A", note: "   ", at: 1 } });
+  assert.ok(!formatDeckAnswers(stored, 0).includes("note:"));
+});
+
+test("a note of exactly 200 characters reads back, 201 is refused", () => {
+  const at200 = storedWith({ "rename-export": { choice: "A", note: "n".repeat(200), at: 1 } });
+  assert.equal(readDeckAnswers(at200.deck, formatDeckAnswers(at200, 0)).answers[0].note.length, 200);
+  const at201 = storedWith({ "rename-export": { choice: "A", note: "n".repeat(201), at: 1 } });
+  assert.throws(() => readDeckAnswers(at201.deck, formatDeckAnswers(at201, 0)), /1 to 200 characters/);
+});
+
+test("an answer changed from the wrap-up changes the text", () => {
+  const stored = mixed();
+  const before = formatDeckAnswers(stored, 0);
+  stored.answers["old-flag"] = { choice: "Later", at: 9 };
+  const after = formatDeckAnswers(stored, 0);
+  assert.notEqual(before, after);
+  assert.ok(after.includes("old-flag: Later = Remove it next release [changed from Yes]"));
+  assert.ok(after.includes("3 of 3 answered.\n") === false && after.endsWith("3 of 3 answered."));
+});

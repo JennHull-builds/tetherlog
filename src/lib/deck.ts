@@ -20,6 +20,9 @@ export const DECK_FORMAT = 1;
 export const MAX_PAYLOAD = 100_000;
 /** The word on the button that leaves a card open. A choice may not use it. */
 export const NOT_NOW = "Not now";
+/** Longest note on an answer, in characters. */
+export const MAX_NOTE = 200;
+const NOTE_MARK = " | note: ";
 
 /** Thrown for any deck or link that cannot be used. The message names the problem. */
 export class DeckError extends Error {
@@ -242,7 +245,8 @@ export function formatDeckAnswers(stored: StoredDeck, at: number = Date.now()): 
     const found = card.choices.find((item) => item.key === choice);
     if (!found) return `${card.id}: left open`;
     const note = found.key === card.pick ? "the agent's pick" : `changed from ${card.pick}`;
-    return `${card.id}: ${found.key} = ${found.label} [${note}]`;
+    const words = answers[card.id]?.note?.replace(/\s+/g, " ").trim();
+    return `${card.id}: ${found.key} = ${found.label} [${note}]${words ? NOTE_MARK + words : ""}`;
   });
   const answered = answeredCount(stored);
   const open = deck.cards.length - answered;
@@ -271,6 +275,8 @@ export interface ReadAnswer {
   pick: string;
   /** True when the chosen key is not the agent's pick. Always false when left open. */
   changedFromPick: boolean;
+  /** The words she added to the answer, if any. */
+  note?: string;
 }
 
 export interface ReadAnswers {
@@ -337,7 +343,13 @@ export function readDeckAnswers(deck: Deck, pasted: string): ReadAnswers {
     if (!choice) throw new DeckError(`Line ${line}: no choice on the card "${id}" matches "${rest.slice(0, 60)}".`);
     const note = choice.key === source.pick ? "the agent's pick" : `changed from ${source.pick}`;
     const expected = `${choice.key} = ${choice.label} [${note}]`;
-    if (rest !== expected) {
+    let words: string | undefined;
+    if (rest.startsWith(expected + NOTE_MARK)) {
+      words = rest.slice(expected.length + NOTE_MARK.length).trim();
+      if (words === "" || length(words) > MAX_NOTE) {
+        throw new DeckError(`Line ${line}: the note on the card "${id}" must be 1 to ${MAX_NOTE} characters.`);
+      }
+    } else if (rest !== expected) {
       throw new DeckError(`Line ${line}: expected "${expected}" for the card "${id}", found "${rest.slice(0, 80)}".`);
     }
     found.set(id, {
@@ -347,6 +359,7 @@ export function readDeckAnswers(deck: Deck, pasted: string): ReadAnswers {
       label: choice.label,
       pick: source.pick,
       changedFromPick: choice.key !== source.pick,
+      ...(words ? { note: words } : {}),
     });
   }
 

@@ -83,8 +83,12 @@ export function TriageCard({
 
         {/* The thought sits in the middle of the card, so a short one does not
             leave a hole above the footer. The footer does not move with it. */}
-        <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-4">
-          <div>{children}</div>
+        {/* Auto margins centre it when it fits and let it scroll from the top when
+            it does not. `justify-center` here would put the top of a long body
+            out of reach, because the part that spills above a scrolling box
+            cannot be scrolled to. */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto py-4">
+          <div className="my-auto">{children}</div>
         </div>
 
         {footer ? <div className="shrink-0">{footer}</div> : null}

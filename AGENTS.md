@@ -635,6 +635,10 @@ Review can open a deck of questions an agent parked (D-047, format in `docs/DECK
 - **The deck stays out of the JSON backup.** `exportAllData` and `importAllData` do not know the `decks` table.
 - **The colour-literal checks read a hash and three letters as a hex colour.** That is why `App.tsx` tests the
   deck prefix without its hash sign, and why no comment in `src/` may write the hash prefix out.
+- **`TriageCard` centres its body with auto margins, not `justify-center`.** In a scrolling box `justify-center` puts
+  the top of a long body out of reach. Deck cards are long, so this bit on a short phone (D-048). Do not put it back.
+- **A note is text.** One line, up to 200 characters, rendered as text, and it travels in the copied answers after
+  ` | note: `.
 - **The buttons under Confirm use the kit's default size,** and the card reserves rows for the deck's longest
   set of keys, so Confirm stays at one pixel across the deck. Re-measure it after any change to the card.
 

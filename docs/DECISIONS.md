@@ -49,6 +49,7 @@ D-025 and D-026. |
 | Patterns, findings first | **Built 2026-11-09, awaiting a look.** Four counted sentences with the picture that proves each (when, still pulling, where they went, wins), loops, the wonder shelf, and a sample month. Stays inside product rule 2. See D-043 to D-045. |
 | The v1 review | **Built 2026-11-12, awaiting a look.** Eleven small fixes across the app, and the kit's `Message`, a trailing control on `Input`, a tap-size Input and hover-only hover rules adopted. See D-046. |
 | Decks | **Built 2026-11-12 on `flip-1`, awaiting a look.** Review takes cards that an agent parks in a link: one card and one tap, then answers to paste back. A state inside Review, not a fifth screen. See D-047 and `docs/DECKS.md`. |
+| Decks, comfort | **Built 2026-11-12 on `flip-3`, awaiting a look.** A note on an answer, changing an answer from the wrap-up, and the list of questions beside the card on a laptop. See D-048. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -2307,3 +2308,36 @@ Not planned: pictures or motion on a card.
 **Measured.** `npm run build` reports 128.91 KB of JS and 11.36 KB of CSS, both gzipped, against budgets of 130
 and 12. The deck cost 3.59 KB of JS and 0.01 KB of CSS, and the next slices have about 1 KB of JS to share
 unless something is cut.
+
+---
+
+## D-048: Decks, comfort for the person answering
+
+**2026-11-12. Built on `flip-3`, awaiting a look.**
+
+**What.** Three changes for the person answering a deck, none of which touches triage of their own thoughts.
+
+- **A note on an answer.** A quiet `Add a note` control under the choices opens one line of text (up to 200
+  characters, the kit's `Input`), saved with whichever choice is tapped next. In the copied text the note follows
+  the answer on the same line, after ` | note: `, and `readDeckAnswers` reads it back. Opening the field does not
+  change the card's height: the body scrolls and the footer stays where it is. `Not now` carries no note.
+- **Change an answer before copying.** Each row of the wrap-up is a button. It goes back to that one card, with
+  its note filled in, and answering returns to the wrap-up.
+- **The list beside the card, from 1024px.** The deck's questions in order on triage's own classes, the current one
+  marked and each answered one showing its key. A question left open shows nothing, because open is not a failure.
+  Nothing counts up and nothing is marked late.
+
+**The owner's answers to the first deck were not applied.** The answers file did not exist when this was built, so
+every card stayed at its default: choices as a footer of keys, the button reads `Not now`, no phone-sharing work, no
+compressed links, the person's own thoughts do not jump ahead of a deck, and the limits are unchanged. Applying the
+answers is a later change, and each of those defaults is one decision to flip.
+
+**A bug fixed on the way.** `TriageCard` centred its body with `justify-center` inside a scrolling box, so when a
+body was taller than the box, the top of it, including the question, was out of reach. The longer deck cards hit it
+on a short phone (390 by 664). The body is now centred with auto margins, which place it identically when it fits
+and let it scroll from the top when it does not. Triage was measured before and after and is identical.
+
+**The stored shape only grew.** `DeckAnswer` gained an optional `note`, and `StoredDeck` gained an optional `sample`
+(used by D-049). No Dexie version change was needed, because neither is indexed.
+
+**Measured.** `npm run build` reports 129.46 KB of JS and 11.38 KB of CSS gzipped, against budgets of 130 and 12.

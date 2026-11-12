@@ -77,6 +77,11 @@ reason, and the link if there is one. One tap answers: `Confirm` for the pick, a
 or `Not now` to leave the card open without blocking the ones behind it. After the last card the person
 sees what they chose and presses `Copy answers`.
 
+A quiet `Add a note` control under the choices opens one line of text, saved with whichever choice is tapped next.
+After the last card, each row of the wrap-up is a button: tapping it goes back to that one card, and answering
+returns to the wrap-up, so a mis-tap can be fixed before copying. From 1024 px wide the deck's questions are listed
+beside the card, with the current one marked and each answered one showing its key.
+
 Closing the tab mid-deck loses nothing. The deck and its answers are stored on the device, and opening the
 same link again carries on where the person stopped.
 
@@ -98,6 +103,14 @@ old-flag: left open
 ```
 
 The time is local, 24-hour. The second sentence of the last line appears only when a card was left open.
+When the person added a note, it follows the answer on the same line, after ` | note: `:
+
+```
+empty-state: B = Show a sample [changed from A] | note: but shorter
+```
+
+A note is one line of up to 200 characters, plain text. `readDeckAnswers` returns it as `note`, and refuses an empty
+note or one over the limit.
 A card left open is no decision, so an agent must never treat its pick as approved.
 
 ## Reading the answers back
