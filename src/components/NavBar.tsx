@@ -63,7 +63,7 @@ export function NavBar({ screen, onNavigate }: NavBarProps) {
           borderTop: "var(--nil-border-width) solid var(--nil-color-border)",
         }}
       >
-        <div className="mx-auto grid max-w-lg grid-cols-4 gap-1 px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        <div className="mx-auto grid max-w-lg grid-cols-4 gap-1 px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] max-[389px]:gap-0 max-[389px]:px-1">
           {buttons("sm")}
         </div>
       </nav>
