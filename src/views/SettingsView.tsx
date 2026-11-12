@@ -141,19 +141,19 @@ export function SettingsView() {
             setSaved(false);
           }}
           placeholder="Paste key from Google AI Studio"
+          // The eye sits inside the field so a pasted key can be checked by eye;
+          // it is named for screen readers and aria-pressed carries the state.
+          trailing={
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={showKey ? "eye-off" : "eye"}
+              aria-label={showKey ? "Hide key" : "Show key"}
+              aria-pressed={showKey}
+              onClick={() => setShowKey((v) => !v)}
+            />
+          }
         />
-        {/* So a pasted key can be checked by eye. An eye icon, named for
-            screen readers; aria-pressed carries the state. */}
-        <div>
-          <Button
-            size="sm"
-            variant="ghost"
-            icon={showKey ? "eye-off" : "eye"}
-            aria-label={showKey ? "Hide key" : "Show key"}
-            aria-pressed={showKey}
-            onClick={() => setShowKey((v) => !v)}
-          />
-        </div>
         {/* Read from what is stored, not from the field, so it only says
             "saved" once the key really is. */}
         <Text size="sm" muted aria-live="polite">
