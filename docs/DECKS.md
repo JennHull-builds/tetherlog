@@ -139,6 +139,14 @@ the exit code is 1. `readDeckAnswers` in `src/lib/deck.ts` is the same check, an
 not approved, and silence is never a yes. Whoever reads the answers does nothing for that card and keeps it
 waiting.
 
+## Trying it without an agent
+
+In Review, when there is nothing to sort, `See a sample deck` loads six example questions about a small website.
+It is stored with a `sample` flag, shown under the demo banner, left out of the JSON backup, and removed by
+`Clear sample`. A real deck stored beside it always comes first, and Clear sample never touches a real one. The
+words are a plain file, `public/sample-deck.json`, fetched only when the button is pressed and read with the same
+checks as a deck from a link.
+
 ## Untrusted input
 
 Anyone can make a link, so a deck is untrusted. Every field is rendered as text and never as HTML. A card's

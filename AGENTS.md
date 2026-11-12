@@ -639,6 +639,10 @@ Review can open a deck of questions an agent parked (D-047, format in `docs/DECK
   the top of a long body out of reach. Deck cards are long, so this bit on a short phone (D-048). Do not put it back.
 - **A note is text.** One line, up to 200 characters, rendered as text, and it travels in the copied answers after
   ` | note: `.
+- **The sample deck is a fetched file, not an import** (D-049). `public/sample-deck.json` is read when "See a sample
+  deck" is pressed and checked with `checkDeck`. A dynamic `import()` was tried first and cost about 0.5 KB of JS in
+  the main bundle for Vite's loader alone, with the budget at 130 KB. It is stored with `sample: true`, never exported,
+  removed by Clear sample, and `getOpenDeck` always puts a real deck before it.
 - **The buttons under Confirm use the kit's default size,** and the card reserves rows for the deck's longest
   set of keys, so Confirm stays at one pixel across the deck. Re-measure it after any change to the card.
 

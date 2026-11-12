@@ -11,7 +11,13 @@ import {
 import { useLiveQuery } from "dexie-react-hooks";
 import { Button, Text } from "nil-ds";
 import { usePublishHeight } from "../lib/usePublishHeight";
-import { clearSampleMonth, hasSampleData, loadSampleMonth } from "../lib/sample";
+import {
+  clearSampleMonth,
+  hasSampleData,
+  hasSampleDeck,
+  loadSampleDeck,
+  loadSampleMonth,
+} from "../lib/sample";
 
 /**
  * The sample month's one shared state (D-036): is it loaded, is something
@@ -26,17 +32,24 @@ import { clearSampleMonth, hasSampleData, loadSampleMonth } from "../lib/sample"
 const NOTICE_MS = 4000;
 
 interface SampleState {
+  /** Either sample is stored. The banner shows while this is true. */
   loaded: boolean;
+  /** The sample month, and the sample deck (D-049), each on its own. */
+  monthLoaded: boolean;
+  deckLoaded: boolean;
   busy: boolean;
   notice: string | null;
   load: () => Promise<void>;
+  loadDeck: () => Promise<void>;
   clear: () => Promise<void>;
 }
 
 const SampleContext = createContext<SampleState | null>(null);
 
 export function SampleProvider({ children }: { children: ReactNode }) {
-  const loaded = useLiveQuery(hasSampleData, [], false);
+  const monthLoaded = useLiveQuery(hasSampleData, [], false);
+  const deckLoaded = useLiveQuery(hasSampleDeck, [], false);
+  const loaded = monthLoaded || deckLoaded;
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
@@ -54,37 +67,40 @@ export function SampleProvider({ children }: { children: ReactNode }) {
     timerRef.current = window.setTimeout(() => setNotice(null), NOTICE_MS);
   }, []);
 
-  const load = useCallback(async () => {
-    setBusy(true);
-    setNotice("Loading the sample month…");
-    try {
-      await loadSampleMonth();
-      say("Sample month loaded.");
-    } catch (error) {
-      console.warn("[tetherlog] sample month failed to load", error);
-      say("The sample month did not load.");
-    } finally {
-      setBusy(false);
-    }
-  }, [say]);
+  /** One path for all three actions: say what is happening, do it, say what happened. */
+  const run = useCallback(
+    async (doing: string, done: string, failed: string, action: () => Promise<void>) => {
+      setBusy(true);
+      setNotice(doing);
+      try {
+        await action();
+        say(done);
+      } catch (error) {
+        console.warn("[tetherlog] sample action failed", error);
+        say(failed);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [say],
+  );
 
-  const clear = useCallback(async () => {
-    setBusy(true);
-    setNotice("Clearing the sample…");
-    try {
-      await clearSampleMonth();
-      say("Sample cleared.");
-    } catch (error) {
-      console.warn("[tetherlog] sample month failed to clear", error);
-      say("The sample did not clear.");
-    } finally {
-      setBusy(false);
-    }
-  }, [say]);
+  const load = useCallback(
+    () => run("Loading the sample month…", "Sample month loaded.", "The sample month did not load.", loadSampleMonth),
+    [run],
+  );
+  const loadDeck = useCallback(
+    () => run("Loading the sample deck…", "Sample deck loaded.", "The sample deck did not load.", loadSampleDeck),
+    [run],
+  );
+  const clear = useCallback(
+    () => run("Clearing the sample…", "Sample cleared.", "The sample did not clear.", clearSampleMonth),
+    [run],
+  );
 
   const value = useMemo(
-    () => ({ loaded, busy, notice, load, clear }),
-    [loaded, busy, notice, load, clear],
+    () => ({ loaded, monthLoaded, deckLoaded, busy, notice, load, loadDeck, clear }),
+    [loaded, monthLoaded, deckLoaded, busy, notice, load, loadDeck, clear],
   );
 
   return <SampleContext.Provider value={value}>{children}</SampleContext.Provider>;
@@ -112,7 +128,7 @@ function useSample(): SampleState {
  * so screens that fill the viewport subtract the real figure.
  */
 export function SampleBanner() {
-  const { loaded, busy, notice, clear } = useSample();
+  const { loaded, monthLoaded, busy, notice, clear } = useSample();
   const visible = loaded || notice !== null;
   const ref = useRef<HTMLDivElement>(null);
   usePublishHeight(ref, "--sample-banner-h", visible);
@@ -126,8 +142,9 @@ export function SampleBanner() {
           <>
             <span className="tl-demo-banner__label">Demo</span>
             <p className="tl-demo-banner__text">
-              This is filled with a sample month so you can see how it works. Clear it to start
-              your own.
+              {monthLoaded
+                ? "This is filled with a sample month so you can see how it works. Clear it to start your own."
+                : "This is a sample deck so you can see how it works. Clear it to start your own."}
             </p>
             <Button
               variant="secondary"
@@ -152,19 +169,38 @@ export function SampleBanner() {
   );
 }
 
-/** The empty-state offer. Hidden while a sample is already loaded. */
-export function SampleOffer() {
-  const { loaded, busy, load } = useSample();
-  if (loaded) return null;
+/**
+ * The empty-state offer. Each sample is offered only while it is not already
+ * loaded. The deck is offered only where `withDeck` is set, which is Review,
+ * because that is where a deck lives.
+ */
+export function SampleOffer({ withDeck = false }: { withDeck?: boolean }) {
+  const { monthLoaded, deckLoaded, busy, load, loadDeck } = useSample();
+  const offerDeck = withDeck && !deckLoaded;
+  if (monthLoaded && !offerDeck) return null;
 
   return (
-    <div className="flex flex-col items-start gap-2">
-      <Button variant="secondary" disabled={busy} onClick={() => void load()}>
-        See a sample month
-      </Button>
-      <Text size="sm" muted>
-        Adds example captures you can explore, then clear in one tap.
-      </Text>
+    <div className="flex flex-col items-start gap-4">
+      {!monthLoaded && (
+        <div className="flex flex-col items-start gap-2">
+          <Button variant="secondary" disabled={busy} onClick={() => void load()}>
+            See a sample month
+          </Button>
+          <Text size="sm" muted>
+            Adds example captures you can explore, then clear in one tap.
+          </Text>
+        </div>
+      )}
+      {offerDeck && (
+        <div className="flex flex-col items-start gap-2">
+          <Button variant="secondary" disabled={busy} onClick={() => void loadDeck()}>
+            See a sample deck
+          </Button>
+          <Text size="sm" muted>
+            Adds example questions to answer one tap at a time, then clear in one tap.
+          </Text>
+        </div>
+      )}
     </div>
   );
 }

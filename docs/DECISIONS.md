@@ -50,6 +50,7 @@ D-025 and D-026. |
 | The v1 review | **Built 2026-11-12, awaiting a look.** Eleven small fixes across the app, and the kit's `Message`, a trailing control on `Input`, a tap-size Input and hover-only hover rules adopted. See D-046. |
 | Decks | **Built 2026-11-12 on `flip-1`, awaiting a look.** Review takes cards that an agent parks in a link: one card and one tap, then answers to paste back. A state inside Review, not a fifth screen. See D-047 and `docs/DECKS.md`. |
 | Decks, comfort | **Built 2026-11-12 on `flip-3`, awaiting a look.** A note on an answer, changing an answer from the wrap-up, and the list of questions beside the card on a laptop. See D-048. |
+| Decks, sample and docs | **Built 2026-11-12 on `flip-3`, awaiting a look.** "See a sample deck" for visitors, and `PRODUCT.md`, `README.md` and `ROADMAP.md` describe the flip. See D-049. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -2341,3 +2342,34 @@ and let it scroll from the top when it does not. Triage was measured before and 
 (used by D-049). No Dexie version change was needed, because neither is indexed.
 
 **Measured.** `npm run build` reports 129.46 KB of JS and 11.38 KB of CSS gzipped, against budgets of 130 and 12.
+
+---
+
+## D-049: A sample deck for visitors
+
+**2026-11-12. Built on `flip-3`, awaiting a look.**
+
+**What.** A visitor with no agent can open Review and press `See a sample deck`. Six ordinary questions about a
+small website load as a deck, and they can tap through and copy the answers like any other. It follows every
+rule of the sample month (D-036, D-045): stored with a `sample` flag, shown under the same demo banner (the text
+says "sample deck" when only the deck is loaded), left out of the JSON backup, and removed by Clear sample.
+
+**The rules it keeps.**
+
+- **It never mixes with a real deck.** A real deck always comes before the sample one, and Clear sample removes
+  only the rows flagged `sample`. Checked with a real deck stored beside it.
+- **It is offered only on Review's empty state,** where a deck lives. Capture's and Patterns' offers are unchanged.
+- **The words are invented.** No real person, company or product, no address, no em dash. The tests check that.
+- **Nothing counts.** The sample adds no number anywhere outside Review.
+
+**Why a fetched file, not an import.** The main bundle had 0.5 KB of JS to spare. A dynamic `import()` cost about
+0.5 KB in Vite's loader alone. The deck is a plain file, `public/sample-deck.json`, fetched when the button is
+pressed and read with the same checks as a deck from a link, so the check that guards every deck guards this one.
+Offline before the first load, the button says the sample did not load.
+
+**The three public documents.** `PRODUCT.md` gained a Decks section and a line in its Screens list. `README.md`
+says in three sentences what the app is for now and points to the sample deck. `ROADMAP.md` records the flip as
+built. Nothing else in those files was reworded.
+
+**Measured.** `npm run build` reports 129.73 KB of JS and 11.38 KB of CSS gzipped, against budgets of 130 and 12.
+That leaves 0.27 KB of JS. The next change of any size has to find savings first.

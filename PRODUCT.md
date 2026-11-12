@@ -105,6 +105,26 @@ Open review → wins (optional) → triage each capture → summary → hands
 
 **Agent runs here only.** Never during capture.
 
+### Decks: an agent's questions, answered in Review
+
+The same loop turned round. Triage sorts the person's own thoughts. A **deck** is a set of questions that a
+coding agent parks for the person to answer, one card and one tap at a time.
+
+- **A deck is a state inside Review, not a fifth screen.** There is no inbox and no list of decks. One open deck
+  at a time, in the place triage uses.
+- **The cards arrive in a link,** after the `#`, which a browser does not send to a server. Each card carries
+  the question, the choices, the agent's pick and its reason, already written. No model is called.
+- **One tap answers.** Confirm the pick, tap another choice, or leave the card open with Not now. A note can
+  be added, and an answer changed before copying.
+- **The answers leave as text,** when the person presses Copy answers, to paste back to the agent. A card left
+  open means no decision, and the text says so.
+- **A deck is untrusted input.** Every field is shown as text. A card's link must be `https://`.
+- **The rules still hold.** No streaks, no count of waiting cards outside Review, nothing overdue, reduced
+  motion respected, and data stays on the device.
+
+"See a sample deck" loads six example questions so a visitor with no agent can try the whole loop. The format is
+in `docs/DECKS.md` and the decisions are D-047 to D-049 in `docs/DECISIONS.md`.
+
 ### 3. Patterns (deterministic + AI flex)
 
 **Without a key:**
@@ -226,7 +246,7 @@ Product is **never empty** without a key. AI is enhancement, not gate.
 ## Screens
 
 1. **Capture** — default landing. Fast. Text + voice (quick and long).
-2. **Review** — evening ritual. Agent + hands. Audio replay + transcript on voice captures.
+2. **Review** — evening ritual. Agent + hands. Audio replay + transcript on voice captures. Also opens a deck of questions parked by an agent (see Decks).
 3. **Patterns** — charts + repeats + weekly digest entry
 4. **Settings** — BYOK key (LLM + optional STT), review reminder time, export/import, theme
 

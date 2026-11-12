@@ -1,0 +1,129 @@
+{
+  "v": 1,
+  "id": "tetherlog-sample-deck",
+  "title": "A small bakery website",
+  "from": "An example agent",
+  "createdAt": "2026-01-01T09:00:00Z",
+  "replyTo": "This is a sample, so there is no agent to send these to.",
+  "cards": [
+    {
+      "id": "page-title",
+      "question": "Which title should the home page have?",
+      "context": "The home page of the bakery's site is titled Home, and that is all a browser tab shows.",
+      "pick": "B",
+      "reason": "A title that says what the page offers is easier to find among many open tabs.",
+      "choices": [
+        {
+          "key": "A",
+          "label": "Keep Home"
+        },
+        {
+          "key": "B",
+          "label": "Fresh bread, baked daily",
+          "detail": "Says what the bakery does."
+        },
+        {
+          "key": "C",
+          "label": "The bakery's name",
+          "detail": "Short, and matches the sign."
+        }
+      ]
+    },
+    {
+      "id": "button-words",
+      "question": "Reword the sign-up button?",
+      "context": "The newsletter form has a button that says Submit.",
+      "pick": "Yes",
+      "reason": "A button that says what happens next is clearer than a general word.",
+      "choices": [
+        {
+          "key": "Yes",
+          "label": "Say Join the list"
+        },
+        {
+          "key": "No",
+          "label": "Keep Submit"
+        }
+      ]
+    },
+    {
+      "id": "photo-format",
+      "question": "Which format for the gallery photos?",
+      "context": "The gallery holds 40 photos, each about 2 MB, so the page loads slowly on a phone.",
+      "pick": "WebP",
+      "reason": "WebP files are much smaller and current browsers read them.",
+      "choices": [
+        {
+          "key": "WebP",
+          "label": "Smaller files",
+          "detail": "Needs a conversion step once."
+        },
+        {
+          "key": "JPEG",
+          "label": "Works everywhere",
+          "detail": "Files stay large."
+        },
+        {
+          "key": "Keep",
+          "label": "Leave them as they are"
+        }
+      ]
+    },
+    {
+      "id": "sale-banner",
+      "question": "Remove the autumn sale banner?",
+      "context": "The banner has run since October and the sale has ended.",
+      "pick": "Remove",
+      "reason": "An ended offer on the home page tells visitors the site is not looked after.",
+      "choices": [
+        {
+          "key": "Remove",
+          "label": "Take it down now"
+        },
+        {
+          "key": "Keep",
+          "label": "Leave it up a little longer"
+        }
+      ]
+    },
+    {
+      "id": "menu-order",
+      "question": "How should the menu be sorted?",
+      "context": "The menu page lists about 30 items in the order they were added.",
+      "pick": "Type",
+      "reason": "People look for bread, then cakes, so grouping by type matches how they read.",
+      "choices": [
+        {
+          "key": "Type",
+          "label": "Group by type",
+          "detail": "Bread, then cakes, then drinks."
+        },
+        {
+          "key": "Price",
+          "label": "Lowest price first"
+        },
+        {
+          "key": "Name",
+          "label": "A to Z"
+        }
+      ]
+    },
+    {
+      "id": "opening-hours",
+      "question": "Add opening hours to the contact page?",
+      "context": "The contact page has an address and a phone number but no hours.",
+      "pick": "Yes",
+      "reason": "Opening hours are what most visitors come to the contact page to find.",
+      "choices": [
+        {
+          "key": "Yes",
+          "label": "Add them"
+        },
+        {
+          "key": "No",
+          "label": "Leave them off"
+        }
+      ]
+    }
+  ]
+}

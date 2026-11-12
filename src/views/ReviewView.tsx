@@ -764,7 +764,7 @@ function WrapUp({
       ) : (
         <>
           <Text muted>Nothing to sort.</Text>
-          <SampleOffer />
+          <SampleOffer withDeck />
         </>
       )}
 

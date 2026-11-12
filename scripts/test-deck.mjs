@@ -281,3 +281,19 @@ test("an answer changed from the wrap-up changes the text", () => {
   assert.ok(after.includes("old-flag: Later = Remove it next release [changed from Yes]"));
   assert.ok(after.includes("3 of 3 answered.\n") === false && after.endsWith("3 of 3 answered."));
 });
+
+// ── the sample deck (slice 3) ───────────────────────────────────────────────
+
+test("the sample deck passes every check a deck from a link passes", () => {
+  const sample = JSON.parse(readFileSync(new URL("../public/sample-deck.json", import.meta.url), "utf8"));
+  const deck = checkDeck(sample);
+  assert.equal(deck.id, "tetherlog-sample-deck");
+  assert.ok(deck.cards.length >= 5 && deck.cards.length <= 6);
+  assert.deepEqual(readDeckLink(makeDeckLink(sample, BASE)), deck);
+});
+
+test("the sample deck holds no em dash, no address and nothing personal", () => {
+  const raw = readFileSync(new URL("../public/sample-deck.json", import.meta.url), "utf8");
+  assert.ok(!raw.includes("\u2014"), "em dash");
+  assert.ok(!/https?:|@|\/Users\//.test(raw), "address or path");
+});

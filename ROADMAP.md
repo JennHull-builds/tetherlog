@@ -34,6 +34,12 @@ been looked at and approved as good enough for now. Tokens, primitives and Captu
 the gravity well direction. Capture, Review, Patterns and Settings have all been repainted. What is
 left is in `docs/BACKLOG.md`, and nothing there blocks shipping.
 
+**Decks (the flip): built, awaiting a look.** Review takes questions that an agent parks in a link, one card and one
+tap, and the answers copy out as text. Notes, changing an answer, the list beside the card on a laptop and a sample
+deck are in. Recorded as D-047 to D-049 in `docs/DECISIONS.md`; the format is `docs/DECKS.md`. Not built, and not
+planned: pictures on a card, several decks open at once, decks in the backup, a paste box as a second way in. Open
+questions on the defaults went to the owner as a deck of their own.
+
 **Voice: built, not next.** Audio park and transcript are wired into Capture through
 `src/lib/voice.ts`, and the feature checklist below ticks both 7B items. This line read "Voice:
 NEXT" until 2026-09-22 while the checklist eleven lines down said done. **7C, transcript

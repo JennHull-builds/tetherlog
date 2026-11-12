@@ -1,5 +1,6 @@
 import { db, createCaptureId } from "../db";
 import type { Capture, CaptureTag, TriageBucket, Win } from "../types";
+import { checkDeck } from "./deck";
 import { localDayKey } from "./patterns";
 
 /**
@@ -304,6 +305,11 @@ export async function hasSampleData(): Promise<boolean> {
   return (await db.captures.filter((c) => c.sample === true).count()) > 0;
 }
 
+/** Is the sample deck stored? Separate from the month: either can be loaded alone. */
+export async function hasSampleDeck(): Promise<boolean> {
+  return (await db.decks.filter((d) => d.sample === true).count()) > 0;
+}
+
 /** Builds the month. Exported so a test can count it without touching the database. */
 export function buildSampleMonth(now: number = Date.now()): { captures: Capture[]; wins: Win[] } {
   const random = seeded(20261109);
@@ -448,10 +454,25 @@ export async function loadSampleMonth(): Promise<void> {
   });
 }
 
+/**
+ * Loads the sample deck (D-049). Its words are a plain file, public/sample-deck.json,
+ * fetched only now so they cost nothing until somebody asks, and read with the
+ * same checks as a deck from a link. A second call while it is stored does
+ * nothing, and a real deck stored beside it is untouched.
+ */
+export async function loadSampleDeck(): Promise<void> {
+  if (await hasSampleDeck()) return;
+  const response = await fetch(`${import.meta.env.BASE_URL}sample-deck.json`);
+  if (!response.ok) throw new Error(`The sample deck file answered ${response.status}.`);
+  const deck = checkDeck(await response.json());
+  await db.decks.add({ id: deck.id, deck, receivedAt: Date.now(), answers: {}, sample: true });
+}
+
 /** Removes exactly the sample rows. Everything the owner parked is untouched. */
 export async function clearSampleMonth(): Promise<void> {
-  await db.transaction("rw", db.captures, db.wins, async () => {
+  await db.transaction("rw", db.captures, db.wins, db.decks, async () => {
     await db.captures.filter((c) => c.sample === true).delete();
     await db.wins.filter((w) => w.sample === true).delete();
+    await db.decks.filter((d) => d.sample === true).delete();
   });
 }

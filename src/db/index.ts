@@ -241,9 +241,13 @@ export async function receiveDeck(deck: Deck): Promise<StoredDeck> {
   });
 }
 
-/** The oldest deck that has not been closed, or null. */
+/**
+ * The oldest deck that has not been closed, or null. A real deck always comes
+ * before the sample deck, so the sample never stands in front of a real one.
+ */
 export async function getOpenDeck(): Promise<StoredDeck | null> {
-  return (await db.decks.orderBy("receivedAt").filter((d) => !d.closedAt).first()) ?? null;
+  const open = await db.decks.orderBy("receivedAt").filter((d) => !d.closedAt).toArray();
+  return open.find((d) => !d.sample) ?? open[0] ?? null;
 }
 
 async function changeDeck(deckId: string, change: (stored: StoredDeck) => void): Promise<void> {

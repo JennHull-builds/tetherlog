@@ -6,7 +6,12 @@ ND capture log — dumb-fast park, agent-powered evening review, pattern detecti
 
 ![TetherLog capture screen: a dark field on a fine dot grid that stands back from it, asking "What's pulling you?"](docs/screenshot.png)
 
-See `ARCHITECTURE.md` for how it fits together, `PRODUCT.md` for the full spec.
+TetherLog is a calm place to deal with what pulls at you. You park your own thoughts and sort them later, and a
+coding agent can park questions for you too, as a deck of cards you answer one tap at a time. To try the second
+half, open Review and press **See a sample deck**. Nothing leaves your device until you copy your answers.
+
+See `ARCHITECTURE.md` for how it fits together, `PRODUCT.md` for the full spec and `docs/DECKS.md` for the deck
+format.
 
 Made by [Jennifer Hull](https://jenniferhull.co.za).
 
