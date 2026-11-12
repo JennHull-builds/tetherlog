@@ -9,7 +9,7 @@ import {
 } from "../components/PatternCharts";
 import { SampleOffer } from "../components/Sample";
 import { db, getSettings } from "../db";
-import { aiWeeklyDigest, buildWeeklyStats } from "../lib/agent";
+import { aiWeeklyDigest, buildWeeklyStats, GEMINI_TIMEOUT_MS } from "../lib/agent";
 import { copyText, downloadFile, shareText } from "../lib/hands";
 import {
   WEEKDAY_NAMES,
@@ -57,6 +57,7 @@ export function PatternsView() {
   const settings = useLiveQuery(getSettings, [], null);
   const [digest, setDigest] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [digestError, setDigestError] = useState<string | null>(null);
 
   const report = useMemo(() => analysePatterns(captures, wins), [captures, wins]);
   const stats = buildWeeklyStats(captures);
@@ -68,9 +69,12 @@ export function PatternsView() {
   async function runDigest() {
     if (!settings?.geminiApiKey) return;
     setLoading(true);
+    setDigestError(null);
     try {
       const text = await aiWeeklyDigest(settings.geminiApiKey, stats);
       setDigest(text);
+    } catch (err) {
+      setDigestError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -289,6 +293,28 @@ export function PatternsView() {
             {loading ? "Writing…" : "Generate"}
           </Button>
         </div>
+        {loading && (
+          <Text size="sm" muted role="status" className="max-w-[70ch]">
+            {`Gemini is writing. This can take up to ${GEMINI_TIMEOUT_MS / 1000} seconds.`}
+            <span
+              className="nil-cursor-blink"
+              aria-hidden
+              style={{ color: "var(--nil-color-text-accent)", marginLeft: "var(--nil-spacing-xs)" }}
+            >
+              ▌
+            </span>
+          </Text>
+        )}
+        {!loading && digestError && (
+          <Text
+            size="sm"
+            role="alert"
+            className="max-w-[70ch]"
+            style={{ color: "var(--nil-color-text-danger)" }}
+          >
+            {digestError}
+          </Text>
+        )}
         {!hasKey && (
           <Text size="sm" muted className="max-w-[70ch]">
             Add Gemini key in Settings for narrative digest. The findings above always work.
