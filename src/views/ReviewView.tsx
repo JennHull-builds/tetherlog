@@ -109,6 +109,7 @@ export function ReviewView() {
   );
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [statusIsError, setStatusIsError] = useState(false);
   const [confirmed, setConfirmed] = useState<ReadonlySet<string>>(new Set());
   const [leaving, setLeaving] = useState<Leaving[]>([]);
 
@@ -250,6 +251,7 @@ export function ReviewView() {
     startLeaving(capture.id, node);
     setConfirmed((prev) => new Set(prev).add(capture.id));
     setStatus(null);
+    setStatusIsError(false);
     confirmCountRef.current += 1;
 
     void applyTriage(
@@ -266,6 +268,7 @@ export function ReviewView() {
         return nextSet;
       });
       setStatus("That one did not save. It is back in the queue.");
+      setStatusIsError(true);
     });
   }
 
@@ -273,6 +276,7 @@ export function ReviewView() {
     if (queue.length === 0 || !settings?.geminiApiKey) return;
 
     setLoading(true);
+    setStatusIsError(false);
     // Say how long up front: without it, a wait of more than a few seconds
     // reads as broken (Jen, 2026-11-08). Product rule 1.
     setStatus(`Gemini is sorting. This can take up to ${GEMINI_TIMEOUT_MS / 1000} seconds.`);
@@ -281,12 +285,14 @@ export function ReviewView() {
       const batch = await aiTriageWithGemini(settings.geminiApiKey, queue);
       setAiById(new Map(batch.items.map((item) => [item.captureId, item])));
       setStatus("Suggestions from your Gemini key (on this device).");
+      setStatusIsError(false);
     } catch (err) {
       setStatus(
         err instanceof Error
           ? `${err.message} Fell back to rule triage.`
           : "AI triage failed. Fell back to rule triage.",
       );
+      setStatusIsError(true);
     } finally {
       setLoading(false);
     }
@@ -335,6 +341,7 @@ export function ReviewView() {
           position={done + 1}
           total={done + queue.length}
           status={status}
+          statusIsError={statusIsError}
           loading={loading}
           hasKey={Boolean(settings?.geminiApiKey)}
           slotRef={slotRef}
@@ -368,6 +375,7 @@ interface TriageStateProps {
   position: number;
   total: number;
   status: string | null;
+  statusIsError: boolean;
   loading: boolean;
   hasKey: boolean;
   slotRef: React.RefObject<HTMLDivElement | null>;
@@ -398,6 +406,7 @@ function TriageState({
   position,
   total,
   status,
+  statusIsError,
   loading,
   hasKey,
   slotRef,
@@ -501,8 +510,13 @@ function TriageState({
         </div>
         {/* ONE reserved line, three jobs: empty, the agent's provenance, or a
             failure. Always this tall, so the card below it cannot move. */}
-        <div className="flex h-8 items-center">
-          <Text size="sm" muted role="status">
+        <div className="flex min-h-12 items-end pb-1">
+          <Text
+            size="sm"
+            muted={!statusIsError}
+            role="status"
+            style={statusIsError ? { color: "var(--nil-color-text-danger)" } : undefined}
+          >
             {status ??
               (hasKey ? "" : "Sorted by rules. Add a Gemini key in Settings for AI.")}
             {loading && (
