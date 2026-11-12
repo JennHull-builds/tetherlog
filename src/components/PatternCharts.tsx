@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import type { TriageBucket } from "../types";
 import type { Group, LoopStatus, MixFinding, WhenFinding } from "../lib/patterns";
 import { WEEKDAY_NAMES, dayLabel, slotWords, spokenHour } from "../lib/patterns";
@@ -30,8 +30,29 @@ const HAIRLINE: CSSProperties = {
 const AXIS_TEXT: CSSProperties = {
   fill: "var(--nil-color-text-muted)",
   fontFamily: "var(--nil-font-mono)",
-  fontSize: 11,
 };
+
+/** Chart text is this many CSS px at every width, however far the chart scales. */
+const AXIS_PX = 12;
+
+/** How many CSS px one viewBox unit is on screen, so text can stay one size while the chart scales. */
+function useUnit(viewBoxWidth: number): [RefObject<SVGSVGElement | null>, number] {
+  const ref = useRef<SVGSVGElement | null>(null);
+  const [unit, setUnit] = useState(1);
+  useLayoutEffect(() => {
+    const svg = ref.current;
+    if (!svg) return;
+    const measure = () => {
+      const w = svg.getBoundingClientRect().width;
+      if (w > 0) setUnit(w / viewBoxWidth);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(svg);
+    return () => observer.disconnect();
+  }, [viewBoxWidth]);
+  return [ref, unit];
+}
 
 const SVG_STYLE: CSSProperties = { display: "block", width: "100%", height: "auto" };
 
@@ -62,9 +83,12 @@ export function HeatmapChart({ when }: { when: WhenFinding }) {
   const cell = (HEAT_W - HEAT_LABEL_W) / cols;
   const ticks: number[] = [];
   for (let h = Math.ceil(firstHour / 3) * 3; h <= lastHour; h += 3) ticks.push(h);
+  const [svgRef, unit] = useUnit(HEAT_W);
+  const axis: CSSProperties = { ...AXIS_TEXT, fontSize: AXIS_PX / unit };
 
   return (
     <svg
+      ref={svgRef}
       viewBox={`0 0 ${HEAT_W} ${7 * HEAT_ROW_H + 20}`}
       role="img"
       aria-label={`Thoughts by weekday and hour, from ${spokenHour(firstHour)}:00 to the end of the day. Darker blue is more thoughts. The busiest two hours are ${WEEKDAY_NAMES[when.weekday]} between ${slotWords(when.hour)}, with ${when.count}.`}
@@ -72,7 +96,7 @@ export function HeatmapChart({ when }: { when: WhenFinding }) {
     >
       {grid.map((row, r) => (
         <g key={WEEKDAY_NAMES[r]}>
-          <text x={0} y={r * HEAT_ROW_H + 12} style={AXIS_TEXT}>
+          <text x={0} y={r * HEAT_ROW_H + 12} style={axis}>
             {WEEKDAY_NAMES[r].slice(0, 3)}
           </text>
           {row.slice(firstHour, lastHour + 1).map((value, i) => (
@@ -96,7 +120,7 @@ export function HeatmapChart({ when }: { when: WhenFinding }) {
           key={h}
           x={HEAT_LABEL_W + (h - firstHour) * cell}
           y={7 * HEAT_ROW_H + 14}
-          style={AXIS_TEXT}
+          style={axis}
         >
           {String(h).padStart(2, "0")}
         </text>
@@ -137,8 +161,16 @@ export function DayStrip({
   const barH = days ? 24 : STRIP_H - 4;
   const height = days ? barH + 22 : STRIP_H;
   const every = length > 21 ? 7 : length > 10 ? 5 : 1;
+  const [svgRef, unit] = useUnit(width);
+  const axis: CSSProperties = { ...AXIS_TEXT, fontSize: AXIS_PX / unit };
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label} style={SVG_STYLE}>
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${width} ${height}`}
+      role="img"
+      aria-label={label}
+      style={SVG_STYLE}
+    >
       <line
         x1={0}
         x2={width}
@@ -167,7 +199,7 @@ export function DayStrip({
       {days &&
         days.map((key, i) =>
           i % every === 0 && i < length - 2 ? (
-            <text key={key} x={i * pitch} y={barH + 17} style={AXIS_TEXT}>
+            <text key={key} x={i * pitch} y={barH + 17} style={axis}>
               {dayLabel(key)}
             </text>
           ) : null,
@@ -201,9 +233,11 @@ export function MixChart({ finding }: { finding: MixFinding }) {
   const summary = STACK_ORDER.filter((g) => counts[g] > 0)
     .map((g) => `${GROUP_WORDS[g]} ${counts[g]}`)
     .join(", ");
+  const [svgRef, unit] = useUnit(MIX_W);
 
   return (
     <svg
+      ref={svgRef}
       viewBox={`0 0 ${MIX_W} ${MIX_H}`}
       role="img"
       aria-label={`Where the ${total} thoughts went: ${summary}.`}
@@ -221,10 +255,12 @@ export function MixChart({ finding }: { finding: MixFinding }) {
           {w >= 24 && (
             <text
               x={px + w / 2}
-              y={MIX_H / 2 + 4}
+              y={MIX_H / 2}
               textAnchor="middle"
+              dominantBaseline="central"
               style={{
                 ...AXIS_TEXT,
+                fontSize: AXIS_PX / unit,
                 fill: g === "none" ? "var(--nil-color-text)" : `var(--nil-color-chart-${GROUP_TEXT[g]}-text)`,
               }}
             >
