@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Button, Heading, Input, Readout, Text } from "nil-ds";
+import { Button, Heading, Input, Message, Readout, Text } from "nil-ds";
 import { SampleOffer } from "../components/Sample";
 import { BucketMark, CopyButton, TriageCard, TriageDeck } from "../components/ui";
 import {
@@ -510,27 +510,12 @@ function TriageState({
         {/* ONE reserved line, three jobs: empty, the agent's provenance, or a
             failure. Always this tall, so the card below it cannot move. */}
         <div className="flex min-h-12 items-end pb-1">
-          <Text
-            size="sm"
-            muted={!statusIsError}
-            role="status"
-            style={statusIsError ? { color: "var(--nil-color-text-danger)" } : undefined}
-          >
-            {status ??
-              (hasKey ? "" : "Sorted by rules. Add a Gemini key in Settings for AI.")}
-            {loading && (
-              // The kit's blinking cursor while Gemini works (D-040). Decorative:
-              // the words beside it already say what is happening. The kit
-              // holds it solid under reduced motion.
-              <span
-                className="nil-cursor-blink"
-                aria-hidden
-                style={{ color: "var(--nil-color-text-accent)", marginLeft: "var(--nil-spacing-xs)" }}
-              >
-                ▌
-              </span>
-            )}
-          </Text>
+          {/* The kit's Message: always rendered so the live region exists before
+              its text, red with an icon on a failure, the blinking cursor while
+              Gemini works (D-040). */}
+          <Message tone={statusIsError ? "danger" : "neutral"} busy={loading}>
+            {status ?? (hasKey ? "" : "Sorted by rules. Add a Gemini key in Settings for AI.")}
+          </Message>
         </div>
       </header>
 

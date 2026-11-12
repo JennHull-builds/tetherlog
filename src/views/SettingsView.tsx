@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Button, Heading, Input, Text } from "nil-ds";
+import { Button, Heading, Input, Message, Text } from "nil-ds";
 import { exportAllData, getSettings, importAllData, saveSettings } from "../db";
 import { downloadFile } from "../lib/hands";
 
@@ -234,14 +234,9 @@ export function SettingsView() {
         </div>
         {/* A reserved line, so the result never moves what is below it. */}
         <div className="flex min-h-6 items-center">
-          <Text
-            size="sm"
-            muted={!importNote?.error}
-            role="status"
-            style={importNote?.error ? { color: "var(--nil-color-text-danger)" } : undefined}
-          >
+          <Message tone={importNote?.error ? "danger" : importNote ? "success" : "neutral"}>
             {importNote?.text ?? ""}
-          </Text>
+          </Message>
         </div>
       </Section>
 

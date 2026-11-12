@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Button, Card, Heading, Text } from "nil-ds";
+import { Button, Card, Heading, Message, Text } from "nil-ds";
 import {
   DayStrip,
   GroupLegend,
@@ -285,38 +285,29 @@ export function PatternsView() {
       )}
 
       <section className="no-print flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <SectionTitle>Weekly digest</SectionTitle>
-          <Button
-            variant="ghost"
-            onClick={() => void runDigest()}
-            disabled={!hasKey || loading}
-          >
-            {loading ? "Writing…" : "Generate"}
-          </Button>
-        </div>
-        {loading && (
-          <Text size="sm" muted role="status" className="max-w-[70ch]">
-            {`Gemini is writing. This can take up to ${GEMINI_TIMEOUT_MS / 1000} seconds.`}
-            <span
-              className="nil-cursor-blink"
-              aria-hidden
-              style={{ color: "var(--nil-color-text-accent)", marginLeft: "var(--nil-spacing-xs)" }}
+        {/* Title row and Message share one wrapper, so an empty Message adds no
+            second flex gap; it takes its own top margin only when it has words. */}
+        <div className="flex flex-col">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <SectionTitle>Weekly digest</SectionTitle>
+            <Button
+              variant="ghost"
+              onClick={() => void runDigest()}
+              disabled={!hasKey || loading}
             >
-              ▌
-            </span>
-          </Text>
-        )}
-        {!loading && digestError && (
-          <Text
-            size="sm"
-            role="alert"
-            className="max-w-[70ch]"
-            style={{ color: "var(--nil-color-text-danger)" }}
+              {loading ? "Writing…" : "Generate"}
+            </Button>
+          </div>
+          <Message
+            tone={digestError && !loading ? "danger" : "neutral"}
+            busy={loading}
+            className={loading || digestError ? "mt-2 max-w-[70ch]" : undefined}
           >
-            {digestError}
-          </Text>
-        )}
+            {loading
+              ? `Gemini is writing. This can take up to ${GEMINI_TIMEOUT_MS / 1000} seconds.`
+              : (digestError ?? "")}
+          </Message>
+        </div>
         {!hasKey && (
           <Text size="sm" muted className="max-w-[70ch]">
             Add Gemini key in Settings for narrative digest. The findings above always work.

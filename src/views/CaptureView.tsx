@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Button, Composer, Heading, Text } from "nil-ds";
+import { Button, Composer, Heading, Message, Text } from "nil-ds";
 import { SampleOffer } from "../components/Sample";
 import { PeekStack } from "../components/ui";
 import {
@@ -692,13 +692,7 @@ export function CaptureView({ onParked, onOpenReview }: CaptureViewProps) {
           </div>
 
           {(parkError || voiceError) && (
-            <Text
-              size="sm"
-              role="alert"
-              style={{ color: "var(--nil-color-text-danger)" }}
-            >
-              {parkError ?? voiceError}
-            </Text>
+            <Message tone="danger">{parkError ?? voiceError}</Message>
           )}
         </div>
       </div>
