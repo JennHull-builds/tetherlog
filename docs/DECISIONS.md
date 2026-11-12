@@ -48,6 +48,7 @@ D-025 and D-026. |
 | Identity | **Built 2026-11-09, awaiting a look.** The wordmark, the pixel T favicon and app icons, the share preview, the footer and a louder demo banner. See D-042. |
 | Patterns, findings first | **Built 2026-11-09, awaiting a look.** Four counted sentences with the picture that proves each (when, still pulling, where they went, wins), loops, the wonder shelf, and a sample month. Stays inside product rule 2. See D-043 to D-045. |
 | The v1 review | **Built 2026-11-12, awaiting a look.** Eleven small fixes across the app, and the kit's `Message`, a trailing control on `Input`, a tap-size Input and hover-only hover rules adopted. See D-046. |
+| Decks | **Built 2026-11-12 on `flip-1`, awaiting a look.** Review takes cards that an agent parks in a link: one card and one tap, then answers to paste back. A state inside Review, not a fifth screen. See D-047 and `docs/DECKS.md`. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -2256,3 +2257,53 @@ each, and the gaps were filled in the kit first, as the rule for a gap in the ki
 - The digest export's counts.
 - Where Review starts on desktop.
 - Wording.
+
+---
+
+## D-047: Review takes cards parked by agents
+
+**2026-11-12. Built on `flip-1`, awaiting a look.**
+
+**What.** Review can open a deck: a set of questions an agent parked, each with the agent's pick and its
+reason. The person answers one card at a time with one tap, and at the end copies one block of text to
+paste back to the agent. The cards arrive in a link, after the `#`. The format is in `docs/DECKS.md`.
+
+**Why.** The app was built so a person parks a thought and reviews it later. The same loop turned round is
+what the owner now faces every day: questions from agents, with no calm place to answer them. Review is the
+best-designed part of the app and its rules carry over as they are.
+
+**How each product rule is kept.**
+
+| Rule | How |
+|---|---|
+| Four screens, never a fifth | The deck is a state inside Review. No new nav item, no list of decks, no inbox. |
+| Capture is dumb, fast and silent. The agent never runs at capture | Capture is untouched. The deck makes no model call anywhere: each card arrives with the pick and the reason already written. |
+| No streaks, no guilt | No count of waiting cards outside Review, no badge, no age on a deck, nothing overdue. Not now is always there and the last card leaves like any other. |
+| Data stays on device | The cards travel after the `#`, which a browser does not send to a server. Answers are stored in IndexedDB and leave only when the person presses Copy answers. |
+| UK English, no em dash in UI copy | Every new string was checked. |
+| Reduced motion is a contract | A deck uses the existing leave and rise classes, so their reduced-motion halves come with them. Nothing new animates. |
+
+**The decisions inside it.**
+
+- **The deck is untrusted input.** Anyone can make a link. Fields render as text, a card link must be
+  `https://`, every limit is enforced when the link is read, and a deck that fails any check is refused whole.
+- **The same deck id is the same deck.** Opening a link again returns the stored deck with its answers. If that
+  deck was closed with Done, opening its link does not bring it back.
+- **Not now leaves a card open and answers nothing.** The copied text says "left open", and that the agent's
+  pick is not approved. An agent must not treat a left-open card as a yes.
+- **Database version 3 adds one table, `decks`.** The other three are unchanged and no stored row changes. A
+  deck is an agent's questions in transit, so the JSON backup does not include it.
+- **The link format carries a number.** Format 1 is plain JSON in base64url. Compression can come later as
+  format 2 without breaking old links.
+- **A link with no base is refused by `scripts/park.mjs`.** A link aimed at a build that cannot read decks
+  opens Capture and says nothing.
+- **The ghost buttons under Confirm use the kit's default size,** so each is 44 px tall on a phone. The deck
+  reserves enough rows for the longest set of keys in the deck, so Confirm sits at the same pixel on every card.
+
+**Left out, on purpose.** The agents' skill and deck files, reading answers back by script, a note on an
+answer, changing an answer from the wrap-up, the list beside the card on a laptop, Share, compressed links.
+Not planned: pictures or motion on a card.
+
+**Measured.** `npm run build` reports 128.91 KB of JS and 11.36 KB of CSS, both gzipped, against budgets of 130
+and 12. The deck cost 3.59 KB of JS and 0.01 KB of CSS, and the next slices have about 1 KB of JS to share
+unless something is cut.

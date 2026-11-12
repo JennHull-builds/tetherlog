@@ -619,6 +619,27 @@ can go back into `build`.
 
 ---
 
+## Decks
+
+Review can open a deck of questions an agent parked (D-047, format in `docs/DECKS.md`).
+
+- **The deck is a state inside Review, not a fifth screen.** `ReviewView` shows `DeckReview` when an open deck
+  is stored, and today's triage otherwise. Nothing about triage changes.
+- **A deck is untrusted input.** Anyone can make a link. Fields render as text, a card link must start with
+  `https://`, and every limit is enforced in `src/lib/deck.ts` when the link is read. Never render a deck
+  field as HTML, and never show part of a deck that failed a check.
+- **`scripts/park.mjs` needs a base address.** It has no default, on purpose: a link aimed at a build that
+  cannot read decks opens Capture and says nothing. Pass `--base` or set `TETHERLOG_BASE`.
+- **The database is now version 3, so after running `flip-1` locally an older branch on the same localhost
+  port cannot open it.** Clear the site's data, or use another port.
+- **The deck stays out of the JSON backup.** `exportAllData` and `importAllData` do not know the `decks` table.
+- **The colour-literal checks read a hash and three letters as a hex colour.** That is why `App.tsx` tests the
+  deck prefix without its hash sign, and why no comment in `src/` may write the hash prefix out.
+- **The buttons under Confirm use the kit's default size,** and the card reserves rows for the deck's longest
+  set of keys, so Confirm stays at one pixel across the deck. Re-measure it after any change to the card.
+
+---
+
 ## Do not touch
 
 Not part of the design system work, and changing them is out of scope unless asked:

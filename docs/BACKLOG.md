@@ -285,3 +285,17 @@ controls were 44 px discs. Below 44 px is not a comfortable tap target, and Park
 matters most. Nothing was overridden, because the brief says the kit ships as it is. D-031 measured the whole app: the nav buttons are 29 high, Confirm 32, the bucket buttons 27, every export and backup button 30, Save settings 32, and the kit's Input is 42. Only the kit can raise these. The fix is a
 kit decision: a larger size for Composer's button, or a `min-height` the consumer may set. Both need
 a change in nil-ds, which this repository does not make.
+
+---
+
+## B-010: The kit has no piece for a list of choices or an answer summary
+
+**Found 2026-11-12 building decks (D-047).** A deck card lists its choices (a key, a label, a detail, a mark
+for the agent's pick) and the wrap-up lists each question with the answer chosen. The kit has neither, so
+`src/views/DeckReview.tsx` builds both from the kit's label class and `Text`. The rule is that a gap in the
+kit is filled in the kit first, and this slice does not change the kit, so the gap is logged here instead of
+worked around quietly.
+
+What it would take: a choice-row piece and an answer-summary row in nil-ds, then the app adopts them. Waiting
+on the owner, and on a kit release. Nothing here blocks shipping.
+
