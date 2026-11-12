@@ -480,9 +480,13 @@ Added with D-030. Each was hit while moving Capture.
 6. **The kit's Input needs a `label`, and it renders it.** There is no visually hidden option, so a
    field that had no visible label has to borrow a string the screen already shows (Settings and
    Review's Wins do) or the screen gains a new string.
-7. **Kit buttons are 27 to 32 px tall and nothing here may stretch them** (B-009). Do not add
-   `min-height` or padding to a kit Button to reach 44 px: that overrides the kit. The native
-   checkboxes are the exception, because they are not the kit's: their label rows are 44 px.
+7. **Kit buttons and the Input are already tap size, so nothing here may stretch them** (B-009, closed). A
+   small kit Button is 36px to see and 44px to tap (an invisible hit area), and a md Button and an Input are
+   44px. Do not add `min-height` or padding to reach 44 px: that overrides the kit. The native checkboxes keep
+   their 44 px label rows, because they are not the kit's.
+8. **Status and error lines use the kit's `Message`, never hand-coloured `Text`.** Always render it where a line
+   may appear later, so the live region exists before its text, and pass `tone` (`neutral`, `success` or
+   `danger`) and `busy` rather than a colour or a hand-built cursor.
 
 `eslint.config.js` bans, for components and views: colour literals, `--tl-ref-*`, `--nil-primitive-*`
 and any `--tl-*` read that is not a motion or sound token (`spring`, `duration`, `ease`, `sound`).

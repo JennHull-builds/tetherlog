@@ -276,6 +276,8 @@ then the budget holds per screen and not per session.
 
 ## B-009: The kit's small button is 27 to 29 px tall on a phone
 
+**Closed 2026-11-12 in D-046: the kit's small button is 36px to see and 44px to tap since nil-ds 0.3.0 (an invisible hit area), measured in a browser, and the Input is 44px since the current pin.** What follows is the original finding.
+
 **Found 2026-11-03 in D-030. Waiting on the owner.**
 
 Measured at 390px: Mic 60 by 29, Park 67 by 29, and the three chips 58, 73 and 42 wide by 27. The old

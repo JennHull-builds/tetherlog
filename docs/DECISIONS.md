@@ -47,6 +47,7 @@ D-025 and D-026. |
 | Polish, slice 3 | **Built 2026-11-09, awaiting a look.** Motion at the moments that matter, example thoughts in the empty box, any key starts typing, and the kit's chart colours on the four groups. See D-040 and D-041. |
 | Identity | **Built 2026-11-09, awaiting a look.** The wordmark, the pixel T favicon and app icons, the share preview, the footer and a louder demo banner. See D-042. |
 | Patterns, findings first | **Built 2026-11-09, awaiting a look.** Four counted sentences with the picture that proves each (when, still pulling, where they went, wins), loops, the wonder shelf, and a sample month. Stays inside product rule 2. See D-043 to D-045. |
+| The v1 review | **Built 2026-11-12, awaiting a look.** Eleven small fixes across the app, and the kit's `Message`, a trailing control on `Input`, a tap-size Input and hover-only hover rules adopted. See D-046. |
 | Design direction | **Approved 2026-09-18:** the gravity well. `docs/LOOK.md` is binding. See D-007. Drawn as a grid since D-027. |
 | Live palette | The `docs/LOOK.md` dark palette, live since Phase 3. The violet is still a placeholder. |
 
@@ -2205,3 +2206,53 @@ about 20 wins, and "See a sample week" became "See a sample month". Every rule f
   at any hour. The old note about three repeats in the queue no longer applies: loops are spread over days.
 - **The banner** now reads "This is filled with a sample month so you can see how it works. Clear it to start
   your own."
+
+## D-046: The v1 review's fixes, and four pieces added to nil-ds
+
+**Date:** 2026-11-12.
+
+A review of v1 found small faults across the app and four gaps in the kit. The app fixes are below, one line
+each, and the gaps were filled in the kit first, as the rule for a gap in the kit requires.
+
+**What the review fixed in the app**
+
+- Review grows instead of sliding under the demo banner on short phone screens. Its section had a fixed height.
+- Review's status line reserves two lines, and an error reads as an error.
+- Patterns' Generate shows its failure and says how long the wait can be.
+- Copy buttons say Copied.
+- Share shows only where the browser has a share sheet.
+- Importing a backup says whether it worked and refuses a file that is not a backup.
+- The reminder hour is held to 0 to 23.
+- Chart text stays 12px at every width: a `useUnit` hook divides by the SVG's scale.
+- The waiting-to-sort link lines up with the stack on desktop.
+- The bottom nav row gives its labels more room below 390px. It is still tight at 360px, and that is an open
+  decision for the owner.
+- The side rail comes before the content in the page, so Tab reaches it first on desktop.
+
+**The kit**
+
+- The pin moved to `6cf402743282d5421ed97fe1f8514a672d8bf65f` on the kit's `tetherlog-review` branch. It is not
+  merged and not released. It adds `Message`, a `trailing` prop on `Input`, an Input as tall as the tap size
+  (44px), and hover rules inside `@media (hover: hover)`.
+- The app adopted `Message` for Review's status line, the digest line on Patterns, the import note on Settings and
+  Capture's error, and `trailing` for the key field's eye. Each `Message` is always rendered where a line may
+  appear later, so the live region exists before its text.
+- This follows the rule that a gap in the kit is filled in the kit first, never worked around in the app.
+
+**Four new strings, awaiting the owner's yes**
+
+- "Copied"
+- "Backup imported."
+- "That file is not a TetherLog backup. Nothing was changed."
+- "Gemini is writing. This can take up to 20 seconds."
+
+**Measured**
+
+`npm run build` reports 125.32 KB of JS and 11.35 KB of CSS, both gzipped, against budgets of 130 and 12.
+
+**Still open, for the owner**
+
+- The bottom nav at 360px and under.
+- The digest export's counts.
+- Where Review starts on desktop.
+- Wording.
