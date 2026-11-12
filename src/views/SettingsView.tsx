@@ -185,7 +185,8 @@ export function SettingsView() {
             max={23}
             value={String(reminderHour)}
             onChange={(event) => {
-              setReminderHour(Number(event.target.value));
+              const n = Math.round(Number(event.target.value));
+              setReminderHour(Number.isFinite(n) ? Math.min(23, Math.max(0, n)) : 0);
               setSaved(false);
             }}
           />
