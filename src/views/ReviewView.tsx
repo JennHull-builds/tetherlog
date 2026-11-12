@@ -697,6 +697,7 @@ function WrapUp({
   const carryForward = triagedToday.find((capture) => capture.carryForward);
   const doCaptures = triagedToday.filter((capture) => capture.bucket === "do");
   const winTexts = wins.map((win) => win.text);
+  const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
   async function handleAddWin() {
     const trimmed = winDraft.trim();
@@ -818,15 +819,19 @@ function WrapUp({
             <Button variant="ghost" icon="mail" onClick={() => mailtoDoList(triagedToday)}>
               Email do list
             </Button>
-            <Button
-              variant="ghost"
-              icon="share"
-              onClick={() =>
-                void shareText("TetherLog review", formatDoList(triagedToday))
-              }
-            >
-              Share
-            </Button>
+            {canShare && (
+              <Button
+                variant="ghost"
+                icon="share"
+                onClick={() =>
+                  void shareText("TetherLog review", formatDoList(triagedToday)).catch(
+                    () => undefined,
+                  )
+                }
+              >
+                Share
+              </Button>
+            )}
             <Button variant="ghost" icon="printer" onClick={() => window.print()}>
               Print
             </Button>

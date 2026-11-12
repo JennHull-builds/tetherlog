@@ -63,6 +63,7 @@ export function PatternsView() {
   const report = useMemo(() => analysePatterns(captures, wins), [captures, wins]);
   const stats = buildWeeklyStats(captures);
   const hasKey = Boolean(settings?.geminiApiKey);
+  const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
   // Zero-padded, so it agrees with the hour labels and so midnight reads as a
   // time rather than as an unfilled placeholder.
   const busiestHour = `${String(stats.busiestHour).padStart(2, "0")}:00`;
@@ -331,13 +332,17 @@ export function PatternsView() {
           >
             Download markdown
           </Button>
-          <Button
-            variant="ghost"
-            icon="share"
-            onClick={() => void shareText("Weekly digest", digest ?? digestMarkdown)}
-          >
-            Share
-          </Button>
+          {canShare && (
+            <Button
+              variant="ghost"
+              icon="share"
+              onClick={() =>
+                void shareText("Weekly digest", digest ?? digestMarkdown).catch(() => undefined)
+              }
+            >
+              Share
+            </Button>
+          )}
         </div>
       </section>
     </section>
