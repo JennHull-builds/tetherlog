@@ -43,7 +43,7 @@ export function CopyButton({ getText, children }: CopyButtonProps) {
   return (
     <span className="inline-flex">
       <Button variant="ghost" icon={copied ? "check" : "copy"} onClick={() => void handlePress()}>
-        <span style={{ display: "inline-grid" }}>
+        <span style={{ display: "inline-grid", justifyItems: "start" }}>
           <span
             style={{ gridArea: "1 / 1", visibility: copied ? "hidden" : undefined }}
             aria-hidden={copied || undefined}
