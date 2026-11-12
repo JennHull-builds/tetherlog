@@ -21,7 +21,7 @@
     "@fontsource/ibm-plex-sans": "5.3.0",
     "dexie": "^4.0.11",
     "dexie-react-hooks": "^4.4.0",
-    "nil-ds": "git+https://github.com/JennHull-builds/nil-ds.git#031afeb8e80376482ca1f3046e4a9bdb830fb238",
+    "nil-ds": "git+https://github.com/JennHull-builds/nil-ds.git#6cf402743282d5421ed97fe1f8514a672d8bf65f",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zod": "^4.6.5"
