@@ -11,6 +11,8 @@ const NAV: { id: Screen; label: string; icon: IconName }[] = [
 ];
 
 interface NavBarProps {
+  /** Which half to draw. App renders the rail before the content and the bar after it, so Tab follows what is drawn. */
+  part: "rail" | "bar";
   screen: Screen;
   onNavigate: (screen: Screen) => void;
 }
@@ -25,8 +27,12 @@ interface NavBarProps {
  * used: it renders anchors with an href and a word each (no icon), under a section heading and a
  * fold-away toggle, and this nav switches a screen in state rather than navigating. Two navs would be
  * two landmarks with one name, so exactly one is displayed at a time and the other leaves the page.
+ *
+ * It is drawn in two parts because the order in the page is the order Tab follows. App puts the rail
+ * first, so on desktop the keyboard reaches it before the content, as it is drawn; and the bar last,
+ * where the phone layout wants it.
  */
-export function NavBar({ screen, onNavigate }: NavBarProps) {
+export function NavBar({ part, screen, onNavigate }: NavBarProps) {
   function buttons(size: "sm" | "md") {
     return NAV.map((item) => (
       <Button
@@ -53,8 +59,8 @@ export function NavBar({ screen, onNavigate }: NavBarProps) {
     ));
   }
 
-  return (
-    <>
+  if (part === "bar") {
+    return (
       <nav
         aria-label="Screens"
         className="no-print sticky bottom-0 lg:hidden"
@@ -67,22 +73,24 @@ export function NavBar({ screen, onNavigate }: NavBarProps) {
           {buttons("sm")}
         </div>
       </nav>
+    );
+  }
 
-      <div
-        className="no-print sticky top-0 hidden h-dvh w-56 lg:order-first shrink-0 flex-col gap-6 self-start lg:flex"
-        style={{
-          background: "var(--nil-color-surface)",
-          borderRight: "var(--nil-border-width) solid var(--nil-color-border)",
-          padding: "var(--nil-spacing-lg) var(--nil-spacing-md)",
-        }}
-      >
-        <header className="tl-rail-mark">
-          <Wordmark size="rail" />
-        </header>
-        <nav aria-label="Screens" className="flex flex-col gap-3">
-          {buttons("md")}
-        </nav>
-      </div>
-    </>
+  return (
+    <div
+      className="no-print sticky top-0 hidden h-dvh w-56 shrink-0 flex-col gap-6 self-start lg:flex"
+      style={{
+        background: "var(--nil-color-surface)",
+        borderRight: "var(--nil-border-width) solid var(--nil-color-border)",
+        padding: "var(--nil-spacing-lg) var(--nil-spacing-md)",
+      }}
+    >
+      <header className="tl-rail-mark">
+        <Wordmark size="rail" />
+      </header>
+      <nav aria-label="Screens" className="flex flex-col gap-3">
+        {buttons("md")}
+      </nav>
+    </div>
   );
 }

@@ -47,8 +47,10 @@ export default function App() {
       {/* Below 1024px: the top bar with the name, the banner, the screen, the
           footer, then the bottom bar. From 1024px up the same nav is a rail on
           the left, carrying the name, and the rest is one column beside it
-          (D-039, D-042). */}
+          (D-039, D-042). The rail comes first in the page and the bar last, so
+          the keyboard reaches each where it is drawn; only one is ever shown. */}
       <div className="flex min-h-dvh flex-col lg:flex-row">
+        <NavBar part="rail" screen={screen} onNavigate={setScreen} />
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar />
           <SampleBanner />
@@ -65,7 +67,7 @@ export default function App() {
           </main>
           <Footer />
         </div>
-        <NavBar screen={screen} onNavigate={setScreen} />
+        <NavBar part="bar" screen={screen} onNavigate={setScreen} />
       </div>
     </SampleProvider>
   );
