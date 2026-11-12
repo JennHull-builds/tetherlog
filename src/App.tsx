@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { flushSync } from "react-dom";
 import { Footer } from "./components/Footer";
 import { NavBar } from "./components/NavBar";
 import { SampleBanner, SampleProvider } from "./components/Sample";
 import { TopBar } from "./components/Wordmark";
+import { receiveDeck } from "./db";
+import { readDeckLink } from "./lib/deck";
 import { prefersReducedMotion } from "./lib/motion";
 import type { Screen } from "./types";
 import { CaptureView } from "./views/CaptureView";
@@ -23,11 +25,46 @@ type ViewTransitionDocument = Document & {
   startViewTransition?: (update: () => void) => unknown;
 };
 
+/** Said once, when a link carried cards TetherLog cannot read (D-047). */
+const BAD_DECK_LINK =
+  "That link did not carry cards TetherLog can read. Ask the agent to make it again.";
+
+// The prefix is tested without its hash sign: the colour-literal checks read a hash and three letters as a hex colour.
+const hasDeckHash = () => window.location.hash.slice(1).startsWith("deck=");
+
 export default function App() {
-  const [screen, setScreenNow] = useState<Screen>("capture");
+  // A link with cards in it opens straight on Review, so Capture never flashes.
+  const [screen, setScreenNow] = useState<Screen>(hasDeckHash() ? "review" : "capture");
+  // While a link is being stored Review waits, so it never shows the wrong state.
+  const [reading, setReading] = useState(hasDeckHash);
+  const [deckNotice, setDeckNotice] = useState<string | null>(null);
+
+  // The cards travel after the `#`, which a browser never sends to a server.
+  // Read them, store them, then clear the address so a reload does not repeat it.
+  useEffect(() => {
+    async function takeDeckLink() {
+      if (!hasDeckHash()) return;
+      const hash = window.location.hash;
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+      setReading(true);
+      try {
+        await receiveDeck(readDeckLink(hash));
+        setDeckNotice(null);
+      } catch (error) {
+        console.warn("[tetherlog] a deck link could not be read:", error);
+        setDeckNotice(BAD_DECK_LINK);
+      }
+      setScreenNow("review");
+      setReading(false);
+    }
+    void takeDeckLink();
+    window.addEventListener("hashchange", takeDeckLink);
+    return () => window.removeEventListener("hashchange", takeDeckLink);
+  }, []);
 
   function setScreen(next: Screen) {
     if (next === screen) return;
+    if (next !== "review") setDeckNotice(null);
     const doc = document as ViewTransitionDocument;
     if (!doc.startViewTransition || prefersReducedMotion()) {
       setScreenNow(next);
@@ -61,7 +98,7 @@ export default function App() {
                 onOpenReview={() => setScreen("review")}
               />
             )}
-            {screen === "review" && <ReviewView />}
+            {screen === "review" && !reading && <ReviewView notice={deckNotice} />}
             {screen === "patterns" && <PatternsView />}
             {screen === "settings" && <SettingsView />}
           </main>

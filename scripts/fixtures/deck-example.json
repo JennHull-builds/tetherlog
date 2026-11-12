@@ -1,0 +1,44 @@
+{
+  "v": 1,
+  "id": "example-deck",
+  "title": "Example questions",
+  "from": "An agent",
+  "createdAt": "2026-11-13T09:00:00Z",
+  "replyTo": "Paste them into the chat that made these cards.",
+  "cards": [
+    {
+      "id": "rename-export",
+      "question": "Rename the export function?",
+      "context": "The export helper in the settings module is called saveAll but it only writes a backup file.",
+      "pick": "A",
+      "reason": "The new name says what it does, and nothing outside the module calls it yet.",
+      "choices": [
+        { "key": "A", "label": "Keep the name", "detail": "No other file changes." },
+        { "key": "B", "label": "Rename to writeBackup", "detail": "Two call sites change." }
+      ]
+    },
+    {
+      "id": "empty-state",
+      "question": "What should an empty list show?",
+      "context": "The list page is blank when nothing has been added.",
+      "pick": "A",
+      "reason": "A short sentence is the smallest change and matches the other pages.",
+      "choices": [
+        { "key": "A", "label": "One plain sentence" },
+        { "key": "B", "label": "Show a sample" },
+        { "key": "C", "label": "Leave it blank" }
+      ],
+      "link": { "href": "https://example.com/empty-states", "text": "Notes on empty states" }
+    },
+    {
+      "id": "old-flag",
+      "question": "Remove the old feature flag?",
+      "pick": "Yes",
+      "reason": "It has been on for every user since the last release and nothing reads it.",
+      "choices": [
+        { "key": "Yes", "label": "Remove it now" },
+        { "key": "Later", "label": "Remove it next release" }
+      ]
+    }
+  ]
+}

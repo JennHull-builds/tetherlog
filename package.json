@@ -10,6 +10,7 @@
     "tokens:check": "bash scripts/check-tokens.sh",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "node --test scripts/test-deck.mjs",
     "preview": "vite preview",
     "privacy:check": "bash scripts/check-privacy.sh",
     "docs:check": "node scripts/check-docs.mjs",

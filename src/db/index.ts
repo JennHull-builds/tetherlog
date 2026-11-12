@@ -1,10 +1,11 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { AppSettings, Capture, TranscriptStatus, Win } from "../types";
+import type { AppSettings, Capture, Deck, DeckAnswer, StoredDeck, TranscriptStatus, Win } from "../types";
 
 export class TetherLogDB extends Dexie {
   captures!: EntityTable<Capture, "id">;
   wins!: EntityTable<Win, "id">;
   settings!: EntityTable<AppSettings, "id">;
+  decks!: EntityTable<StoredDeck, "id">;
 
   constructor() {
     super("tetherlog");
@@ -21,6 +22,16 @@ export class TetherLogDB extends Dexie {
       captures: "id, createdAt, triagedAt, bucket",
       wins: "id, reviewDate, createdAt",
       settings: "id",
+    });
+
+    // v3 (D-047): decks of questions that agents park for Review. One new
+    // table, the other three exactly as they were. A browser that has opened
+    // v3 cannot be opened by older code on the same origin.
+    this.version(3).stores({
+      captures: "id, createdAt, triagedAt, bucket",
+      wins: "id, reviewDate, createdAt",
+      settings: "id",
+      decks: "id, receivedAt",
     });
   }
 }
@@ -209,5 +220,64 @@ export async function importAllData(payload: {
         ),
       );
     }
+  });
+}
+
+// ── decks (D-047) ───────────────────────────────────────────────────────────
+// A deck is an agent's questions in transit, so none of this is in the JSON
+// backup: exportAllData and importAllData do not know it exists.
+
+/**
+ * Store a deck from a link. The same id is the same deck: opening a link again
+ * returns what is stored, answers and all, and never starts it over.
+ */
+export async function receiveDeck(deck: Deck): Promise<StoredDeck> {
+  return db.transaction("rw", db.decks, async () => {
+    const existing = await db.decks.get(deck.id);
+    if (existing) return existing;
+    const stored: StoredDeck = { id: deck.id, deck, receivedAt: Date.now(), answers: {} };
+    await db.decks.add(stored);
+    return stored;
+  });
+}
+
+/** The oldest deck that has not been closed, or null. */
+export async function getOpenDeck(): Promise<StoredDeck | null> {
+  return (await db.decks.orderBy("receivedAt").filter((d) => !d.closedAt).first()) ?? null;
+}
+
+async function changeDeck(deckId: string, change: (stored: StoredDeck) => void): Promise<void> {
+  await db.transaction("rw", db.decks, async () => {
+    const stored = await db.decks.get(deckId);
+    if (!stored) return;
+    change(stored);
+    await db.decks.put(stored);
+  });
+}
+
+export function answerDeckCard(deckId: string, cardId: string, answer: DeckAnswer): Promise<void> {
+  return changeDeck(deckId, (stored) => {
+    stored.answers[cardId] = answer;
+  });
+}
+
+export function markDeckCopied(deckId: string): Promise<void> {
+  return changeDeck(deckId, (stored) => {
+    stored.copiedAt = Date.now();
+  });
+}
+
+/** Put the cards that were left open back in front of the person. */
+export function reopenDeckCards(deckId: string): Promise<void> {
+  return changeDeck(deckId, (stored) => {
+    for (const [cardId, answer] of Object.entries(stored.answers)) {
+      if (answer.choice === undefined) delete stored.answers[cardId];
+    }
+  });
+}
+
+export function closeDeck(deckId: string): Promise<void> {
+  return changeDeck(deckId, (stored) => {
+    stored.closedAt = Date.now();
   });
 }

@@ -80,6 +80,60 @@ export interface AppSettings {
   soundEnabled?: boolean;
 }
 
+// ── Decks (D-047) ───────────────────────────────────────────────────────────
+// A deck is a set of questions an agent parks for the person to answer in Review.
+// These schemas only check the shape. The limits and the cross-field rules live in
+// readDeckLink (src/lib/deck.ts), so one place says what a deck may hold.
+
+export const deckChoiceSchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  detail: z.optional(z.string()),
+});
+
+export const deckCardSchema = z.object({
+  id: z.string(),
+  question: z.string(),
+  context: z.optional(z.string()),
+  pick: z.string(),
+  reason: z.string(),
+  choices: z.array(deckChoiceSchema),
+  link: z.optional(z.object({ href: z.string(), text: z.string() })),
+});
+
+export const deckSchema = z.object({
+  v: z.literal(1),
+  id: z.string(),
+  title: z.string(),
+  from: z.string(),
+  createdAt: z.string(),
+  replyTo: z.optional(z.string()),
+  cards: z.array(deckCardSchema),
+});
+
+export type DeckChoice = z.infer<typeof deckChoiceSchema>;
+export type DeckCard = z.infer<typeof deckCardSchema>;
+export type Deck = z.infer<typeof deckSchema>;
+
+/** One card's answer. `skipped` is "Not now": the card is open, not decided. */
+export interface DeckAnswer {
+  choice?: string;
+  skipped?: true;
+  at: number;
+}
+
+/** A deck as stored on this device, with the answers so far. */
+export interface StoredDeck {
+  /** The deck's own id. The same id means the same deck. */
+  id: string;
+  deck: Deck;
+  receivedAt: number;
+  /** By card id. */
+  answers: Record<string, DeckAnswer>;
+  copiedAt?: number;
+  closedAt?: number;
+}
+
 export type Screen = "capture" | "review" | "patterns" | "settings";
 
 export const BUCKET_LABELS: Record<TriageBucket, string> = {

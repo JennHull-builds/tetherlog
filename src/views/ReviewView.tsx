@@ -8,6 +8,7 @@ import {
   applyTriage,
   getCapturesForDay,
   getSettings,
+  getOpenDeck,
   getUntriagedCaptures,
   getWinsForDay,
 } from "../db";
@@ -25,6 +26,7 @@ import { readDurationMs } from "../lib/motion";
 import { formatDuration } from "../lib/voice";
 import type { Capture, TriageBucket, TriageSuggestion, Win } from "../types";
 import { BUCKET_LABELS, VOICE_TEXT_PLACEHOLDER, todayKey } from "../types";
+import { DeckReview } from "./DeckReview";
 
 /**
  * Review, in two states. See docs/DECISIONS.md D-017 for the structure and
@@ -91,7 +93,29 @@ interface Leaving {
   node: ReactNode;
 }
 
-export function ReviewView() {
+/**
+ * Review. An open deck of questions from an agent shows its own state (D-047);
+ * otherwise this is the triage of the person's own thoughts, untouched.
+ * `notice` is a link that could not be read: said once, in danger tone.
+ */
+export function ReviewView({ notice = null }: { notice?: string | null }) {
+  // undefined while the first read is in flight, null when there is no deck.
+  const deck = useLiveQuery(getOpenDeck, [], undefined);
+  if (deck === undefined) return null;
+  if (deck) return <DeckReview key={deck.id} stored={deck} notice={notice} />;
+  return (
+    <>
+      {notice && (
+        <div className="tl-gutter pt-3">
+          <Message tone="danger">{notice}</Message>
+        </div>
+      )}
+      <TriageReview />
+    </>
+  );
+}
+
+function TriageReview() {
   const dayKey = todayKey();
   const captures = useLiveQuery(
     () => getCapturesForDay(dayKey),
