@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Button, Heading, Input, Readout, Text } from "nil-ds";
 import { SampleOffer } from "../components/Sample";
-import { BucketMark, TriageCard, TriageDeck } from "../components/ui";
+import { BucketMark, CopyButton, TriageCard, TriageDeck } from "../components/ui";
 import {
   addWin,
   applyTriage,
@@ -13,7 +13,6 @@ import {
 } from "../db";
 import { aiTriageWithGemini, GEMINI_TIMEOUT_MS, ruleBasedTriage } from "../lib/agent";
 import {
-  copyText,
   downloadFile,
   formatDoList,
   formatReviewMarkdown,
@@ -799,18 +798,10 @@ function WrapUp({
             Export your do items. No paid integrations.
           </Text>
           <div className="flex flex-wrap gap-2">
-            <Button variant="ghost" icon="copy" onClick={() => void copyText(formatDoList(triagedToday))}>
-              Copy do list
-            </Button>
-            <Button
-              variant="ghost"
-              icon="copy"
-              onClick={() =>
-                void copyText(formatReviewMarkdown(dayKey, triagedToday, winTexts))
-              }
-            >
+            <CopyButton getText={() => formatDoList(triagedToday)}>Copy do list</CopyButton>
+            <CopyButton getText={() => formatReviewMarkdown(dayKey, triagedToday, winTexts)}>
               Copy review
-            </Button>
+            </CopyButton>
             <Button
               variant="ghost"
               icon="download"

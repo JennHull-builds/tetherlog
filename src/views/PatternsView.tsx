@@ -8,9 +8,10 @@ import {
   MixChart,
 } from "../components/PatternCharts";
 import { SampleOffer } from "../components/Sample";
+import { CopyButton } from "../components/ui";
 import { db, getSettings } from "../db";
 import { aiWeeklyDigest, buildWeeklyStats, GEMINI_TIMEOUT_MS } from "../lib/agent";
-import { copyText, downloadFile, shareText } from "../lib/hands";
+import { downloadFile, shareText } from "../lib/hands";
 import {
   WEEKDAY_NAMES,
   WINDOW_DAYS,
@@ -322,9 +323,7 @@ export function PatternsView() {
         )}
         {digest && <Text className="max-w-[70ch]">{digest}</Text>}
         <div className="flex flex-wrap gap-2">
-          <Button variant="ghost" icon="copy" onClick={() => void copyText(digestMarkdown)}>
-            Copy digest
-          </Button>
+          <CopyButton getText={() => digestMarkdown}>Copy digest</CopyButton>
           <Button
             variant="ghost"
             icon="download"

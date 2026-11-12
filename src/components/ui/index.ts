@@ -6,3 +6,4 @@ export {
   type TriageCardProps,
   type TriageDeckProps,
 } from "./TriageCard";
+export { CopyButton, type CopyButtonProps } from "./CopyButton";
