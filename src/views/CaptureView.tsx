@@ -732,7 +732,7 @@ export function CaptureView({ onParked, onOpenReview }: CaptureViewProps) {
             reserves its height either way, so it cannot move anything. */}
         <div className="flex h-8 items-center justify-center lg:justify-start">
           {waiting > 0 && (
-            <button type="button" className="tl-quiet-link" onClick={onOpenReview}>
+            <button type="button" className="tl-quiet-link lg:-ml-2" onClick={onOpenReview}>
               {waiting} waiting to sort
             </button>
           )}
