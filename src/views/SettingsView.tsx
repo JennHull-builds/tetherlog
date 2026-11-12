@@ -44,6 +44,7 @@ export function SettingsView() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [saved, setSaved] = useState(false);
   const [showKey, setShowKey] = useState(false);
+  const [importNote, setImportNote] = useState<{ text: string; error: boolean } | null>(null);
   const importRef = useRef<HTMLInputElement | null>(null);
 
   // Settings arrive from Dexie asynchronously and re-emit after every save.
@@ -91,10 +92,28 @@ export function SettingsView() {
   async function handleImport(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    const text = await file.text();
-    const payload = JSON.parse(text) as Parameters<typeof importAllData>[0];
-    await importAllData(payload);
-    event.target.value = "";
+    const input = event.target;
+    try {
+      const parsed: unknown = JSON.parse(await file.text());
+      const looksLikeBackup =
+        typeof parsed === "object" &&
+        parsed !== null &&
+        !Array.isArray(parsed) &&
+        (["captures", "wins", "settings"] as const).some((key) =>
+          Array.isArray((parsed as Record<string, unknown>)[key]),
+        );
+      if (!looksLikeBackup) throw new Error("not a backup");
+      await importAllData(parsed as Parameters<typeof importAllData>[0]);
+      setImportNote({ text: "Backup imported.", error: false });
+    } catch {
+      setImportNote({
+        text: "That file is not a TetherLog backup. Nothing was changed.",
+        error: true,
+      });
+    } finally {
+      // So the same file can be picked again.
+      input.value = "";
+    }
   }
 
   return (
@@ -211,6 +230,17 @@ export function SettingsView() {
             tabIndex={-1}
             aria-hidden
           />
+        </div>
+        {/* A reserved line, so the result never moves what is below it. */}
+        <div className="flex min-h-6 items-center">
+          <Text
+            size="sm"
+            muted={!importNote?.error}
+            role="status"
+            style={importNote?.error ? { color: "var(--nil-color-text-danger)" } : undefined}
+          >
+            {importNote?.text ?? ""}
+          </Text>
         </div>
       </Section>
 
